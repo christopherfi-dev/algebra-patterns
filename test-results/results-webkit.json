@@ -1,0 +1,71 @@
+{
+  "engine": "webkit",
+  "version": "26.6",
+  "bySection": {
+    "source-of-truth text": {
+      "pass": 9,
+      "fail": 0
+    },
+    "answer checker": {
+      "pass": 7,
+      "fail": 0
+    },
+    "computed numbers": {
+      "pass": 6,
+      "fail": 0
+    },
+    "data block text": {
+      "pass": 3,
+      "fail": 0
+    },
+    "correct path (phone)": {
+      "pass": 220,
+      "fail": 0
+    },
+    "correct path (desktop)": {
+      "pass": 220,
+      "fail": 0
+    },
+    "correct path (phone-dark)": {
+      "pass": 220,
+      "fail": 0
+    },
+    "predicted wrong answers": {
+      "pass": 329,
+      "fail": 0
+    },
+    "Screen 7: 40, then 7": {
+      "pass": 107,
+      "fail": 0
+    },
+    "Screen 7: follow-up item": {
+      "pass": 99,
+      "fail": 0
+    },
+    "exit ticket: tile row wrong, 9n, 225, 16.25": {
+      "pass": 124,
+      "fail": 0
+    },
+    "exit ticket: skip row wrong, 4n, 109, 16": {
+      "pass": 124,
+      "fail": 0
+    },
+    "exit ticket: non-linear rule, other answers": {
+      "pass": 124,
+      "fail": 0
+    },
+    "exit ticket: one blank wrong": {
+      "pass": 124,
+      "fail": 0
+    },
+    "navigation": {
+      "pass": 41,
+      "fail": 0
+    },
+    "keyboard": {
+      "pass": 4,
+      "fail": 0
+    }
+  },
+  "failed": []
+}
