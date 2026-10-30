@@ -146,6 +146,7 @@ label.tick input { width: 26px; height: 26px; accent-color: var(--ink); margin: 
 table.t { border-collapse: collapse; margin: 6px 0 10px; font-size: 16px; font-variant-numeric: tabular-nums; }
 .t th, .t td { border: 1px solid var(--line); padding: 6px 9px; text-align: center; min-width: 2.4em; background: var(--card); }
 .t th[scope="row"] { text-align: left; font-weight: 650; background: var(--soft); min-width: 0; }
+.t caption { caption-side: top; text-align: left; font-size: 14px; font-weight: 700; color: var(--muted); padding: 0 0 4px; }
 .why .t th[scope="row"] { background: var(--card); }
 .t tr.enter, .t td.filled { animation: rowIn .5s ease both; }
 .comparetable td, .extable td { padding: 4px; }
@@ -365,9 +366,9 @@ const LESSON = {
       why: ['Every figure has the same 2 fixed tiles. Each new figure adds one group of 3. So Figure 4 has 4 groups of 3 and the 2 fixed tiles: 12 + 2 = 14.'],
     },
 
-    /* ---------------- Screen 3 ---------------- */
+    /* ---------------- Screen 3, first half: the skip-count table (split off in round 3) ---------------- */
     {
-      n: 3, part: 1, title: 'Figure 0, and the rule',
+      n: 3, key: '3t', part: 1, title: 'The skip-count table',
       // Marc's row comparison, built one row at a time (ROUND-2-AMENDMENT 5): the table stays at the top while rows are added.
       show: [{ compare: { cols: [1, 2, 3, 4], rows: [['Figure n', n => n], ['Tiles', n => tileCount(n)]] } }],
       steps: [
@@ -389,6 +390,17 @@ const LESSON = {
           say: 'Right: 2 more every time.',
           wrong: [{ values: [TILES.group], say: '3 is what each figure adds. Compare the two rows: 5 and 3, then 8 and 6.' }],
           hint: 'Subtract: 5 − 3, then 8 − 6.' },
+      ],
+      why: ['Each figure adds 3 tiles, so the tiles grow like the skip count by 3. Every figure has 2 more tiles than the skip count. Those 2 are the fixed tiles.'],
+    },
+
+    /* ---------------- Screen 3 ---------------- */
+    {
+      n: 3, part: 1, title: 'Figure 0, and the rule',
+      // The completed table from the last screen, read-only, so both routes to the 2 meet on this screen.
+      show: [{ compare: { cols: [1, 2, 3, 4], caption: 'From the last screen',
+        rows: [['Figure n', n => n], ['Tiles', n => tileCount(n)], ['Skip count by 3', n => TILES.group * n], ['How many more', n => tileCount(n) - TILES.group * n]] } }],
+      steps: [
         { id: 'A1', type: 'slide', prompt: 'Slide the figure number back to 0.', figure: 'tiles', min: 0, max: 10, start: 4, target: 0 },
         { id: 'A2', type: 'number', prompt: 'How many tiles does Figure 0 have?',
           answer: () => tileCount(0),
@@ -1143,9 +1155,9 @@ const BLOCKS = {
   rowTable(b) { return rowTable(b); },
   // Screen 3's row comparison; tableRow steps add rows to it.
   compare(b, c) {
-    const { cols, rows } = b.compare;
+    const { cols, rows, caption } = b.compare;
     const tbody = h('tbody', {}, rows.map(([label, f]) => h('tr', {}, h('th', { scope: 'row' }, rich(label)), cols.map(n => h('td', {}, fmt(f(n)))))));
-    const el = h('div', { class: 'tablewrap' }, h('table', { class: 't comparetable' }, tbody));
+    const el = h('div', { class: 'tablewrap' }, h('table', { class: 't comparetable' }, caption ? h('caption', {}, rich(caption)) : null, tbody));
     c.s.compare = { el, tbody, cols };
     return el;
   },
@@ -1774,7 +1786,7 @@ function renderScreen(i) {
   const sc = LESSON.screens[i];
   const log = state.log[i] = { secondMiss: false, done: false };
   const titleId = newId('t');
-  const sec = h('section', { class: 'screen', 'data-screen': sc.n, 'aria-labelledby': titleId });
+  const sec = h('section', { class: 'screen', 'data-screen': sc.key || sc.n, 'aria-labelledby': titleId });
   const panelId = newId('why');
   const whyBtn = h('button', { type: 'button', class: 'btn ghost why-btn', 'aria-expanded': 'false', 'aria-controls': panelId, hidden: true }, LESSON.ui.why);
   const whyPanel = h('div', { class: 'why', id: panelId, hidden: true });
