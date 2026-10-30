@@ -6,12 +6,13 @@
 <title>Seeing the Rule</title>
 <style>
 /* The two lesson colours. --constant is only ever the constant; --coefficient is only ever a group of the coefficient.
-   Okabe–Ito-style orange and blue: distinct under protan, deutan and tritan simulation, and at least 4.5:1 against the page in both modes. */
+   Okabe–Ito-style orange and blue: distinct under protan, deutan and tritan simulation, and at least 4.5:1 against the page in both modes.
+   Everything else on the page is neutral ink and grey, so neither colour is reused. */
 :root {
   --constant: #b45309;
   --coefficient: #1d6fb8;
   --paper: #f6f5f1; --card: #ffffff; --ink: #1d2025; --muted: #5b616b; --line: #d8d5cc; --soft: #ecebe5;
-  --stick-dim: #c4c0b6; --sq-a: #d6d2c8; --sq-b: #bcb7ab; --lit: #1d2025;
+  --stick-dim: #c4c0b6; --sq-a: #d6d2c8; --sq-b: #b3ad9f; --lit: #1d2025;
   --fs: 1;   /* figure scale */
   color-scheme: light;
 }
@@ -21,7 +22,7 @@
     --constant: #f59e4b;
     --coefficient: #6cb6f5;
     --paper: #121418; --card: #1b1e24; --ink: #ecebe6; --muted: #a3a8b1; --line: #363b46; --soft: #22262d;
-    --stick-dim: #4b515c; --sq-a: #3b404a; --sq-b: #575e6a; --lit: #ecebe6;
+    --stick-dim: #4b515c; --sq-a: #3b404a; --sq-b: #5d6470; --lit: #ecebe6;
     color-scheme: dark;
   }
 }
@@ -45,31 +46,52 @@ h1.title { font-size: clamp(25px, 5.6vw, 32px); line-height: 1.2; margin: 0 0 16
 h1.title:focus { outline: none; }
 .intro { margin: 0 0 12px; }
 .sequence { font-size: clamp(28px, 8vw, 40px); font-weight: 750; letter-spacing: .02em; margin: 6px 0 4px; font-variant-numeric: tabular-nums; }
+.formula { font-size: 22px; font-weight: 700; text-align: center; margin: 2px 0; font-variant-numeric: tabular-nums; }
+.reminder { background: var(--soft); border-radius: 14px; padding: 12px 14px; font-weight: 600; margin: 0 0 12px; }
 
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin: 6px 0 4px; }
 .figs { display: flex; flex-wrap: wrap; gap: 16px 18px; align-items: flex-end; justify-content: center; }
-figure { margin: 0; text-align: center; min-width: 0; }
+figure { margin: 0; text-align: center; min-width: 0; max-width: 100%; }
 figure svg { display: block; margin: 0 auto; max-width: 100%; height: auto; overflow: visible; }
 figcaption { font-size: 15px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+.count { font-weight: 750; color: var(--ink); }
+.students { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 10px; margin: 4px 0; }
+.student { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 14px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
+.student .name { font-weight: 750; }
+.student .r { font-size: 20px; font-weight: 650; white-space: nowrap; }
 
 /* steps */
 .step { margin-top: 24px; scroll-margin: 90px 0 130px; }
+.path .step { margin-top: 18px; padding-left: 14px; border-left: 3px solid var(--line); }
 .prompt { font-weight: 650; margin: 0 0 10px; }
-.line { margin: 0 0 10px; }
+.line { margin: 0 0 10px; font-weight: 600; }
 .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.field { display: inline-flex; align-items: center; gap: 8px; }
+.field { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; }
 .prefix, .unit { font-weight: 650; white-space: nowrap; }
-.ans { font-size: 22px; font-weight: 650; min-height: 52px; width: 6.5em; max-width: 100%; padding: 8px 12px;
+.ans { font-size: 22px; font-weight: 650; min-height: 52px; width: 6.5em; max-width: 100%; min-width: 0; padding: 8px 12px;
   border: 2px solid var(--muted); border-radius: 12px; background: var(--card); font-variant-numeric: tabular-nums; }
 .ans.rule { width: 11em; }
 .ans.small { width: 4.2em; text-align: center; }
 .ans:focus { outline: 3px solid var(--ink); outline-offset: 1px; border-color: var(--ink); }
 .ans:disabled { opacity: 1; border-style: dashed; background: transparent; }
+.fields { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; }
+.fieldbox { display: grid; gap: 4px; justify-items: center; }
+.fieldbox .lab { font-size: 15px; font-weight: 650; color: var(--muted); }
+.fieldbox.left { justify-items: start; }
+.fieldbox.left figure, .fieldbox.left figcaption { text-align: left; }
+.fieldbox.left figure svg { margin: 0; }
+.gridtable { border-collapse: collapse; }
+.gridtable th, .gridtable td { padding: 4px 3px; text-align: center; font-weight: 650; }
+.gridtable th[scope="row"] { text-align: left; padding-right: 8px; }
+.gridtable .ans.small { width: 3em; }
+@media (min-width: 520px) { .gridtable th[scope="row"] { white-space: nowrap; } .gridtable .ans.small { width: 4em; } .gridtable td { padding: 4px 6px; } }
+.okmark { width: 30px; height: 30px; flex: 0 0 auto; }
 .btn { min-height: 48px; min-width: 48px; padding: 10px 20px; border-radius: 12px; border: 2px solid var(--ink);
   background: var(--ink); color: var(--paper); font-weight: 700; cursor: pointer; }
 .btn.ghost { background: transparent; color: var(--ink); }
 .btn:disabled { opacity: .35; cursor: default; }
-.btn:focus-visible, .choice:focus-visible, .piece:focus-visible, .hit:focus-visible, .mark:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.btn:focus-visible, .choice:focus-visible, .piece:focus-visible, .mark:focus-visible, .drop:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
 
 /* feedback */
 .fb { margin-top: 12px; }
@@ -82,32 +104,51 @@ figcaption { font-size: 15px; color: var(--muted); margin-top: 6px; font-variant
 .note-body p { margin: 0; }
 .note-body p + p { margin-top: 6px; }
 .test { font-variant-numeric: tabular-nums; font-weight: 650; }
-.demo:empty { display: none; }
+.demo:empty, .path:empty { display: none; }
 .demo { margin-top: 12px; }
 .answer-card { padding: 12px 14px; border-radius: 14px; background: var(--soft); }
 .answer-card .label { display: block; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.answer-card .val { font-size: 22px; font-weight: 750; }
+.answer-card .val { font-size: 21px; font-weight: 750; overflow-wrap: anywhere; }
 .answer-card p { margin: 6px 0 0; }
 
-/* choices */
+/* choices and marks */
 .choices { display: grid; gap: 10px; margin-bottom: 12px; }
-.choice { text-align: left; min-height: 52px; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); cursor: pointer; line-height: 1.4; }
+.choice { display: flex; justify-content: space-between; align-items: center; gap: 10px; text-align: left; min-height: 52px; padding: 12px 14px;
+  border-radius: 12px; border: 2px solid var(--line); background: var(--card); cursor: pointer; line-height: 1.4; }
 .choice[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); font-weight: 650; }
 .choice.is-answer { border-style: dashed; border-color: var(--ink); }
 .choice:disabled { cursor: default; }
+.choice .okmark { width: 26px; height: 26px; }
+.mark-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.mark-row .who { font-weight: 650; }
+.mark-btns { display: flex; gap: 8px; }
+.mark { min-height: 46px; min-width: 46px; padding: 8px 14px; border-radius: 10px; border: 2px solid var(--line); background: var(--card); font-weight: 650; cursor: pointer; }
+.mark[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.mark.is-answer { outline: 2px dashed var(--ink); outline-offset: 2px; }
+
+/* explain */
+textarea.explain { display: block; width: 100%; min-height: 120px; font-size: 18px; padding: 10px 12px; border: 2px solid var(--muted); border-radius: 12px; background: var(--card); resize: vertical; }
+textarea.explain:focus { outline: 3px solid var(--ink); outline-offset: 1px; }
+.compare { display: grid; gap: 12px; margin-bottom: 10px; }
+@media (min-width: 640px) { .compare.two { grid-template-columns: 1fr 1fr; } }
+.model { background: var(--soft); border-radius: 12px; padding: 12px 14px; margin: 0; font-weight: 600; }
+label.tick { display: inline-flex; align-items: center; gap: 12px; min-height: 48px; font-weight: 600; cursor: pointer; }
+label.tick input { width: 26px; height: 26px; accent-color: var(--ink); margin: 0; }
 
 /* Why? */
 .why-wrap { margin-top: 26px; }
 .why { margin-top: 12px; background: var(--soft); border-radius: 16px; padding: 14px 16px; }
 .why p { margin: 0 0 10px; }
 .why p:last-child { margin-bottom: 0; }
+.why .card { margin: 8px 0 12px; }
 
 /* tables */
 .tablewrap { max-width: 100%; overflow-x: auto; }
 table.t { border-collapse: collapse; margin: 6px 0 10px; font-size: 16px; font-variant-numeric: tabular-nums; }
-.t th, .t td { border: 1px solid var(--line); padding: 6px 10px; text-align: center; min-width: 2.4em; }
+.t th, .t td { border: 1px solid var(--line); padding: 6px 9px; text-align: center; min-width: 2.4em; background: var(--card); }
 .t th[scope="row"] { text-align: left; font-weight: 650; background: var(--soft); min-width: 0; }
 .why .t th[scope="row"] { background: var(--card); }
+.t td.filled { animation: rowIn .5s ease both; }
 .t tr.enter { animation: rowIn .5s ease both; }
 @keyframes rowIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 
@@ -124,20 +165,83 @@ table.t { border-collapse: collapse; margin: 6px 0 10px; font-size: 16px; font-v
 .g-const { fill: var(--constant); fill-opacity: .14; }
 .g-coef { fill: var(--coefficient); fill-opacity: .14; }
 .slot { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 3; }
+line.slot { stroke-width: 2.5; stroke-linecap: round; }
+.stick { stroke: var(--ink); stroke-width: 6; stroke-linecap: round; }
+.stick.const { stroke: var(--constant); }
+.stick.coef { stroke: var(--coefficient); }
+.stick.dim { stroke: var(--stick-dim); }
+.stick.lit { stroke: var(--lit); }
+.stick.flash { animation: flash .45s ease-in-out 6 alternate; }
+@keyframes flash { to { opacity: .1; } }
+.hit { fill: transparent; cursor: pointer; outline: none; }
+.hit:focus-visible { fill: var(--soft); stroke: var(--ink); stroke-width: 2; }
+.armed .hit { fill: var(--ink); fill-opacity: .06; }
+.ring.ra rect { fill: var(--sq-a); }
+.ring.rb rect { fill: var(--sq-b); }
+.ring.lit rect { fill: var(--lit); transition: fill .4s; }
+.counter { font-size: 40px; font-weight: 800; text-align: center; min-height: 1.3em; margin: 4px 0; font-variant-numeric: tabular-nums; }
+.readout { text-align: center; font-weight: 650; font-size: 20px; margin: 8px 0 0; min-height: 1.5em; font-variant-numeric: tabular-nums; }
+.bordrow { display: flex; flex-wrap: wrap; gap: 10px 16px; justify-content: center; align-items: flex-end; margin-top: 10px; }
+.chip { display: grid; justify-items: center; gap: 2px; }
+.chip b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.graph .axis { stroke: var(--muted); stroke-width: 1.5; }
+.graph .grid { stroke: var(--line); stroke-width: 1; }
+.graph text { fill: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.graph text.pl { fill: var(--ink); font-weight: 700; }
+.graph .pt { fill: var(--ink); }
+.graph .ring { fill: none; stroke: var(--ink); stroke-width: 2.5; }
+.graph .fit { stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+.graph .rise { stroke: var(--ink); stroke-width: 2; stroke-dasharray: 5 4; }
+.graph text.rl { fill: var(--ink); font-weight: 700; }
+.graph text.rl, .graph text.pl { paint-order: stroke; stroke: var(--card); stroke-width: 4px; stroke-linejoin: round; }
+.ramp .wedge { fill: var(--soft); stroke: var(--muted); stroke-width: 1.5; }
+.ramp .ball { fill: var(--ink); }
+.ramp .tick { stroke: var(--muted); stroke-width: 1.5; }
+.ramp text { fill: var(--muted); font-size: 13px; }
+.shrink .sq { fill: var(--sq-a); stroke: var(--card); stroke-width: 2; }
+.shrink .strip { fill: var(--sq-b); }
+.shrink .corner { fill: var(--lit); }
+.shrink .lead { stroke: var(--muted); stroke-width: 1; }
+.shrink text { fill: var(--ink); font-size: 14px; font-weight: 650; }
+.dials { display: grid; gap: 4px 16px; grid-template-columns: auto 1fr auto; align-items: center; margin-top: 10px; }
+.dials label { font-weight: 750; font-size: 20px; font-style: italic; }
+.dials output { font-weight: 750; font-size: 20px; min-width: 2.2em; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* sliders */
+input[type="range"] { -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 48px; margin: 6px 0 0; background: transparent; cursor: pointer; touch-action: pan-y; }
+input[type="range"]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: var(--line); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 32px; height: 32px; margin-top: -13px; border-radius: 50%; background: var(--ink); border: 3px solid var(--paper); box-shadow: 0 0 0 1px var(--ink); }
+input[type="range"]::-moz-range-track { height: 6px; border-radius: 3px; background: var(--line); }
+input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); border: 3px solid var(--paper); }
+input[type="range"]:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; border-radius: 8px; }
+input[type="range"]:disabled { opacity: .5; cursor: default; }
 
 /* drag and tap */
 .tray { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: center; padding: 12px; margin-top: 12px;
   border: 2px dashed var(--line); border-radius: 16px; min-height: 80px; }
+.tray .aside { font-weight: 650; }
 .piece { touch-action: none; -webkit-user-select: none; user-select: none; background: var(--card); border: 2px solid var(--line);
   border-radius: 14px; padding: 8px 10px; min-width: 56px; min-height: 56px; cursor: grab; display: inline-flex; align-items: center; justify-content: center; }
 .piece svg { display: block; pointer-events: none; }
 .piece[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--ink); }
 .piece:disabled { opacity: .3; cursor: default; }
 .ghost-piece { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 100; opacity: .92; margin: 0; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
-.drop { border-radius: 14px; touch-action: manipulation; }
+.drop { display: block; border-radius: 14px; touch-action: manipulation; }
 .drop.armed { outline: 3px dashed var(--ink); outline-offset: 4px; cursor: pointer; }
 .drop.over { outline: 3px solid var(--ink); outline-offset: 4px; }
+.buildarea { min-height: 120px; display: flex; align-items: center; justify-content: center; }
 .frozen .interactive { pointer-events: none; }
+
+/* exit ticket and self-check */
+.items { counter-reset: item; display: grid; gap: 22px; margin-top: 8px; }
+.item .q { font-weight: 650; margin: 0 0 8px; }
+.item .q .num { display: inline-block; min-width: 1.6em; font-weight: 800; }
+.item .fb { margin-top: 10px; }
+.checklist { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.checklist li { display: flex; gap: 12px; align-items: center; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+.checklist li span { display: block; }
+.checklist li span::first-letter { text-transform: uppercase; }
+.checklist svg { flex: 0 0 auto; width: 28px; height: 28px; }
 
 /* bottom navigation */
 .nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--paper); border-top: 1px solid var(--line); }
@@ -165,14 +269,61 @@ table.t { border-collapse: collapse; margin: 6px 0 10px; font-size: 16px; font-v
 'use strict';
 
 /* =====================================================================
-   MODEL. Every count on screen comes from these functions.
+   MODEL. Every count, border, speed and table value on screen comes from these functions.
    ===================================================================== */
-const TILES = { fixed: 2, group: 3 };                       // Screens 2 to 6: 2 fixed tiles plus n groups of 3
+const range = (a, b) => (b < a ? [] : Array.from({ length: b - a + 1 }, (_, i) => a + i));
+
+// Tiles (Screens 2 to 6): 2 fixed tiles plus n groups of 3.
+const TILES = { fixed: 2, group: 3 };
 const tileCount = n => TILES.fixed + TILES.group * n;
+
+// Sticks (Screens 7 to 10): a straight row of n squares, neighbours sharing an edge.
+// Edges: uprights v0…vn, tops t0…, bottoms b0…, listed in counting order. Figure 0 is the lone stick v0.
+function stickEdges(n) {
+  const e = ['v0'];
+  for (let i = 0; i < n; i++) e.push(`t${i}`, `b${i}`, `v${i + 1}`);
+  return e;
+}
+const stickCount = n => stickEdges(n).length;
+const sharedEdges = n => range(1, n - 1).map(i => `v${i}`);
+function completeSquares(edges) {
+  let k = 0;
+  while ([`v${k}`, `t${k}`, `b${k}`, `v${k + 1}`].every(e => edges.includes(e))) k++;
+  return k;
+}
+// Building a student's rule (Screen 10): constant sticks fill the first square in this order;
+// each group of 3 then adds a top, a bottom and a right side.
+const CONST_ORDER = ['v0', 't0', 'b0', 'v1'];
+function builtEdges(constant, groups) {
+  const out = CONST_ORDER.slice(0, constant).map(e => ({ e, cls: 'const' }));
+  const start = constant >= CONST_ORDER.length ? 1 : 0;
+  for (let i = 0; i < groups; i++) {
+    const k = start + i;
+    out.push({ e: `t${k}`, cls: 'coef' }, { e: `b${k}`, cls: 'coef' }, { e: `v${k + 1}`, cls: 'coef' });
+  }
+  return out;
+}
+
+// Squares (Screens 11 to 13): ring j is the L-shaped border that turns (j − 1) × (j − 1) into j × j.
+function ringCells(j) {
+  const out = [];
+  for (let r = 0; r < j; r++) for (let c = 0; c < j; c++) if (Math.max(r, c) === j - 1) out.push([r, c]);
+  return out;
+}
+const borderTiles = j => ringCells(j).length;
+const squareTiles = k => range(1, k).reduce((a, j) => a + borderTiles(j), 0);
+
+// The ball (Screens 13 and 14): d = t² metres after t seconds.
+const dist = t => t * t;
+const avgSpeed = (t, h) => (dist(t + h) - dist(t)) / h;
+// The shrinking border (Screen 14): a 3 × 3 square, two strips 3 × h and a corner h × h.
+const SHRINK = { side: 3, t: 3, table: [1, 0.5, 0.1, 0.01] };
+const stripsPerH = () => 2 * SHRINK.side;   // what the average speed closes in on as the corner vanishes
 
 /* =====================================================================
    LESSON DATA. All learner-facing content lives here; the engine below reads it.
-   Text in quotes comes word for word from docs/Seeing-the-Rule-Interactive-Lesson-Plan.md.
+   Quoted text comes word for word from docs/Seeing-the-Rule-Interactive-Lesson-Plan.md.
+   Prompts marked "spec: Learner types…" turn a spec step description into a question; REPORT.md lists every one.
    Tokens: {c|text} and {k|text} colour text as constant / coefficient; {sw:c} and {sw:k} are colour swatches.
    ===================================================================== */
 const LESSON = {
@@ -182,15 +333,27 @@ const LESSON = {
     why: 'Why?',
     next: 'Next',
     back: 'Back',
+    submit: 'Submit',
     progress: (i, n) => `Screen ${i} of ${n}`,
     ruleFormat: 'Type a rule using n, such as 2n + 5.',   // from HANDOFF.md
-    numberFormat: 'Type a number.',                       // not in the spec: see REPORT.md
-    fallback: 'Not yet. Try again.',                      // not in the spec: used where a step has no written hint, see REPORT.md
-    answer: 'Answer',                                      // label on the second-miss answer card
+    edgeTaken: 'That edge is already there.',
+    cantDoIt: "I can't do it",
+    // Not in the spec; listed in REPORT.md for Marc to replace.
+    numberFormat: 'Type a number.',
+    fallback: 'Not yet. Try again.',
+    answer: 'Answer',
+    compare: 'Compare',
+    same: 'Mine says the same thing.',
+    tiles: n => `${n} tiles`,
   },
   parts: {
     1: 'Part 1: Warm-up',
     2: 'Part 2: Tiles. See the structure',
+    3: 'Part 3: Sticks. Two ways to see one rule',
+    4: 'Part 4: Evaluate and repair',
+    5: 'Part 5: When the growth grows',
+    6: 'Part 6: From squares to speed',
+    7: 'Part 7: Exit ticket',
   },
   screens: [
     /* ---------------- Screen 1 ---------------- */
@@ -205,7 +368,7 @@ const LESSON = {
             { rule: '4n', say: '4n gives 4, 8, 12, 16. Every term of the pattern is 3 more.' },
           ],
           hint: 'What does each term add? Then find the value at n = 0.',
-          // Second miss: Marc's row comparison, built row by row
+          // Second miss: Marc's row comparison, built row by row.
           demo: { type: 'rowTable', rule: '4n + 3', normal: '4n', from: 0, to: 4,
                   labels: ['n', 'Pattern', '"Normal" row (4n)', 'How far off'] } },
         { id: 'B', type: 'number', prompt: 'Which term is 103?', prefix: 'n =',
@@ -239,6 +402,371 @@ const LESSON = {
           ] },
       ],
       why: ['Every figure has the same 2 fixed tiles. Each new figure adds one group of 3. So Figure 4 has 4 groups of 3 and the 2 fixed tiles: 12 + 2 = 14.'],
+    },
+
+    /* ---------------- Screen 3 ---------------- */
+    {
+      n: 3, part: 2, title: 'Figure 0, and the rule',
+      steps: [
+        { id: 'A1', type: 'slide', prompt: 'Slide the figure number back to 0.', figure: 'tiles', min: 0, max: 10, start: 4, target: 0 },
+        { id: 'A2', type: 'number', prompt: 'How many tiles does Figure 0 have?',
+          answer: () => tileCount(0),
+          say: 'Figure 0 has no groups, only the 2 fixed tiles.',
+          wrong: [
+            { values: [5], say: '5 is Figure 1. Take away its group of 3.' },
+            { values: [0], say: 'The groups are gone, but look at the picture: the fixed tiles stay.' },
+          ] },
+        { id: 'B', type: 'rule', prompt: 'Type the rule.', prefix: 'T =', answer: '3n + 2',
+          say: 'Right. Slide to check any figure.',
+          wrong: [
+            // "the screen tests it at n = 1: 8, not 5."
+            { rule: '5 + 3n', pre: f => [`n = 1: ${fmt(f(1))}, not ${fmt(tileCount(1))}`], act: c => c.s.slider.set(1),
+              say: '5 is the total for Figure 1. The constant is the value at Figure 0.' },
+            // "tests n = 2: 10, not 8."
+            { rule: '5n', pre: f => [`n = 2: ${fmt(f(2))}, not ${fmt(tileCount(2))}`], act: c => c.s.slider.set(2),
+              say: 'Only 3 tiles repeat in each figure, not 5.' },
+          ],
+          hint: 'How many tiles does each figure add, and how many are there at Figure 0?',
+          onCorrect: c => c.s.slider.showRule(n => `T = {k|3 × ${fmt(n)}} + {c|2} = ${fmt(ruleFn('3n + 2')(n))}`) },
+      ],
+      why: [
+        "The coefficient 3 counts the tiles in each group, so it multiplies the figure number n. The constant 2 counts the fixed tiles, which are there even at Figure 0. You can also see it in a table, the way you'd compare rows:",
+        { rowTable: true, rule: '3n + 2', normal: '3n', from: 0, to: 4, labels: ['n', 'Tiles', '"Normal" row (3n)', 'How far off'] },
+        'The picture and the table give the same constant. T = 3n + 2.',
+      ],
+    },
+
+    /* ---------------- Screen 4 ---------------- */
+    {
+      n: 4, part: 2, title: 'Why does Figure 1 have 5 tiles if the constant is 2?',
+      show: [{ tiles: [1] }],
+      steps: [
+        { id: 'A', type: 'choice',
+          options: [
+            { text: 'The rule must be wrong for Figure 1',
+              say: 'Check it: 3 × 1 + 2 = 5. The rule is right. The first total and the constant are different things.' },
+            { text: 'Figure 1 has one group of 3 plus the 2 fixed tiles. The constant counts only the fixed tiles.', correct: true },
+            { text: 'The constant is the first total minus 3 by coincidence',
+              say: "It isn't coincidence. The first total always includes one group; the constant is what's there before any group." },
+          ] },
+      ],
+      why: ['The first total includes one group, so it is the constant plus the coefficient: 2 + 3 = 5. The constant is the value at Figure 0, before any groups are added. Reading the first total as the constant is the most common mistake with these rules.'],
+    },
+
+    /* ---------------- Screen 5 ---------------- */
+    {
+      n: 5, part: 2, title: 'Which figure has 23 tiles?',
+      show: [{ formula: 'T = {k|3n} + {c|2}' }],
+      steps: [
+        { id: 'A', type: 'number', prefix: 'Figure', label: 'Which figure has 23 tiles?',
+          answer: () => solveLinear('3n + 2', 23),
+          say: '3n + 2 = 23 gives 3n = 21, so n = 7.',
+          hint: 'Undo the + 2 first, then the × 3.' },
+      ],
+      why: [
+        'The rule turns a figure number into a total. To go backwards, set the rule equal to the total and solve: 3n + 2 = 23, so 3n = 21 and n = 7. Figure 7 has 23 tiles: 7 groups of 3, plus the 2 fixed tiles.',
+        { tiles: [7] },
+      ],
+    },
+
+    /* ---------------- Screen 6 ---------------- */
+    {
+      n: 6, part: 2, title: 'Does one check prove it?',
+      intro: ['A student says the rule is T = 5n, because Figure 1 has 5 tiles.'],
+      show: [{ tiles: [1] }],
+      steps: [
+        { id: 'A1', type: 'number', prompt: 'What does T = 5n give for Figure 1?', prefix: 'T =',
+          answer: () => ruleFn('5n')(1) },
+        { id: 'A2', type: 'choice', prompt: 'Is the rule correct?',
+          options: [
+            { text: 'Yes', say: "It works for Figure 1, but one figure isn't enough. Try another one." },
+            { text: 'Maybe', correct: true, say: 'Maybe. Always try another one.' },
+          ] },
+        { id: 'B', type: 'numbers', prompt: 'What does T = 5n give for Figure 0 and Figure 10?',
+          fields: [{ label: 'Figure 0', tiles: 0 }, { label: 'Figure 10', tiles: 10 }],
+          answers: () => [0, 10].map(ruleFn('5n')),
+          judge: (v, st) => matches(v, st.answers())
+            ? { kind: 'correct', say: 'Figure 0 has 2 tiles, not 0. Figure 10 has 32, not 50. The rule is wrong.' }
+            : { kind: 'hint', say: LESSON.ui.fallback },
+          // "The picture shows the real counts beside them."
+          onCorrect: c => c.el.querySelectorAll('[data-count]').forEach(el => { el.hidden = false; }) },
+        { id: 'C', type: 'numbers', prompt: 'What does T = 3n + 2 give for Figures 0, 1 and 10?',
+          fields: [{ label: 'Figure 0' }, { label: 'Figure 1' }, { label: 'Figure 10' }],
+          answers: () => [0, 1, 10].map(ruleFn('3n + 2')),
+          judge: (v, st) => matches(v, st.answers())
+            ? { kind: 'correct', say: 'It works for all three, including Figure 0 and a figure far away.' }
+            : { kind: 'wrong', say: 'Substitute again: 3 × n, then add 2.' } },
+        { id: 'D', type: 'choice', prompt: 'Why can we trust 3n + 2 for every figure?',
+          options: [
+            { text: 'It worked for Figure 1', say: 'So did 5n. One figure can fit a wrong rule.' },
+            { text: 'It works for three figures, and every figure adds exactly one more group of 3 to the same 2 fixed tiles.', correct: true },
+          ] },
+      ],
+      why: ['One figure can fit a wrong rule: 5n and 3n + 2 both give 5 at Figure 1. Another check exposes the wrong one. Figure 0 is a good test because it checks the constant, the tiles there before any group. A figure far away, like Figure 10, checks the coefficient, because a wrong coefficient drifts further off with every figure. When a pattern adds the same amount every time and a straight-line rule works for three figures, it works for all of them.'],
+    },
+
+    /* ---------------- Screen 7 ---------------- */
+    {
+      n: 7, part: 3, title: 'Shared edges',
+      show: [{ sticks: [1, 2, 3] }],
+      steps: [
+        { id: 'A1', type: 'buildSticks', prompt: 'Drag sticks to build Figure 4.', from: 3 },
+        { id: 'A2', type: 'number', prompt: 'How many sticks does Figure 4 have?',
+          answer: () => stickCount(4),
+          say: 'Each new square needs only 3 sticks. It shares one with its neighbour.' },
+        { id: 'B', type: 'number', prompt: 'How many sticks does Figure 10 have?',
+          answer: () => stickCount(10),
+          say: '1 + 3 × 10 = 31.',
+          wrong: [
+            { values: [30], say: "3 for each square. Now look at Figure 1: does it follow the same pattern? It's 1 + 3." },
+            // Marc's move: test the claim on smaller figures, one step at a time.
+            { values: [40], path: [
+              { id: '·1', type: 'number', prompt: 'If each square has 4 sticks, how many would Figure 2 have?',
+                answer: () => 4 * 2 },
+              { id: '·2', type: 'countSticks', n: 2, lines: ['Count them.'], after: ['Why?'] },
+              { id: '·3', type: 'number', prompt: 'Then how many does Figure 3 have?',
+                judge: ([raw]) => {
+                  const v = parseNumber(raw);
+                  if (v === null) return { kind: 'format', say: LESSON.ui.numberFormat };
+                  if (near(v, stickCount(3))) return { kind: 'correct', say: 'Right.' };
+                  return { kind: 'wrong', path: [{ id: '·3b', type: 'countSticks', n: 3, lines: ['Count them.'], after: ["So it didn't add 4 new ones. Why not?"] }] };
+                } },
+              { id: '·4', type: 'numbers', prompt: 'How many sticks did the 2nd square add? The 3rd?',
+                fields: [{ label: '2nd' }, { label: '3rd' }],
+                answers: () => [stickCount(2) - stickCount(1), stickCount(3) - stickCount(2)],
+                judge: (v, st) => matches(v, st.answers()) ? { kind: 'correct' } : { kind: 'hint', say: LESSON.ui.fallback } },
+              { id: '·5', type: 'number', lines: ['Does the first one follow the same pattern? If so, Figure 1 is 1 + 3.'],
+                show: [{ sticks: [1, 2, 3], colour: 'rule31' }],
+                prompt: 'Figure 2 is 1 + two 3s. Figure 3 is…?',
+                answer: () => stickCount(3),
+                say: '1 + three 3s. That matches the count.' },
+              { id: '·6', type: 'number', prompt: 'So how many does Figure 10 have?',
+                answer: () => stickCount(10),
+                say: '1 + 3 × 10 = 31.' },
+            ] },
+          ] },
+      ],
+      why: ['Every square after the first adds only 3 sticks, because it shares an edge with the square before it. The first square follows the same pattern if you see it as 1 stick plus 3. So Figure 1 is 1 + 3, Figure 2 is 1 + two 3s, Figure 3 is 1 + three 3s, and Figure 10 is 1 + ten 3s = 31.'],
+    },
+
+    /* ---------------- Screen 8 ---------------- */
+    {
+      n: 8, part: 3, title: 'Are these two rules the same?',
+      intro: ['Two rules for the sticks: S = 3n + 1 and S = 4 + 3(n − 1). Are these two rules the same?'],
+      steps: [
+        { id: 'A', type: 'numbers', prompt: 'Type the value of each rule for n = 1, 2 and 3.',
+          grid: { rows: ['S = 3n + 1', 'S = 4 + 3(n − 1)'], cols: [1, 2, 3] },
+          answers: () => ['3n + 1', '4 + 3(n − 1)'].flatMap(r => [1, 2, 3].map(ruleFn(r))),
+          judge: (v, st) => {
+            const a = st.answers();
+            if (matches(v, a)) return { kind: 'correct', say: 'The same values for all three. Are they the same for every n? Simplify the second rule to find out.' };
+            if (!matches(v.slice(3), a.slice(3))) return { kind: 'wrong', say: 'Work inside the bracket first, then multiply by 3, then add 4.' };
+            return { kind: 'hint', say: LESSON.ui.fallback };
+          } },
+        { id: 'B', type: 'rule', show: [{ reminder: 'The distributive property: 3(n − 1) = 3 × n − 3 × 1.' }],
+          prompt: 'Simplify 4 + 3(n − 1).', prefix: 'S =', answer: '4 + 3(n − 1)', simplified: true,
+          say: '4 + 3n − 3 = 3n + 1. The two rules are the same.',
+          answerText: () => 'S = 3n + 1',
+          notCombined: 'Correct so far. Now combine the numbers 4 and −3.',
+          // Every wrong answer is tested against the original by substitution.
+          wrong: [
+            { rule: '3n + 3', say: 'The 3 multiplies both terms in the bracket. You multiplied the n but not the 1.',
+              post: (f, g) => [`Test at n = 1: ${fmt(f(1))}, but the original gives ${fmt(g(1))}.`] },
+            { rule: '3n + 7', say: '3 × (−1) is −3, not +3.',
+              post: (f, g) => [`Test at n = 1: ${fmt(f(1))}, but the original gives ${fmt(g(1))}.`] },
+            { rule: '7n − 7', say: 'You added 4 + 3 before multiplying. Multiply 3(n − 1) first.',
+              post: (f, g) => [`Test: at n = 2 both give ${fmt(f(2))}, but at n = 1 yours gives ${fmt(f(1))} and the original gives ${fmt(g(1))}.`,
+                               { cls: 'say', text: "It matched one figure. One substitution isn't enough." }] },
+            { rule: '7n − 3', say: "4 and 3n aren't like terms. Only the numbers 4 and −3 combine.",
+              post: (f, g) => [`Test: at n = 1 both give ${fmt(f(1))}, but at n = 2 yours gives ${fmt(f(2))} and the original gives ${fmt(g(2))}.`] },
+          ],
+          hint: 'Distribute first: 3 × n and 3 × (−1). Then combine the numbers.',
+          testAll: (f, g) => {
+            const n = [1, 2, 3, 0, 4, 5, 10].find(x => !close(f(x), g(x)));
+            return n === undefined ? [] : [`Test at n = ${n}: ${fmt(f(n))}, but the original gives ${fmt(g(n))}.`];
+          } },
+        { id: 'C1', type: 'slide', prompt: 'Slide to Figure 0.', figure: 'sticks', colour: 'rule31', min: 0, max: 10, start: 4, target: 0 },
+        { id: 'C2', type: 'number', prompt: 'How many sticks are left?',
+          answer: () => stickCount(0),
+          say: 'One lone stick: the constant in 3n + 1.',
+          wrong: [{ values: [4], say: '4 is Figure 1. Take away its three sticks.' }] },
+      ],
+      why: [
+        'Substituting n = 1, 2 and 3 showed the two rules agree for three figures. Simplifying shows why they agree for every figure: 4 + 3(n − 1) = 4 + 3n − 3 = 3n + 1. In the picture, 4 + 3(n − 1) counts the first full square, then 3 sticks for each square after it. 3n + 1 counts one starting stick, then 3 for every square. Same sticks, grouped differently.',
+        { sticks: [3, 3], colours: ['rule4', 'rule31'], captions: ['4 + 3(n − 1)', '3n + 1'] },
+      ],
+    },
+
+    /* ---------------- Screen 9 ---------------- */
+    {
+      n: 9, part: 3, title: 'Forward and backward',
+      show: [{ formula: 'S = {k|3n} + {c|1}' }],
+      steps: [
+        { id: 'A', type: 'number', prompt: 'How many sticks are in Figure 40?',
+          answer: () => stickCount(40),
+          say: '3 × 40 + 1 = 121.' },
+        { id: 'B', type: 'number', prompt: 'Which figure uses exactly 100 sticks?', prefix: 'Figure',
+          answer: () => range(0, 100).find(n => stickCount(n) === 100),
+          say: '3n + 1 = 100 gives 3n = 99, so n = 33.',
+          hint: 'Undo the + 1 first, then the × 3.' },
+      ],
+      why: ['Forward, the rule takes a figure number and gives the sticks: Figure 40 needs 3 × 40 + 1 = 121. Backward, set the rule equal to the sticks and solve: 3n + 1 = 100, so n = 33.'],
+    },
+
+    /* ---------------- Screen 10 ---------------- */
+    {
+      n: 10, part: 4, title: 'Three students, three rules',
+      intro: ['Three students wrote rules for the sticks.'],
+      show: [{ students: [
+        { name: 'Mina', rule: 'S = {k|3n} + {c|1}' },
+        { name: 'Arun', rule: 'S = {c|4} + {k|3n}' },
+        { name: 'Nina', rule: 'S = {c|4} + {k|3(n − 1)}' },
+      ] }],
+      steps: [
+        { id: 'A', type: 'buildRule', prompt: "Build Mina's rule for Figure 1.", who: 'Mina',
+          atOne: 'S = {k|3 × 1} + {c|1}', constant: 1, groups: 1,
+          result: "That's Figure 1." },
+        { id: 'B1', type: 'buildRule', prompt: "Build Arun's rule for Figure 1.", who: 'Arun',
+          atOne: 'S = {c|4} + {k|3 × 1}', constant: 4, groups: 1 },
+        { id: 'B2', type: 'number', prompt: 'How many squares did you build?',
+          answer: () => completeSquares(builtEdges(4, 1).map(x => x.e)) },
+        { id: 'B3', type: 'number', prompt: 'Which figure is that?', prefix: 'Figure',
+          answer: () => completeSquares(builtEdges(4, 1).map(x => x.e)),
+          say: "Arun's rule built Figure 2 when it should have built Figure 1." },
+        { id: 'C', type: 'buildRule', prompt: "Build Nina's rule for Figure 1.", who: 'Nina',
+          atOne: 'S = {c|4} + {k|3 × (1 − 1)}', constant: 4, groups: 0, groupsNote: '3 × (1 − 1) = 0',
+          result: "That's Figure 1." },
+        { id: 'D', type: 'marks', prompt: 'Mark each rule correct or incorrect.', labels: ['correct', 'incorrect'],
+          items: [
+            { who: 'Mina', rule: 'S = 3n + 1', correct: true },
+            { who: 'Arun', rule: 'S = 4 + 3n', correct: false, ifMarkedCorrect: 'Build his rule for Figure 1 again and count the squares.' },
+            { who: 'Nina', rule: 'S = 4 + 3(n − 1)', correct: true },
+          ] },
+        { id: 'E', type: 'explain', prompt: "In your own words, why is Arun's rule one figure ahead?",
+          model: "Arun's 4 is already a whole square. Then he adds 3 more sticks for every square, so he counts one square too many." },
+      ],
+      why: ["Arun's constant, 4, is already a complete square. His 3n then adds a three-stick piece for every square, so at n = 1 he builds two squares: Figure 2. Mina starts from 1 stick, so n pieces of 3 make exactly n squares. Nina keeps the full first square but uses (n − 1), so she only adds pieces for the squares after the first. Her rule simplifies to Mina's: equivalent rules can look different and still give the same value for every n."],
+    },
+
+    /* ---------------- Screen 11 ---------------- */
+    {
+      n: 11, part: 5, title: 'Square figures',
+      show: [{ squares: [1, 2, 3] }],
+      steps: [
+        { id: 'A', type: 'number', prompt: 'How many tiles are in Figure 4?',
+          answer: () => squareTiles(4),
+          wrong: [{ values: [12], say: "That's adding 3 again. Build it: a 4-by-4 square.",
+                    act: c => { if (!c.s.ghost) { c.s.ghost = true; c.el.append(block({ squares: [4], ghost: true }, c)); } } }] },
+        { id: 'B1', type: 'growSquare', prompt: 'Drag the L-shaped border that turns each square into the next.', from: 1, to: 4 },
+        { id: 'B2', type: 'number', prompt: 'How many tiles are in the next border?',
+          answer: () => borderTiles(5),
+          say: 'Each border is 2 tiles longer than the one before.',
+          wrong: [{ values: [7], say: "That's the border from 3 × 3 to 4 × 4. The next one turns 4 × 4 into 5 × 5." }] },
+        { id: 'C', type: 'choice', prompt: 'Is there a common difference?',
+          options: [{ text: 'Yes' }, { text: 'No', correct: true }] },
+      ],
+      why: ["Each new square adds an L-shaped border around two sides. The borders are 3, 5, 7, 9: they grow by 2 every time, because each side of the square is 1 longer. With no common difference, this pattern can't be arithmetic."],
+    },
+
+    /* ---------------- Screen 12 ---------------- */
+    {
+      n: 12, part: 5, title: 'Can a line fit?',
+      intro: ['Make the line pass through every point.'],
+      steps: [
+        { id: 'A', type: 'dials', points: [1, 2, 3, 4], tries: 3, a: { min: 0, max: 10, start: 1 }, b: { min: -15, max: 10, start: 0 } },
+      ],
+      why: ['A straight-line rule adds the same amount every step. These figures add 3, then 5, then 7. No single a works, so no line passes through every point.'],
+    },
+
+    /* ---------------- Screen 13 ---------------- */
+    {
+      n: 13, part: 6, title: 'A square that grows smoothly',
+      intro: ['Figures come in whole numbers. Now imagine the square growing smoothly.',
+              'A ball rolling down a ramp: after t seconds it has rolled d = t² metres.'],
+      show: [{ ramp: [0, 4] }, { table: [['t (s)', t => t], ['d (m)', t => dist(t)]], cols: [0, 1, 2, 3, 4] }],
+      steps: [
+        { id: 'A', type: 'number', show: [{ squareBorder: 4 }],
+          prompt: "What is the ball's average speed from 3 to 4 seconds?", unit: 'm/s',
+          answer: () => avgSpeed(3, 1),
+          say: '7 metres in 1 second, the same 7 as the border.',
+          wrong: [
+            { values: [16], say: "That's how far it has rolled after 4 seconds. Speed is distance travelled ÷ time taken." },
+            { values: [4], say: "That's the average from 0 to 4 seconds. We want 3 to 4." },
+          ],
+          // "beside it, the 7-tile border from 3 × 3 to 4 × 4 lights up"
+          onCorrect: c => c.s.border.light() },
+      ],
+      why: ["Average speed = distance travelled ÷ time taken. From 3 to 4 seconds the ball goes from 9 m to 16 m, 7 m in 1 second. It's the same 7 as the border, because d = t² is the square pattern with time allowed to be any number."],
+    },
+
+    /* ---------------- Screen 14 ---------------- */
+    {
+      n: 14, part: 6, title: 'Shrink the border',
+      show: [{ shrink: 0.5 }],
+      steps: [
+        { id: 'A', type: 'number',
+          prompt: `What is the average speed for h = 0.5? (distance at ${fmt(SHRINK.t + 0.5)} s: ${fmt(dist(SHRINK.t + 0.5))} m)`, unit: 'm/s',
+          answer: () => avgSpeed(SHRINK.t, 0.5),
+          say: '3.25 m in 0.5 s.',
+          wrong: [{ values: [3.25], say: "That's the distance travelled. It took 0.5 seconds. Divide." }],
+          onCorrect: c => c.s.shrink.fill(0.5) },
+        { id: 'B1', type: 'shrinkSlide', prompt: 'Slide h toward 0.' },
+        { id: 'B2', type: 'number', prompt: 'What is the speed at exactly 3 seconds?', unit: 'm/s',
+          answer: () => stripsPerH(),
+          say: "6 m/s, the ball's speed at the instant t = 3.",
+          wrong: [
+            { values: [6.01], say: "That's the average over a tiny gap. What number are these closing in on?" },
+            { values: [0], say: "The border shrinks, but border ÷ h doesn't. Look at 6.5, 6.1, 6.01." },
+          ] },
+      ],
+      why: ['The border is two strips, each 3 × h, plus a corner, h × h, so its area is 6h + h². Divide by the time h: the average speed is 6 + h. As h shrinks, the corner vanishes and the average closes in on 6. That number is the speed at a single instant, the first idea of calculus.'],
+    },
+
+    /* ---------------- Screen 15 ---------------- */
+    {
+      n: 15, part: 7, title: 'The garden (independent evidence)',
+      intro: ['A garden starts with 24 plants before any new beds are built. Each new bed adds exactly 6 plants. None are removed. Let n be the number of new beds and P the total number of plants.'],
+      steps: [
+        { id: 'A', type: 'exit', items: [
+          { q: 'Write the rule for P.', type: 'rule', prefix: 'P =', answer: '24 + 6n',
+            ifWrong: "The 24 plants are there before any beds: that's the constant. Each bed adds 6: that's the coefficient." },
+          { q: 'P when n = 0', type: 'number', prefix: 'P =', answer: () => ruleFn('24 + 6n')(0),
+            ifWrong: 'With no new beds, only the starting plants are there.' },
+          { q: 'P when n = 7', type: 'number', prefix: 'P =', answer: () => ruleFn('24 + 6n')(7),
+            ifWrong: '24 + 6 × 7 = 24 + 42.' },
+          { q: 'A student writes P = 24 + 6(n − 1). What does it give at n = 0?', type: 'number', prefix: 'P =',
+            answer: () => ruleFn('24 + 6(n − 1)')(0),
+            ifWrong: "24 + 6(0 − 1) = 18, not 24: it's shifted by one bed, like Arun's rule." },
+          { q: 'Write a correct rule that uses (n − 1).', type: 'rule', prefix: 'P =', answer: '24 + 6n', mustUse: 'n − 1',
+            ifWrong: 'Counting from the first bed, start from its total: 30.' },
+          { q: 'Which pattern can be written as T = an + b?', type: 'choice',
+            options: [{ seq: n => 4 * n + 2, correct: true }, { seq: n => n * n }, { seq: n => 2 ** n }],
+            ifWrong: 'Only that one adds the same amount each step.' },
+          { q: 'Which explanation justifies the rule for every n?', type: 'choice',
+            options: [
+              { text: 'It works for n = 0 and n = 7', ifChosen: "That checks two cases. It doesn't explain why it works for every n." },
+              { text: 'There are always the same 24 starting plants, and each of the n beds adds exactly 6, so the total is 24 + 6n.', correct: true },
+            ] },
+        ] },
+      ],
+    },
+
+    /* ---------------- Screen 16 ---------------- */
+    {
+      n: 16, part: 7, title: 'Self-check',
+      steps: [
+        // Ticked by what the learner actually did: the correct answer on that screen, without the second-miss demonstration.
+        { id: 'A', type: 'selfcheck', items: [
+          { text: 'found the fixed part and the growing part', screen: 2 },
+          { text: 'found the constant at figure 0', screen: 3 },
+          { text: 'told a first total from a constant', screen: 4 },
+          { text: 'solved for a figure number', screen: 5 },
+          { text: 'tested a rule on more than one figure, including Figure 0', screen: 6 },
+          { text: 'showed two rules are equivalent', screen: 8 },
+          { text: 'recognized a pattern with no common difference', screen: 11 },
+          { text: 'found a speed at a single instant', screen: 14 },
+        ] },
+      ],
     },
   ],
 };
@@ -341,6 +869,7 @@ const hasN = node => some(node, x => x.k === 'n');
 const hasGroup = node => some(node, x => x.k === 'grp');
 
 const close = (a, b) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
+// Equivalent: the same value at n = 0, 1, 2, 3, 7 and 1.5.
 const sameRule = (a, b) => TEST_POINTS.every(x => close(evalAt(a, x), evalAt(b, x)));
 const ruleFn = src => { const e = parseRule(src); return n => evalAt(e, n); };
 
@@ -359,7 +888,7 @@ function isSimplified(e) {
   }
   return nTerms === 1 && nums <= 1;
 }
-// True if the expression contains a bracket equal to the given expression, e.g. (n − 1).
+// True if the expression contains a bracket equal to the given one, e.g. (n − 1).
 const usesBracket = (e, inner) => { const want = parseRule(inner); return some(e, x => x.k === 'grp' && hasN(x.e) && sameRule(x.e, want)); };
 
 // Numbers: "6.5" and "6.50" match; spaces and units after the number are ignored ("13 sticks").
@@ -370,19 +899,18 @@ function parseNumber(raw) {
   return m ? parseFloat(m[1].replace(',', '.')) : null;
 }
 const near = (a, b) => Math.abs(a - b) < 1e-9;
+const matches = (vals, answers) => vals.length === answers.length && vals.every((v, i) => near(v, answers[i]));
 
 // Solves a linear rule for a target value.
 function solveLinear(src, target) {
   const f = ruleFn(src), b = f(0), a = f(1) - b;
   return (target - b) / a;
 }
-// Number formatting for anything computed: trims float noise, uses the minus sign.
+// Formatting for anything computed: trims float noise, uses the minus sign.
 function fmt(x) {
   const r = Math.round(x * 1e6) / 1e6;
-  const str = String(Object.is(r, -0) ? 0 : r);
-  return str.replace('-', '−');
+  return String(Object.is(r, -0) ? 0 : r).replace('-', '−');
 }
-const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
 
 const JUDGE = {
   number(st, [raw]) {
@@ -408,18 +936,23 @@ const JUDGE = {
           pre: w.pre ? w.pre(yours, original) : [], post: w.post ? w.post(yours, original) : [] };
       }
     }
-    return { kind: 'hint', say: st.hint || LESSON.ui.fallback,
-      post: st.testAll ? st.testAll(yours, original) : [] };
+    return { kind: 'hint', say: st.hint || LESSON.ui.fallback, post: st.testAll ? st.testAll(yours, original) : [] };
   },
   numbers(st, raws, c) {
     const vals = raws.map(parseNumber);
     if (vals.some(v => v === null)) return { kind: 'format', say: LESSON.ui.numberFormat };
-    return st.judge(vals, c);
+    return st.judge(vals, st, c);
   },
   choice(st, [i]) {
     const o = st.options[i];
     if (o.correct) return { kind: 'correct', say: o.say || st.say || null };
     if (o.say) return { kind: 'wrong', say: o.say };
+    return { kind: 'hint', say: st.hint || LESSON.ui.fallback };
+  },
+  marks(st, vals) {
+    if (vals.every((v, i) => v === st.items[i].correct)) return { kind: 'correct', say: st.say || null };
+    const w = st.items.find((it, i) => it.ifMarkedCorrect && vals[i] === true);
+    if (w) return { kind: 'wrong', say: w.ifMarkedCorrect };
     return { kind: 'hint', say: st.hint || LESSON.ui.fallback };
   },
 };
@@ -460,41 +993,52 @@ function rich(text) {
   out.push(text.slice(last));
   return out;
 }
+const plain = text => text.replace(/\{sw:[ck]\}/g, '').replace(/\{[ck]\|([^}]*)\}/g, '$1').replace(/\s+/g, ' ').trim();
 const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const wait = ms => new Promise(r => setTimeout(r, reduceMotion() ? 0 : ms));
 let uid = 0;
 const newId = p => `${p}-${++uid}`;
+const scaled = (w, scale = 1) => `width: calc(${w * scale}px * var(--fs))`;
 
 function icon(kind) {
   const svg = s('svg', { class: 'icon', viewBox: '0 0 26 26', 'aria-hidden': 'true' });
   if (kind === 'correct') {
     svg.append(s('circle', { cx: 13, cy: 13, r: 12, fill: 'var(--ink)' }),
       s('path', { d: 'M7.5 13.5l3.6 3.6 7.4-8', fill: 'none', stroke: 'var(--paper)', 'stroke-width': 2.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+  } else if (kind === 'empty') {
+    svg.append(s('rect', { x: 2, y: 2, width: 22, height: 22, rx: 5, fill: 'none', stroke: 'var(--muted)', 'stroke-width': 2 }));
   } else {
     svg.append(s('circle', { cx: 13, cy: 13, r: 11, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2 }),
       s('circle', { cx: 13, cy: 13, r: 3.2, fill: 'var(--ink)' }));
   }
   return svg;
 }
+function okMark() {
+  const m = icon('correct');
+  m.setAttribute('class', 'okmark');
+  m.removeAttribute('aria-hidden');
+  m.setAttribute('role', 'img');
+  m.setAttribute('aria-label', 'correct');
+  return m;
+}
 function note(kind, parts) {
   return h('div', { class: 'note', 'data-kind': kind }, icon(kind),
     h('div', { class: 'note-body' }, parts.map(p => p instanceof Node ? p : h('p', { class: p.cls }, p.text))));
 }
+function fig(svg, caption) { return h('figure', {}, svg, caption != null ? h('figcaption', {}, caption) : null); }
 
 /* =====================================================================
    FIGURES (inline SVG, computed from n)
    ===================================================================== */
-const TILE = 22, IN_GAP = 2, COL_GAP = 9;
-// Tiles: one column of 2 fixed tiles (constant colour), then one column per group of 3 (coefficient colour).
+// Tiles: a column of 2 fixed tiles (constant colour), then one column per group of 3 (coefficient colour).
 // The fixed tiles stay in the same place in every figure; each group sits on its own tinted backing.
+const TILE = 22, IN_GAP = 2, COL_GAP = 9;
 function tilesSVG(n, opts = {}) {
   const cols = (opts.width ?? n) + 1 + (opts.slot ? 1 : 0);
   const H = TILE * TILES.group + IN_GAP * (TILES.group - 1);
   const W = cols * TILE + (cols - 1) * COL_GAP;
   const pad = 5;
-  const scale = opts.scale || 1;
-  const svg = s('svg', { viewBox: `${-pad} ${-pad} ${W + 2 * pad} ${H + 2 * pad}`, style: `width: calc(${(W + 2 * pad) * scale}px * var(--fs))`,
-    role: 'img', 'aria-label': `${TILES.fixed} fixed tiles and ${n} groups of ${TILES.group}` });
+  const svg = s('svg', { viewBox: `${-pad} ${-pad} ${W + 2 * pad} ${H + 2 * pad}`, style: scaled(W + 2 * pad), role: 'img', 'aria-label': `Figure ${n}` });
   const column = (x, k, cls, back) => {
     const g = s('g', {});
     const top = H - (k * TILE + (k - 1) * IN_GAP);
@@ -512,41 +1056,223 @@ function tilesSVG(n, opts = {}) {
 }
 function groupPieceSVG() {
   const H = TILE * TILES.group + IN_GAP * (TILES.group - 1);
-  const svg = s('svg', { viewBox: `-4 -4 ${TILE + 8} ${H + 8}`, style: `width: calc(${TILE + 8}px * var(--fs))`, 'aria-hidden': 'true' });
+  const svg = s('svg', { viewBox: `-4 -4 ${TILE + 8} ${H + 8}`, style: scaled(TILE + 8), 'aria-hidden': 'true' });
   for (let j = 0; j < TILES.group; j++) svg.append(s('rect', { x: 0, y: j * (TILE + IN_GAP), width: TILE, height: TILE, rx: 3, class: 't-coef' }));
   return svg;
 }
-function fig(svg, caption) { return h('figure', {}, svg, caption != null ? h('figcaption', {}, caption) : null); }
 
-// Things a screen or Why? panel can show.
+// Sticks: equal sticks drawn slightly short so each one reads as a separate piece.
+const SIDE = 44, INSET = 5;
+function edgeLine(id) {
+  const k = +id.slice(1);
+  if (id[0] === 'v') return { x1: k * SIDE, y1: INSET, x2: k * SIDE, y2: SIDE - INSET };
+  const y = id[0] === 't' ? 0 : SIDE;
+  return { x1: k * SIDE + INSET, y1: y, x2: (k + 1) * SIDE - INSET, y2: y };
+}
+function stickClass(id, colour) {
+  if (colour === 'rule31') return id === 'v0' ? 'const' : 'coef';          // 3n + 1: one starting stick, then groups of 3
+  if (colour === 'rule4') return CONST_ORDER.includes(id) ? 'const' : 'coef'; // 4 + 3(n − 1): a full first square, then groups of 3
+  return '';
+}
+function edgeName(id) {
+  const k = +id.slice(1);
+  if (id[0] === 't') return `top of square ${k + 1}`;
+  if (id[0] === 'b') return `bottom of square ${k + 1}`;
+  return k === 0 ? 'left side of square 1' : `right side of square ${k}`;
+}
+function sticksSVG(n, opts = {}) {
+  const w = Math.max(opts.width ?? n, 1), pad = 8, scale = opts.scale || 1;
+  const svg = s('svg', { viewBox: `${-pad} ${-pad} ${w * SIDE + 2 * pad} ${SIDE + 2 * pad}`, style: scaled(w * SIDE + 2 * pad, scale), role: 'img', 'aria-label': `Figure ${n}` });
+  const edges = opts.edges || stickEdges(n).map(e => ({ e, cls: opts.dim ? 'dim' : stickClass(e, opts.colour) }));
+  for (const { e, cls } of edges) svg.append(s('line', { ...edgeLine(e), class: `stick ${cls || ''}`, 'data-edge': e }));
+  return svg;
+}
+function stickPieceSVG(cls) {
+  return s('svg', { viewBox: '-6 -4 12 52', style: scaled(14), 'aria-hidden': 'true' },
+    s('line', { x1: 0, y1: INSET, x2: 0, y2: SIDE - INSET, class: `stick ${cls || ''}` }));
+}
+function groupStickSVG() {   // a group of 3: top, right side, bottom
+  const svg = s('svg', { viewBox: `-8 -8 ${SIDE + 16} ${SIDE + 16}`, style: scaled(SIDE + 16, 0.9), 'aria-hidden': 'true' });
+  for (const e of ['t0', 'b0', 'v1']) svg.append(s('line', { ...edgeLine(e), class: 'stick coef' }));
+  return svg;
+}
+
+// Squares: k × k tiles; each L-shaped border is shaded as one unit.
+const CELL = 18;
+function squareSVG(k, opts = {}) {
+  const w = opts.width ?? k, pad = 4, scale = opts.scale || 1;
+  const svg = s('svg', { viewBox: `${-pad} ${-pad} ${w * CELL + 2 * pad} ${w * CELL + 2 * pad}`, style: scaled(w * CELL + 2 * pad, scale), role: 'img', 'aria-label': `Figure ${k}` });
+  const cell = (r, c, props) => s('rect', { x: c * CELL + 1, y: (w - 1 - r) * CELL + 1, width: CELL - 2, height: CELL - 2, rx: 2, ...props });
+  for (let j = 1; j <= k; j++) {
+    const g = s('g', { class: `ring ${j % 2 ? 'ra' : 'rb'}`, 'data-ring': j });
+    for (const [r, c] of ringCells(j)) g.append(cell(r, c));
+    svg.append(g);
+  }
+  if (opts.ghost) for (let j = k + 1; j <= opts.ghost; j++) for (const [r, c] of ringCells(j)) svg.append(cell(r, c, { class: 'slot' }));
+  return svg;
+}
+function ringPieceSVG(j) {
+  const svg = s('svg', { viewBox: `-2 -2 ${j * CELL + 4} ${j * CELL + 4}`, style: scaled(j * CELL + 4, 0.8), 'aria-hidden': 'true' });
+  const g = s('g', { class: `ring ${j % 2 ? 'ra' : 'rb'}` });
+  for (const [r, c] of ringCells(j)) g.append(s('rect', { x: c * CELL + 1, y: (j - 1 - r) * CELL + 1, width: CELL - 2, height: CELL - 2, rx: 2 }));
+  svg.append(g);
+  return svg;
+}
+function borderRow(js) {
+  return h('div', { class: 'bordrow' }, js.map(j => h('div', { class: 'chip' }, ringPieceSVG(j), h('b', {}, fmt(borderTiles(j))))));
+}
+
+// Screen 12: the points 1, 4, 9, 16 and the line T = an + b.
+function graphFigure(points) {
+  const X0 = 40, Y0 = 220, XU = 52, YU = 10, NMAX = 5, TMAX = 20;
+  const x = n => X0 + n * XU, y = t => Y0 - t * YU;
+  const svg = s('svg', { viewBox: '0 0 340 250', class: 'graph', role: 'img', 'aria-label': 'Points and a line', style: 'width: 100%; max-width: 480px' });
+  const clipId = newId('clip');
+  svg.append(s('defs', {}, s('clipPath', { id: clipId }, s('rect', { x: x(0), y: y(TMAX), width: NMAX * XU, height: TMAX * YU }))));
+  for (let n = 0; n <= NMAX; n++) svg.append(s('line', { x1: x(n), y1: y(0), x2: x(n), y2: y(TMAX), class: 'grid' }), s('text', { x: x(n), y: Y0 + 18, 'text-anchor': 'middle' }, fmt(n)));
+  for (let t = 0; t <= TMAX; t += 5) svg.append(s('line', { x1: x(0), y1: y(t), x2: x(NMAX), y2: y(t), class: 'grid' }), s('text', { x: X0 - 8, y: y(t) + 4, 'text-anchor': 'end' }, fmt(t)));
+  svg.append(s('line', { x1: x(0), y1: y(0), x2: x(NMAX) + 10, y2: y(0), class: 'axis' }), s('line', { x1: x(0), y1: y(0), x2: x(0), y2: y(TMAX) - 10, class: 'axis' }),
+    s('text', { x: x(NMAX) + 14, y: Y0 + 4, 'font-style': 'italic' }, 'n'), s('text', { x: X0 - 4, y: y(TMAX) - 14, 'font-style': 'italic', 'text-anchor': 'middle' }, 'T'));
+  const fit = s('line', { class: 'fit', 'clip-path': `url(#${clipId})` });
+  svg.append(fit);
+  const rings = points.map(n => s('circle', { cx: x(n), cy: y(squareTiles(n)), r: 11, class: 'ring', hidden: true }));
+  svg.append(...rings);
+  points.forEach(n => svg.append(s('circle', { cx: x(n), cy: y(squareTiles(n)), r: 6, class: 'pt' }),
+    s('text', { x: x(n) - 10, y: y(squareTiles(n)) - 9, 'text-anchor': 'end', class: 'pl' }, fmt(squareTiles(n)))));
+  const rises = s('g', { hidden: true });
+  points.slice(0, -1).forEach((n, i) => {
+    const m = points[i + 1];
+    rises.append(s('line', { x1: x(m), y1: y(squareTiles(n)), x2: x(m), y2: y(squareTiles(m)), class: 'rise' }),
+      s('text', { x: x(m) + 7, y: (y(squareTiles(n)) + y(squareTiles(m))) / 2 + 5, class: 'rl' }, `+${fmt(squareTiles(m) - squareTiles(n))}`));
+  });
+  svg.append(rises);
+  let a = 0, b = 0;
+  return {
+    svg,
+    set(na, nb) { a = na; b = nb; fit.setAttribute('x1', x(0)); fit.setAttribute('y1', y(b)); fit.setAttribute('x2', x(NMAX)); fit.setAttribute('y2', y(a * NMAX + b)); rings.forEach(r => r.setAttribute('hidden', '')); },
+    hits() { const out = points.map((n, i) => close(a * n + b, squareTiles(n)) ? i : -1).filter(i => i >= 0); out.forEach(i => rings[i].removeAttribute('hidden')); return out.length; },
+    showRises() { rises.removeAttribute('hidden'); },
+  };
+}
+
+// Screen 13: a ball rolling down a ramp, d = t².
+function rampFigure([t0, t1]) {
+  const A = { x: 24, y: 34 }, B = { x: 336, y: 150 }, R = 10;
+  const len = Math.hypot(B.x - A.x, B.y - A.y), ux = (B.x - A.x) / len, uy = (B.y - A.y) / len, nx = uy, ny = -ux;
+  const at = d => { const f = d / dist(t1); return { x: A.x + ux * len * f, y: A.y + uy * len * f }; };
+  const svg = s('svg', { viewBox: '0 0 360 190', class: 'ramp', role: 'img', 'aria-label': 'A ball on a ramp', style: 'width: 100%; max-width: 520px' });
+  svg.append(s('polygon', { points: `${A.x},${A.y} ${B.x},${B.y} ${A.x},${B.y}`, class: 'wedge' }));
+  range(t0, t1).forEach(t => {
+    const p = at(dist(t));
+    // The first label sits to the left of the start so it doesn't collide with the next one.
+    const label = t === t0 ? { x: p.x - 10, y: p.y + 4, 'text-anchor': 'end' } : { x: p.x - nx * 18, y: p.y - ny * 18 + 4, 'text-anchor': 'middle' };
+    svg.append(s('line', { x1: p.x - nx * 6, y1: p.y - ny * 6, x2: p.x + nx * 6, y2: p.y + ny * 6, class: 'tick' }),
+      s('text', label, `${fmt(t)} s`));
+  });
+  const ball = s('circle', { r: R, class: 'ball' });
+  svg.append(ball);
+  const place = d => { const p = at(d); ball.setAttribute('cx', p.x + nx * R); ball.setAttribute('cy', p.y + ny * R); };
+  place(dist(t0));
+  if (reduceMotion()) place(dist(t1));
+  else {
+    let start = null;
+    const tick = ts => {
+      if (!svg.isConnected) { requestAnimationFrame(tick); return; }
+      if (start === null) start = ts;
+      const t = Math.min(t1, t0 + (ts - start) / 1000);
+      place(dist(t));
+      if (t < t1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+  return svg;
+}
+
+// Screen 14: the 3 × 3 square with two strips 3 × h and a corner h × h.
+function shrinkFigure(h0) {
+  const U = 52, side = SHRINK.side, top = 1 * U + 6, left = 30;
+  const svg = s('svg', { viewBox: `0 0 ${left + (side + 1) * U + 70} ${top + side * U + 10}`, class: 'shrink', role: 'img', 'aria-label': 'A 3 by 3 square with a border', style: 'width: 100%; max-width: 360px' });
+  for (let r = 0; r < side; r++) for (let c = 0; c < side; c++) svg.append(s('rect', { x: left + c * U, y: top + r * U, width: U, height: U, class: 'sq' }));
+  const topStrip = s('rect', { class: 'strip' }), rightStrip = s('rect', { class: 'strip' }), corner = s('rect', { class: 'corner' });
+  const tTop = s('text', { 'text-anchor': 'middle' }, '3 × h'), tRight = s('text', { 'text-anchor': 'middle' }, '3 × h');
+  const lead = s('line', { class: 'lead' }), tCorner = s('text', {}, 'h × h');
+  svg.append(topStrip, rightStrip, corner, lead, tTop, tRight, tCorner);
+  const set = hv => {
+    const w = hv * U, x0 = left + side * U;
+    Object.entries({ x: left, y: top - w, width: side * U, height: w }).forEach(([k, v]) => topStrip.setAttribute(k, v));
+    Object.entries({ x: x0, y: top, width: w, height: side * U }).forEach(([k, v]) => rightStrip.setAttribute(k, v));
+    Object.entries({ x: x0, y: top - w, width: w, height: w }).forEach(([k, v]) => corner.setAttribute(k, v));
+    tTop.setAttribute('x', left + side * U / 2); tTop.setAttribute('y', top - w - 6);
+    tRight.setAttribute('x', x0 + w + 26); tRight.setAttribute('y', top + side * U / 2 + 5);
+    lead.setAttribute('x1', x0 + w); lead.setAttribute('y1', top - w); lead.setAttribute('x2', x0 + w + 14); lead.setAttribute('y2', top - w - 14);
+    tCorner.setAttribute('x', x0 + w + 16); tCorner.setAttribute('y', top - w - 16);
+  };
+  set(h0);
+  return { svg, set };
+}
+
+// Things a screen, a step or a Why? panel can show.
 const BLOCKS = {
   sequence(b) {
     const f = ruleFn(b.sequence);
     return h('p', { class: 'sequence' }, range(b.from, b.to).map(x => fmt(f(x))).join(', ') + ', …');
   },
-  tiles(b) {
-    return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.tiles.map(n => fig(tilesSVG(n), `Figure ${n}`))));
+  formula(b) { return h('p', { class: 'formula' }, rich(b.formula)); },
+  reminder(b) { return h('p', { class: 'reminder' }, b.reminder); },
+  tiles(b) { return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.tiles.map(n => fig(tilesSVG(n), `Figure ${n}`)))); },
+  sticks(b) {
+    return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.sticks.map((n, i) =>
+      fig(sticksSVG(n, { colour: b.colours ? b.colours[i] : b.colour }), b.captions ? b.captions[i] : `Figure ${n}`))));
   },
-  rowTable(b) {
-    return rowTable(b, false);
+  squares(b) {
+    return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.squares.map(n =>
+      fig(b.ghost ? squareSVG(0, { width: n, ghost: n }) : squareSVG(n), `Figure ${n}`))));
+  },
+  students(b) {
+    return h('div', { class: 'students' }, b.students.map(st => h('div', { class: 'student' }, h('span', { class: 'name' }, st.name), h('span', { class: 'r' }, rich(st.rule)))));
+  },
+  table(b) {
+    return h('div', { class: 'tablewrap' }, h('table', { class: 't' }, h('tbody', {},
+      b.table.map(([label, f]) => h('tr', {}, h('th', { scope: 'row' }, label), b.cols.map(x => h('td', {}, fmt(f(x)))))))));
+  },
+  rowTable(b) { return rowTable(b, false); },
+  ramp(b) { return h('div', { class: 'card' }, fig(rampFigure(b.ramp))); },
+  squareBorder(b, c) {
+    const k = b.squareBorder;
+    const svg = squareSVG(k, { scale: 1.6 });
+    c.s.border = { light: () => svg.querySelector(`[data-ring="${k}"]`).classList.add('lit') };
+    return h('div', { class: 'card' }, fig(svg, `${fmt(k - 1)} × ${fmt(k - 1)} → ${fmt(k)} × ${fmt(k)}`));
+  },
+  shrink(b, c) {
+    const f = shrinkFigure(b.shrink);
+    const readout = h('p', { class: 'readout' });
+    const cells = {};
+    const tbl = h('table', { class: 't' }, h('tbody', {},
+      h('tr', {}, h('th', { scope: 'row' }, 'h (s)'), SHRINK.table.map(x => h('td', {}, fmt(x)))),
+      h('tr', {}, h('th', { scope: 'row' }, 'Average speed (m/s)'), SHRINK.table.map(x => (cells[x] = h('td', {}))))));
+    const fill = x => { if (!cells[x].textContent || cells[x].textContent === '?') { cells[x].textContent = fmt(avgSpeed(SHRINK.t, x)); cells[x].classList.add('filled'); } };
+    fill(SHRINK.table[0]);
+    cells[0.5].textContent = '?';
+    const set = hv => { f.set(hv); readout.textContent = `h = ${fmt(Math.round(hv * 1000) / 1000)}`; };
+    set(b.shrink);
+    c.s.shrink = { set, fill, table: SHRINK.table };
+    return h('div', {}, h('div', { class: 'card' }, fig(f.svg), readout), h('div', { class: 'tablewrap' }, tbl));
   },
 };
-function block(b) {
+function block(b, c) {
   if (typeof b === 'string') return h('p', {}, rich(b));
   const type = Object.keys(BLOCKS).find(k => k in b);
-  return BLOCKS[type](b);
+  return BLOCKS[type](b, c);
 }
 
 // Marc's row comparison: n, the pattern, the "normal" row, and how far off.
 function rowTable(d, animate) {
   const f = ruleFn(d.rule), g = ruleFn(d.normal), ns = range(d.from, d.to);
   const rows = [ns, ns.map(f), ns.map(g), ns.map(x => f(x) - g(x))];
-  const tbody = h('tbody', {});
   const trs = rows.map((vals, r) => h('tr', { hidden: (animate && r > 0) || null },
     h('th', { scope: 'row' }, d.labels[r]), vals.map(v => h('td', {}, fmt(v)))));
-  append(tbody, trs);
   if (animate) (async () => { for (const tr of trs.slice(1)) { await wait(800); tr.hidden = false; tr.classList.add('enter'); } })();
-  return h('div', { class: 'tablewrap' }, h('table', { class: 't' }, tbody));
+  return h('div', { class: 'tablewrap' }, h('table', { class: 't' }, h('tbody', {}, trs)));
 }
 
 /* =====================================================================
@@ -565,7 +1291,7 @@ function pick(piece, opts) {
   piece.setAttribute('aria-pressed', 'true');
   opts.targets().forEach(t => t.classList.add('armed'));
 }
-// opts: hit(x, y) -> target or null; place(target); targets() -> elements that accept a tap
+// opts: hit(x, y) -> target or null; place(target, piece); targets() -> elements that accept a tap; hoverEl(target)
 function draggable(piece, opts) {
   let justDragged = false;
   piece.setAttribute('aria-pressed', 'false');
@@ -590,9 +1316,10 @@ function draggable(piece, opts) {
       }
       ghost.style.transform = `translate(${ev.clientX - ghost.dataset.w / 2}px, ${ev.clientY - ghost.dataset.h / 2}px)`;
       const t = opts.hit(ev.clientX, ev.clientY);
-      const el = t == null ? null : (opts.hoverEl ? opts.hoverEl(t) : null);
+      const el = t == null || !opts.hoverEl ? null : opts.hoverEl(t);
       if (over && over !== el) over.classList.remove('over');
-      over = el; if (over) over.classList.add('over');
+      over = el;
+      if (over) over.classList.add('over');
     };
     const end = ev => {
       piece.removeEventListener('pointermove', move);
@@ -603,7 +1330,7 @@ function draggable(piece, opts) {
       ghost.remove();
       if (ev.type === 'pointerup') {
         const t = opts.hit(ev.clientX, ev.clientY);
-        if (t != null) opts.place(t);
+        if (t != null) opts.place(t, piece);
       }
     };
     piece.addEventListener('pointermove', move);
@@ -616,17 +1343,20 @@ function draggable(piece, opts) {
     if (picked && picked.piece === piece) unpick(); else pick(piece, opts);
   });
 }
-// Makes an element a tap target for whatever piece is picked.
+// Makes an element a tap target for whichever piece is picked.
 function tapTarget(el, target, opts) {
-  const go = () => {
+  const go = e => {
     if (!picked || picked.opts !== opts) return;
+    e.stopPropagation();
+    const p = picked.piece;
     unpick();
-    opts.place(target);
+    opts.place(target, p);
   };
   el.addEventListener('click', go);
-  el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+  el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(e); } });
 }
 const inside = (el, x, y, m = 0) => { const r = el.getBoundingClientRect(); return x >= r.left - m && x <= r.right + m && y >= r.top - m && y <= r.bottom + m; };
+function toSVG(svg, x, y) { const p = svg.createSVGPoint(); p.x = x; p.y = y; return p.matrixTransform(svg.getScreenCTM().inverse()); }
 
 /* =====================================================================
    STEPS
@@ -636,7 +1366,7 @@ function promptEl(st) { return st.prompt ? h('p', { class: 'prompt', id: newId('
 function inputField(st, kind, label) {
   const inp = h('input', { class: 'ans' + (kind === 'rule' ? ' rule' : '') + (st.small ? ' small' : ''), type: 'text',
     inputmode: kind === 'rule' ? 'text' : 'decimal', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false',
-    'aria-label': label || (st.prompt ? st.prompt.replace(/\{[^}]*\}/g, '').trim() : 'answer'), 'data-input': '' });
+    'aria-label': label || st.label || (st.prompt ? plain(st.prompt) : 'answer'), 'data-input': '' });
   return { inp, el: h('span', { class: 'field' }, st.prefix ? h('span', { class: 'prefix' }, st.prefix) : null, inp, st.unit ? h('span', { class: 'unit' }, st.unit) : null) };
 }
 
@@ -653,17 +1383,21 @@ function askStep(st, c, ui) {
     if (finished) return;
     const vals = ui.values();
     if (vals.some(v => v === '' || v == null)) { ui.focusEmpty(); return; }
-    const res = (st.judge && st.type !== 'numbers') ? st.judge(vals, c) : JUDGE[st.type](st, vals, c);
+    const res = st.judge && st.type !== 'numbers' ? st.judge(vals, st, c) : JUDGE[st.type](st, vals, c);
     const parts = [
       ...(res.pre || []).map(t => ({ cls: 'test', text: t })),
       ...(res.say ? [{ cls: 'say', text: res.say }] : []),
-      ...(res.post || []).map(t => typeof t === 'string' ? { cls: 'test', text: t } : t),
+      ...(res.post || []).map(t => (typeof t === 'string' ? { cls: 'test', text: t } : t)),
     ];
-    fb.replaceChildren(parts.length || res.kind === 'correct' ? note(res.kind, parts) : '');
+    fb.replaceChildren(parts.length ? note(res.kind, parts) : '');
     if (res.kind === 'format' || res.kind === 'partial') { ui.again(); return; }
     if (res.act) res.act(c);
     if (res.kind === 'correct') {
-      finished = true; ui.lock(); check.remove();
+      finished = true;
+      ui.lock();
+      check.remove();
+      if (!parts.length) ui.markOk();
+      demo.querySelectorAll('[data-default-answer]').forEach(el => el.remove());   // the confirmation now says the same
       if (st.onCorrect) st.onCorrect(c);
       if (c.last) c.revealWhy();
       c.done();
@@ -671,7 +1405,10 @@ function askStep(st, c, ui) {
     }
     misses += 1;
     if (res.path) {
-      finished = true; ui.lock(); check.remove();
+      finished = true;
+      ui.lock();
+      check.remove();
+      if (c.last) c.hideWhy();
       runSteps(res.path, c, pathEl, () => { if (c.last) c.revealWhy(); c.done(); }, true);
       return;
     }
@@ -687,16 +1424,23 @@ function answerText(st) {
   if (st.answerText) return st.answerText();
   if (st.type === 'rule') return `${st.prefix ? st.prefix + ' ' : ''}${st.answer}`;
   if (st.type === 'number') return `${st.prefix ? st.prefix + ' ' : ''}${fmt(st.answer())}${st.unit ? ' ' + st.unit : ''}`;
-  if (st.type === 'choice') return st.options.find(o => o.correct).text;
+  if (st.type === 'choice') return plain(st.options.find(o => o.correct).text);
+  if (st.type === 'marks') return st.items.map(it => `${it.who}: ${it.correct ? st.labels[0] : st.labels[1]}`).join(', ');
+  if (st.type === 'numbers') {
+    const a = st.answers().map(fmt);
+    if (st.grid) return st.grid.rows.map((r, i) => `${r}: ${a.slice(i * st.grid.cols.length, (i + 1) * st.grid.cols.length).join(', ')}`).join('; ');
+    return st.fields.map((f, i) => `${f.label}: ${a[i]}`).join(', ');
+  }
   return '';
 }
 
-// Second miss: the step's own demonstration if it has one; otherwise the answer (and, on a screen's last step, the Why? text).
+// Second miss: the step's own demonstration if it has one; otherwise the answer, with the step's explanation,
+// and on a screen's last step the Why? text opens too. The learner still enters the answer to continue.
 function secondMiss(st, c, demoEl, ui) {
   c.log.secondMiss = true;
   if (st.demo) { DEMOS[st.demo.type](st.demo, demoEl, c); return; }
   if (ui.showAnswer) ui.showAnswer();
-  demoEl.append(h('div', { class: 'answer-card' },
+  demoEl.append(h('div', { class: 'answer-card', 'data-default-answer': '' },
     h('span', { class: 'label' }, LESSON.ui.answer),
     h('span', { class: 'val' }, answerText(st)),
     st.say ? h('p', { class: 'say' }, st.say) : null));
@@ -707,48 +1451,115 @@ const DEMOS = {
   rowTable(d, el) { el.append(h('div', { class: 'answer-card' }, rowTable(d, true))); },
 };
 
+function inputsUI(inputs, row, el) {
+  return {
+    el, row,
+    values: () => inputs.map(i => i.value.trim()),
+    focusEmpty: () => (inputs.find(i => !i.value.trim()) || inputs[0]).focus(),
+    lock: () => inputs.forEach(i => { i.disabled = true; }),
+    again: () => { const i = inputs[inputs.length - 1]; i.focus(); i.select(); },
+    onEnter: fn => inputs.forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); fn(); } })),
+    markOk: () => row.append(okMark()),
+  };
+}
+function focusSoon(el) { if (state.booting) return; setTimeout(() => { if (!el.disabled && el.isConnected) el.focus({ preventScroll: true }); }, 40); }
+function typed(st, c, kind) {
+  const f = inputField(st, kind);
+  const row = h('div', { class: 'row' }, f.el);
+  c.el.append(promptEl(st));
+  askStep(st, c, inputsUI([f.inp], row, row));
+  focusSoon(f.inp);
+}
+
 const STEPS = {
   number(st, c) { typed(st, c, 'number'); },
   rule(st, c) { typed(st, c, 'rule'); },
+
   numbers(st, c) {
-    const fields = st.fields.map(f => inputField({ ...st, prefix: f.prefix, unit: f.unit, small: true }, 'number', f.label));
-    const row = h('div', { class: 'row' }, fields.map(f => f.el));
     c.el.append(promptEl(st));
-    const ui = inputsUI(fields.map(f => f.inp), row, h('div', {}, row));
-    askStep(st, c, ui);
-    focusSoon(fields[0].inp);
+    let inputs, body;
+    const row = h('div', { class: 'row' });
+    if (st.grid) {
+      inputs = [];
+      const table = h('table', { class: 'gridtable' }, h('thead', {}, h('tr', {}, h('th', {}), st.grid.cols.map(n => h('th', { scope: 'col' }, `n = ${n}`)))),
+        h('tbody', {}, st.grid.rows.map(r => h('tr', {}, h('th', { scope: 'row' }, r), st.grid.cols.map(n => {
+          const f = inputField({ small: true }, 'number', `${r}, n = ${n}`);
+          inputs.push(f.inp);
+          return h('td', {}, f.inp);
+        })))));
+      body = h('div', {}, h('div', { class: 'tablewrap' }, table), row);
+    } else {
+      const boxes = st.fields.map(fd => {
+        const f = inputField({ small: true }, 'number', fd.label);
+        const picture = fd.tiles !== undefined
+          ? h('figure', {}, tilesSVG(fd.tiles, { width: 10 }), h('figcaption', {}, fd.label, ' ', h('span', { class: 'count', 'data-count': '', hidden: true }, `· ${LESSON.ui.tiles(fmt(tileCount(fd.tiles)))}`)))
+          : h('span', { class: 'lab' }, fd.label);
+        return { inp: f.inp, el: h('div', { class: fd.tiles !== undefined ? 'fieldbox left' : 'fieldbox' }, picture, f.inp) };
+      });
+      inputs = boxes.map(b => b.inp);
+      const wrap = h('div', { class: 'fields' }, boxes.map(b => b.el));
+      body = h('div', {}, st.fields.some(fd => fd.tiles !== undefined) ? h('div', { class: 'card' }, wrap) : wrap, row);
+      row.style.marginTop = '12px';
+    }
+    askStep(st, c, inputsUI(inputs, row, body));
+    focusSoon(inputs[0]);
   },
+
   choice(st, c) {
     c.el.append(promptEl(st));
     let chosen = null;
     const btns = st.options.map((o, i) => h('button', { type: 'button', class: 'choice', 'aria-pressed': 'false', 'data-choice': i,
-      onclick: () => { chosen = i; btns.forEach((b, j) => b.setAttribute('aria-pressed', String(j === i))); } }, rich(o.text)));
-    const list = h('div', { class: 'choices', role: 'group' }, btns);
+      onclick: () => { chosen = i; btns.forEach((b, j) => b.setAttribute('aria-pressed', String(j === i))); } }, h('span', {}, rich(o.text))));
     const row = h('div', { class: 'row' });
     askStep(st, c, {
-      el: h('div', {}, list, row), row,
+      el: h('div', {}, h('div', { class: 'choices', role: 'group' }, btns), row), row,
       values: () => [chosen],
       focusEmpty: () => btns[0].focus(),
-      lock: () => btns.forEach(b => b.disabled = true),
+      lock: () => btns.forEach(b => { b.disabled = true; }),
       again: () => {},
       onEnter: () => {},
+      markOk: () => btns[chosen].append(okMark()),
       showAnswer: () => btns.forEach((b, j) => b.classList.toggle('is-answer', !!st.options[j].correct)),
     });
   },
+
+  marks(st, c) {
+    c.el.append(promptEl(st));
+    const vals = st.items.map(() => null);
+    const groups = st.items.map((it, i) => {
+      const btns = st.labels.map((lab, j) => h('button', { type: 'button', class: 'mark', 'aria-pressed': 'false', 'data-mark': `${i}-${j}`,
+        onclick: () => { vals[i] = j === 0; btns.forEach((b, k) => b.setAttribute('aria-pressed', String(k === j))); } }, lab));
+      return { btns, el: h('div', { class: 'mark-row' }, h('span', { class: 'who' }, `${it.who}: ${it.rule}`), h('div', { class: 'mark-btns', role: 'group', 'aria-label': it.who }, btns)) };
+    });
+    const row = h('div', { class: 'row' });
+    row.style.marginTop = '12px';
+    askStep(st, c, {
+      el: h('div', {}, groups.map(g => g.el), row), row,
+      values: () => vals.map(v => (v === null ? '' : v)),
+      focusEmpty: () => groups[vals.findIndex(v => v === null)].btns[0].focus(),
+      lock: () => groups.forEach(g => g.btns.forEach(b => { b.disabled = true; })),
+      again: () => {},
+      onEnter: () => {},
+      markOk: () => row.append(okMark()),
+      showAnswer: () => groups.forEach((g, i) => g.btns.forEach((b, j) => b.classList.toggle('is-answer', (j === 0) === st.items[i].correct))),
+    });
+  },
+
+  // Screen 2: drag one group of 3 onto Figure 3 to build Figure 4.
   placeGroup(st, c) {
     c.el.append(promptEl(st));
-    const target = h('div', { class: 'drop interactive', role: 'button', tabindex: '0', 'aria-label': `Figure ${st.from + 1}` });
     const caption = `Figure ${st.from + 1}`;
-    target.append(fig(tilesSVG(st.from, { slot: true }), caption));
-    const piece = h('button', { type: 'button', class: 'piece', 'aria-label': `one group of ${TILES.group}` }, groupPieceSVG());
+    const target = h('div', { class: 'drop interactive', role: 'button', tabindex: '0', 'aria-label': caption }, fig(tilesSVG(st.from, { slot: true }), caption));
+    const piece = h('button', { type: 'button', class: 'piece', 'aria-label': `group of ${TILES.group}` }, groupPieceSVG());
     const tray = h('div', { class: 'tray interactive' }, piece);
     const opts = {
       targets: () => [target],
-      hit: (x, y) => inside(target, x, y, 24) ? 'slot' : null,
+      hit: (x, y) => (inside(target, x, y, 24) ? 'slot' : null),
       hoverEl: () => target,
       place: () => {
         target.replaceChildren(fig(tilesSVG(st.from + 1), caption));
-        target.removeAttribute('role'); target.removeAttribute('tabindex'); target.classList.remove('drop');
+        ['role', 'tabindex', 'aria-label'].forEach(a => target.removeAttribute(a));
+        target.classList.remove('drop');
         tray.remove();
         c.done();
       },
@@ -757,27 +1568,335 @@ const STEPS = {
     tapTarget(target, 'slot', opts);
     c.el.append(h('div', { class: 'card' }, h('div', { class: 'figs' }, target)), tray);
   },
-};
 
-function inputsUI(inputs, row, el) {
-  const ui = {
-    el, row,
-    values: () => inputs.map(i => i.value.trim()),
-    focusEmpty: () => (inputs.find(i => !i.value.trim()) || inputs[0]).focus(),
-    lock: () => inputs.forEach(i => i.disabled = true),
-    again: () => { const i = inputs[inputs.length - 1]; i.focus(); i.select(); },
-    onEnter: fn => inputs.forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); fn(); } })),
-  };
-  return ui;
-}
-function typed(st, c, kind) {
-  const f = inputField(st, kind);
-  const row = h('div', { class: 'row' }, f.el);
-  c.el.append(promptEl(st));
-  askStep(st, c, inputsUI([f.inp], row, row));
-  focusSoon(f.inp);
-}
-function focusSoon(el) { if (state.booting) return; setTimeout(() => el.focus({ preventScroll: true }), 30); }
+  // A figure with a slider for n; done when the learner reaches the target figure.
+  slide(st, c) {
+    c.el.append(promptEl(st));
+    const holder = h('div', { class: 'figs' });
+    const readout = h('p', { class: 'readout', hidden: true });
+    const input = h('input', { type: 'range', min: st.min, max: st.max, step: 1, value: st.start, class: 'interactive', 'aria-label': 'Figure number', 'data-slider': '' });
+    let rule = null, done = false;
+    const render = () => {
+      const n = +input.value;
+      const svg = st.figure === 'tiles' ? tilesSVG(n, { width: st.max }) : sticksSVG(n, { width: st.max, colour: st.colour, scale: 0.7 });
+      holder.replaceChildren(fig(svg, `Figure ${n}`));
+      input.setAttribute('aria-valuetext', `Figure ${n}`);
+      if (rule) readout.replaceChildren(...rich(rule(n)));
+    };
+    input.addEventListener('input', () => {
+      render();
+      if (!done && +input.value === st.target) { done = true; c.done(); }
+    });
+    c.s.slider = {
+      set: n => { input.value = n; render(); },
+      showRule: fn => { rule = fn; readout.hidden = false; render(); },
+    };
+    render();
+    c.el.append(h('div', { class: 'card' }, holder, readout, input));
+  },
+
+  // Screen 7: drag sticks onto the edges of Figure 4. A stick dropped on an existing edge is rejected.
+  buildSticks(st, c) {
+    c.el.append(promptEl(st));
+    const n = st.from + 1, all = stickEdges(n), present = new Set(stickEdges(st.from));
+    const scale = 1.68, thick = 44 / scale + 2, len = SIDE - 2 * INSET;
+    const svg = sticksSVG(n, { scale, edges: [] });
+    svg.setAttribute('aria-label', `Figure ${n}`);
+    const lines = {}, hits = {};
+    for (const e of all) {
+      const g = edgeLine(e);
+      lines[e] = s('line', { ...g, class: present.has(e) ? 'stick' : 'slot', 'data-edge': e });
+      const v = e[0] === 'v', cx = (g.x1 + g.x2) / 2, cy = (g.y1 + g.y2) / 2;
+      hits[e] = s('rect', { class: 'hit', x: v ? cx - thick / 2 : cx - len / 2, y: v ? cy - len / 2 : cy - thick / 2, width: v ? thick : len, height: v ? len : thick,
+        role: 'button', tabindex: '0', 'aria-label': edgeName(e), 'data-hit': e });
+    }
+    all.forEach(e => svg.append(lines[e]));
+    all.forEach(e => svg.append(hits[e]));
+    const target = h('div', { class: 'drop interactive' }, fig(svg, `Figure ${n}`));
+    const piece = h('button', { type: 'button', class: 'piece', 'aria-label': 'stick' }, stickPieceSVG(''));
+    const tray = h('div', { class: 'tray interactive' }, piece);
+    const fb = h('div', { class: 'fb', role: 'status', 'aria-live': 'polite' });
+    const opts = {
+      targets: () => [target],
+      hit: (x, y) => {
+        if (!inside(target, x, y, 10)) return null;
+        const p = toSVG(svg, x, y);
+        let best = null, bestD = Infinity;
+        for (const e of all) {
+          const g = edgeLine(e), d = Math.hypot(p.x - (g.x1 + g.x2) / 2, p.y - (g.y1 + g.y2) / 2);
+          if (d < bestD) { bestD = d; best = e; }
+        }
+        return bestD < SIDE * 0.6 ? best : null;
+      },
+      hoverEl: () => target,
+      place: e => {
+        if (present.has(e)) {
+          fb.replaceChildren(note('wrong', [{ cls: 'say', text: LESSON.ui.edgeTaken }]));
+          lines[e].classList.remove('flash'); void lines[e].getBBox(); lines[e].classList.add('flash');
+          return;
+        }
+        present.add(e);
+        lines[e].setAttribute('class', 'stick');
+        fb.replaceChildren();
+        if (all.every(x => present.has(x))) {
+          tray.remove();
+          Object.values(hits).forEach(r => r.remove());
+          target.classList.remove('drop');
+          c.done();
+        }
+      },
+    };
+    draggable(piece, opts);
+    for (const e of all) tapTarget(hits[e], e, opts);
+    c.el.append(h('div', { class: 'card' }, h('div', { class: 'figs' }, target)), tray, fb);
+  },
+
+  // Screen 7, Marc's move: the sticks light up one by one, then the shared edges flash.
+  async countSticks(st, c) {
+    const svg = sticksSVG(st.n, { dim: true, scale: 1.3 });
+    const counter = h('p', { class: 'counter', 'aria-live': 'polite' });
+    c.el.append(h('div', { class: 'card' }, h('div', { class: 'figs' }, fig(svg, `Figure ${st.n}`)), counter));
+    const edges = stickEdges(st.n);
+    await wait(500);
+    for (let i = 0; i < edges.length; i++) {
+      svg.querySelector(`[data-edge="${edges[i]}"]`).setAttribute('class', 'stick lit');
+      counter.textContent = fmt(i + 1);
+      await wait(450);
+    }
+    for (const t of st.after || []) c.el.append(h('p', { class: 'line' }, t));
+    sharedEdges(st.n).forEach(e => svg.querySelector(`[data-edge="${e}"]`).classList.add('flash'));
+    await wait(2700);
+    c.done();
+  },
+
+  // Screen 10: build a student's rule for Figure 1 from constant sticks and groups of 3.
+  buildRule(st, c) {
+    c.el.append(promptEl(st), h('p', { class: 'formula' }, rich(st.atOne)));
+    let nc = 0, ng = 0;
+    const area = h('div', { class: 'drop buildarea interactive', role: 'button', tabindex: '0', 'aria-label': `${st.who}'s build` });
+    const draw = () => {
+      const edges = builtEdges(nc, ng);
+      area.replaceChildren(fig(sticksSVG(2, { width: 2, scale: 1.3, edges })));
+    };
+    const stick = h('button', { type: 'button', class: 'piece', 'aria-label': 'stick in the first colour', 'data-piece': 'stick' }, stickPieceSVG('const'));
+    const group = h('button', { type: 'button', class: 'piece', 'aria-label': 'group of 3 in the second colour', 'data-piece': 'group' }, groupStickSVG());
+    const tray = h('div', { class: 'tray interactive' }, stick, group, st.groupsNote ? h('span', { class: 'aside' }, st.groupsNote) : null);
+    const fb = h('div', { class: 'fb', role: 'status', 'aria-live': 'polite' });
+    const update = () => {
+      stick.disabled = nc >= st.constant;
+      group.disabled = ng >= st.groups;
+      if (nc >= st.constant && ng >= st.groups) {
+        unpick();
+        tray.remove();
+        ['role', 'tabindex', 'aria-label'].forEach(a => area.removeAttribute(a));
+        area.classList.remove('drop');
+        if (st.result) fb.replaceChildren(note('correct', [{ cls: 'say', text: st.result }]));
+        c.done();
+      }
+    };
+    const opts = {
+      targets: () => [area],
+      hit: (x, y) => (inside(area, x, y, 24) ? 'area' : null),
+      hoverEl: () => area,
+      place: (t, piece) => {
+        if (piece === stick && nc < st.constant) nc++;
+        else if (piece === group && ng < st.groups) ng++;
+        draw();
+        update();
+      },
+    };
+    draggable(stick, opts);
+    draggable(group, opts);
+    tapTarget(area, 'area', opts);
+    draw();
+    c.el.append(h('div', { class: 'card' }, area), tray, fb);
+    update();
+  },
+
+  // Screen 10, step E: not scored.
+  explain(st, c) {
+    c.el.append(promptEl(st));
+    const ta = h('textarea', { class: 'explain', 'aria-label': plain(st.prompt) });
+    const btn = h('button', { type: 'button', class: 'btn' }, LESSON.ui.compare);
+    btn.disabled = true;
+    ta.addEventListener('input', () => { btn.disabled = !ta.value.trim(); });
+    const cmp = h('div', { class: 'compare' }, ta);
+    const row = h('div', { class: 'row' }, btn);
+    btn.addEventListener('click', () => {
+      ta.readOnly = true;
+      row.remove();
+      cmp.classList.add('two');
+      cmp.append(h('p', { class: 'model' }, st.model));
+      c.el.append(h('label', { class: 'tick' }, h('input', { type: 'checkbox' }), LESSON.ui.same));
+      c.revealWhy();
+      c.done();
+    });
+    c.el.append(cmp, row);
+    focusSoon(ta);
+  },
+
+  // Screen 11: drag the L-shaped border that turns each square into the next.
+  growSquare(st, c) {
+    c.el.append(promptEl(st));
+    let k = st.from;
+    const area = h('div', { class: 'drop interactive', role: 'button', tabindex: '0', 'aria-label': 'square' });
+    const row = h('div', { class: 'bordrow' });
+    const piece = h('button', { type: 'button', class: 'piece', 'aria-label': 'L-shaped border' });
+    const tray = h('div', { class: 'tray interactive' }, piece);
+    const draw = () => {
+      area.replaceChildren(fig(squareSVG(k, { width: st.to, ghost: k < st.to ? k + 1 : 0, scale: 1.5 }), `Figure ${k}`));
+      piece.replaceChildren(ringPieceSVG(k + 1));
+    };
+    const opts = {
+      targets: () => [area],
+      hit: (x, y) => (inside(area, x, y, 24) ? 'area' : null),
+      hoverEl: () => area,
+      place: () => {
+        k += 1;
+        row.append(h('div', { class: 'chip' }, ringPieceSVG(k), h('b', {}, fmt(borderTiles(k)))));
+        draw();
+        if (k >= st.to) {
+          tray.remove();
+          ['role', 'tabindex', 'aria-label'].forEach(a => area.removeAttribute(a));
+          area.classList.remove('drop');
+          c.done();
+        }
+      },
+    };
+    draggable(piece, opts);
+    tapTarget(area, 'area', opts);
+    draw();
+    c.el.append(h('div', { class: 'card' }, h('div', { class: 'figs' }, area), row), tray);
+  },
+
+  // Screen 12: dials for a and b. After three tries, or "I can't do it", the border row reappears.
+  dials(st, c) {
+    const g = graphFigure(st.points);
+    const formula = h('p', { class: 'formula' });
+    let a = st.a.start, b = st.b.start, tries = 0, over = false;
+    const dial = (name, cfg, setv) => {
+      const out = h('output', {});
+      const inp = h('input', { type: 'range', min: cfg.min, max: cfg.max, step: 1, value: cfg.start, 'aria-label': name, 'data-dial': name });
+      inp.addEventListener('input', () => { setv(+inp.value); out.textContent = fmt(+inp.value); update(); });
+      out.textContent = fmt(cfg.start);
+      return [h('label', {}, name), inp, out];
+    };
+    const update = () => {
+      g.set(a, b);
+      formula.textContent = `T = ${fmt(a)}n ${b < 0 ? '−' : '+'} ${fmt(Math.abs(b))}`;
+    };
+    const check = h('button', { type: 'button', class: 'btn check' }, LESSON.ui.check);
+    const cant = h('button', { type: 'button', class: 'btn ghost', 'data-cant': '' }, LESSON.ui.cantDoIt);
+    const rowEl = h('div', { class: 'row' }, check, cant);
+    const reveal = h('div', {});
+    const finish = () => {
+      if (over) return;
+      over = true;
+      rowEl.remove();
+      g.showRises();
+      reveal.append(borderRow(st.points.slice(1).map(n => n)));
+      c.revealWhy();
+      c.done();
+    };
+    check.addEventListener('click', () => { g.hits(); tries += 1; if (tries >= st.tries) finish(); });
+    cant.addEventListener('click', finish);
+    c.el.append(h('div', { class: 'card' }, h('div', { class: 'figs' }, fig(g.svg)), formula, reveal,
+      h('div', { class: 'dials' }, dial('a', st.a, v => { a = v; }), dial('b', st.b, v => { b = v; }))), h('div', { style: 'margin-top: 12px' }, rowEl));
+    update();
+  },
+
+  // Screen 14: slide h toward 0; the table fills as h shrinks.
+  shrinkSlide(st, c) {
+    c.el.append(promptEl(st));
+    const sh = c.s.shrink, STEPS_PER_DECADE = 100, max = 2 * STEPS_PER_DECADE;
+    const toH = p => { const v = 10 ** (-p / STEPS_PER_DECADE); const nice = sh.table.find(x => Math.abs(x - v) / x < 0.02); return nice ?? v; };
+    const start = Math.round(-Math.log10(0.5) * STEPS_PER_DECADE);
+    const input = h('input', { type: 'range', min: 0, max, step: 1, value: start, class: 'interactive', 'aria-label': 'h', 'data-slider': '' });
+    let done = false;
+    input.addEventListener('input', () => {
+      const hv = toH(+input.value);
+      sh.set(hv);
+      input.setAttribute('aria-valuetext', `h = ${fmt(Math.round(hv * 1000) / 1000)}`);
+      sh.table.forEach(x => { if (hv <= x + 1e-12 && x < 0.5) sh.fill(x); });
+      if (!done && +input.value === max) { done = true; c.done(); }
+    });
+    c.el.append(h('div', { class: 'card' }, input));
+  },
+
+  // Screen 15: typed answers only; no hints and no Why? until the learner submits.
+  exit(st, c) {
+    const items = st.items.map((it, i) => {
+      const fbEl = h('div', { class: 'fb', role: 'status', 'aria-live': 'polite' });
+      const q = h('p', { class: 'q' }, h('span', { class: 'num' }, `${i + 1}.`), it.q);
+      let read, lock, mark, input = null;
+      if (it.type === 'choice') {
+        let chosen = null;
+        const btns = it.options.map((o, j) => h('button', { type: 'button', class: 'choice', 'aria-pressed': 'false', 'data-choice': j,
+          onclick: () => { chosen = j; btns.forEach((b, k) => b.setAttribute('aria-pressed', String(k === j))); } },
+          h('span', {}, o.text || range(1, 4).map(n => fmt(o.seq(n))).join(', '))));
+        read = () => chosen;
+        lock = () => btns.forEach(b => { b.disabled = true; });
+        mark = ok => { if (ok) btns[chosen].append(okMark()); else btns.forEach((b, j) => b.classList.toggle('is-answer', !!it.options[j].correct)); };
+        return { it, fbEl, read, lock, mark, el: h('div', { class: 'item', 'data-item': i + 1 }, q, h('div', { class: 'choices', role: 'group' }, btns), fbEl) };
+      }
+      const f = inputField({ prefix: it.prefix, label: it.q }, it.type);
+      input = f.inp;
+      const row = h('div', { class: 'row' }, f.el);
+      read = () => input.value.trim();
+      lock = () => { input.disabled = true; };
+      mark = ok => { if (ok) row.append(okMark()); };
+      return { it, fbEl, read, lock, mark, input, el: h('div', { class: 'item', 'data-item': i + 1 }, q, row, fbEl) };
+    });
+    const submit = h('button', { type: 'button', class: 'btn', 'data-submit': '' }, LESSON.ui.submit);
+    const grade = x => {
+      const { it } = x, v = x.read();
+      if (it.type === 'choice') return it.options[v].correct ? { ok: true } : { ok: false, say: it.options[v].ifChosen || it.ifWrong };
+      if (it.type === 'number') return near(parseNumber(v), it.answer()) ? { ok: true } : { ok: false, say: it.ifWrong };
+      const e = parseRule(v);
+      const ok = sameRule(e, parseRule(it.answer)) && (!it.mustUse || usesBracket(e, it.mustUse));
+      return ok ? { ok: true } : { ok: false, say: it.ifWrong };
+    };
+    submit.addEventListener('click', () => {
+      const empty = items.find(x => x.read() === '' || x.read() === null);
+      if (empty) { (empty.input || empty.el.querySelector('button')).focus(); return; }
+      // Unreadable answers are flagged without submitting; they don't count against the learner.
+      let unreadable = false;
+      items.forEach(x => {
+        x.fbEl.replaceChildren();
+        if (x.it.type === 'rule' && !parseRule(x.read())) { unreadable = true; x.fbEl.append(note('format', [{ cls: 'say', text: LESSON.ui.ruleFormat }])); }
+        if (x.it.type === 'number' && parseNumber(x.read()) === null) { unreadable = true; x.fbEl.append(note('format', [{ cls: 'say', text: LESSON.ui.numberFormat }])); }
+      });
+      if (unreadable) return;
+      items.forEach(x => {
+        const g = grade(x);
+        x.lock();
+        x.mark(g.ok);
+        if (!g.ok) x.fbEl.append(note('wrong', [{ cls: 'say', text: g.say }]));
+      });
+      submit.remove();
+      c.log.exit = items.map(x => grade(x).ok);
+      c.done();
+    });
+    c.el.append(h('div', { class: 'items' }, items.map(x => x.el)), h('div', { class: 'row', style: 'margin-top: 20px' }, submit));
+  },
+
+  // Screen 16: ticked by what the learner actually did.
+  selfcheck(st, c) {
+    const ticked = it => {
+      const log = state.log[LESSON.screens.findIndex(sc => sc.n === it.screen)];
+      return !!(log && log.done && !log.secondMiss);
+    };
+    c.el.append(h('ul', { class: 'checklist' }, st.items.map(it => {
+      const on = ticked(it);
+      const ic = icon(on ? 'correct' : 'empty');
+      ic.removeAttribute('aria-hidden');
+      ic.setAttribute('role', 'img');
+      ic.setAttribute('aria-label', on ? 'ticked' : 'not ticked');
+      return h('li', { 'data-ticked': String(on) }, ic, h('span', {}, it.text));
+    })));
+    c.done();
+  },
+};
 
 /* =====================================================================
    ENGINE
@@ -796,8 +1915,11 @@ function runSteps(steps, ctx, container, onDone, isPath) {
     k += 1;
     const el = h('div', { class: 'step', 'data-step': `${ctx.sc.n}${st.id}` });
     container.append(el);
-    STEPS[st.type](st, { ...ctx, el, last, done: next });
-    if (!state.booting && k > 1) requestAnimationFrame(() => el.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'nearest' }));
+    const c = { ...ctx, el, last, done: next };
+    (st.lines || []).forEach(t => el.append(h('p', { class: 'line' }, t)));
+    (st.show || []).forEach(b => el.append(block(b, c)));
+    STEPS[st.type](st, c);
+    if (!state.booting && !(k === 1 && !isPath)) requestAnimationFrame(() => el.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'nearest' }));
   };
   next();
 }
@@ -807,21 +1929,24 @@ function renderScreen(i) {
   const log = state.log[i] = { secondMiss: false, done: false };
   const titleId = newId('t');
   const sec = h('section', { class: 'screen', 'data-screen': sc.n, 'aria-labelledby': titleId });
-  sec.append(h('p', { class: 'eyebrow' }, LESSON.parts[sc.part]), h('h1', { class: 'title', id: titleId, tabindex: '-1' }, sc.title));
-  (sc.intro || []).forEach(t => sec.append(h('p', { class: 'intro' }, rich(t))));
-  (sc.show || []).forEach(b => sec.append(block(b)));
-  const steps = h('div', { class: 'steps' });
   const panelId = newId('why');
   const whyBtn = h('button', { type: 'button', class: 'btn ghost why-btn', 'aria-expanded': 'false', 'aria-controls': panelId, hidden: true }, LESSON.ui.why);
-  const whyPanel = h('div', { class: 'why', id: panelId, hidden: true }, (sc.why || []).map(block));
+  const whyPanel = h('div', { class: 'why', id: panelId, hidden: true });
   const setWhy = open => { whyPanel.hidden = !open; whyBtn.setAttribute('aria-expanded', String(open)); };
   whyBtn.addEventListener('click', () => setWhy(whyPanel.hidden));
-  sec.append(steps, h('div', { class: 'why-wrap' }, whyBtn, whyPanel));
   const ctx = {
-    sc, sec, log, i,
+    sc, sec, log, i, s: {},
     revealWhy: () => { if (sc.why) whyBtn.hidden = false; },
+    hideWhy: () => { whyBtn.hidden = true; setWhy(false); },
     openWhy: () => { if (sc.why) { whyBtn.hidden = false; setWhy(true); } },
   };
+  sec.append(h('p', { class: 'eyebrow' }, LESSON.parts[sc.part]), h('h1', { class: 'title', id: titleId, tabindex: '-1' }, sc.title));
+  (sc.intro || []).forEach(t => sec.append(h('p', { class: 'intro' }, rich(t))));
+  (sc.show || []).forEach(b => sec.append(block(b, ctx)));
+  const steps = h('div', { class: 'steps' });
+  append(whyPanel, (sc.why || []).map(b => block(b, ctx)));
+  sec.append(steps, h('div', { class: 'why-wrap' }, whyBtn, whyPanel));
+  main.append(sec);
   runSteps(sc.steps, ctx, steps, () => { log.done = true; chrome(); });
   return sec;
 }
@@ -848,9 +1973,7 @@ function forward() {
   if (state.at === LESSON.screens.length - 1) return;
   if (state.at >= 0) freeze(state.sections[state.at]);
   state.at += 1;
-  const sec = renderScreen(state.at);
-  state.sections.push(sec);
-  main.append(sec);
+  state.sections.push(renderScreen(state.at));
   show(state.at);
 }
 
@@ -859,8 +1982,7 @@ function chrome() {
   $('where').textContent = LESSON.ui.progress(i + 1, total);
   $('bar').style.width = `${((i + 1) / total) * 100}%`;
   $('back').disabled = i <= 0;
-  const canNext = i < state.at || (state.log[i] && state.log[i].done && i < total - 1);
-  $('next').disabled = !canNext;
+  $('next').disabled = !(i < state.at || (state.log[i] && state.log[i].done && i < total - 1));
   $('next').hidden = i === total - 1;
 }
 
