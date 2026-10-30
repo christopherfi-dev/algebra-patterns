@@ -352,8 +352,9 @@ const testWhereItBreaks = (f, g) => {
 
 /* =====================================================================
    LESSON DATA. All learner-facing content lives here; the engine below reads it.
-   Quoted text comes word for word from docs/Seeing-the-Rule-Interactive-Lesson-Plan.md.
-   Prompts marked "spec: Learner types…" turn a spec step description into a question; REPORT.md lists every one.
+   Quoted text comes word for word from the source of truth: docs/Seeing-the-Rule-Interactive-Lesson-Plan.md, with
+   docs/Round-2-Decisions.md and docs/Round-2-Wording.md winning where they differ. Prompts the spec didn't give were
+   approved in Round-2-Wording A.
    Tokens: {c|text} and {k|text} colour text as constant / coefficient; {sw:c} and {sw:k} are colour swatches.
    ===================================================================== */
 const LESSON = {
@@ -394,11 +395,13 @@ const LESSON = {
         { id: 'A', type: 'number', prompt: 'How many tiles of the first colour {sw:c} are in every figure?',
           answer: () => TILES.fixed,
           say: 'The same 2 tiles, in every figure.',
-          wrong: [{ values: [5], say: '5 is all of Figure 1. Count only the colour that stays the same size.' }] },
+          wrong: [{ values: [5], say: '5 is all of Figure 1. Count only the colour that stays the same size.' }],
+          hint: 'Count only the tiles in the first colour in one figure. Then check another figure.' },
         { id: 'B', type: 'number', prompt: 'How many tiles does each new figure add?',
           answer: () => tileCount(2) - tileCount(1),
           say: 'Each figure adds one group of 3 in the second colour.',
-          wrong: [{ values: [5], say: '5 is the whole of Figure 1. Compare Figure 1 and Figure 2: what was added?' }] },
+          wrong: [{ values: [5], say: '5 is the whole of Figure 1. Compare Figure 1 and Figure 2: what was added?' }],
+          hint: 'Count the tiles in Figure 1 and in Figure 2. How many more does Figure 2 have?' },
         { id: 'C1', type: 'placeGroup', prompt: 'Drag one group of 3 to build Figure 4.', from: 3 },
         { id: 'C2', type: 'number', prompt: 'How many tiles does Figure 4 have?',
           answer: () => tileCount(4),
@@ -406,7 +409,8 @@ const LESSON = {
           wrong: [
             { values: [12], say: 'You counted the groups. The 2 fixed tiles are in every figure too.' },
             { values: [20], say: 'Figure 1 has 5 tiles, but only 3 of them repeat.' },
-          ] },
+          ],
+          hint: 'Count the groups of 3 in Figure 4, then add the fixed tiles.' },
       ],
       why: ['Every figure has the same 2 fixed tiles. Each new figure adds one group of 3. So Figure 4 has 4 groups of 3 and the 2 fixed tiles: 12 + 2 = 14.'],
     },
@@ -422,7 +426,8 @@ const LESSON = {
           wrong: [
             { values: [5], say: '5 is Figure 1. Take away its group of 3.' },
             { values: [0], say: 'The groups are gone, but look at the picture: the fixed tiles stay.' },
-          ] },
+          ],
+          hint: 'Look at the picture at Figure 0. Which tiles are still there?' },
         { id: 'B', type: 'rule', prompt: 'Type the rule.', prefix: 'T =', answer: '3n + 2',
           say: 'Right. Slide to check any figure.',
           wrong: [
@@ -459,7 +464,8 @@ const LESSON = {
           options: [
             { text: 'The rule must be wrong for Figure 1',
               say: 'Check it: 3 × 1 + 2 = 5. The rule is right. The first total and the constant are different things.' },
-            { text: 'Figure 1 has one group of 3 plus the 2 fixed tiles. The constant counts only the fixed tiles.', correct: true },
+            { text: 'Figure 1 has one group of 3 plus the 2 fixed tiles. The constant counts only the fixed tiles.', correct: true,
+              say: 'Right. Figure 1 is the constant plus one group: 2 + 3 = 5.' },
             { text: 'The constant is the first total minus 3 by coincidence',
               say: "It isn't coincidence. The first total always includes one group; the constant is what's there before any group." },
           ] },
@@ -490,7 +496,9 @@ const LESSON = {
       show: [{ tiles: [1] }],
       steps: [
         { id: 'A1', type: 'number', prompt: 'What does T = 5n give for Figure 1?', prefix: 'T =',
-          answer: () => ruleFn('5n')(1) },
+          answer: () => ruleFn('5n')(1),
+          say: 'Right: 5 × 1 = 5. The rule matches Figure 1.',
+          hint: "Replace n with 1 in the student's rule, then multiply." },
         { id: 'A2', type: 'choice', prompt: 'Is the rule correct?',
           options: [
             { text: 'Yes', say: "It works for Figure 1, but one figure isn't enough. Try another one." },
@@ -502,7 +510,8 @@ const LESSON = {
           answers: () => [0, 10].map(ruleFn('5n')),
           judge: (v, st) => matches(v, st.answers())
             ? { kind: 'correct', say: 'Figure 0 has 2 tiles, not 0. Figure 10 has 32, not 50. The rule is wrong.' }
-            : { kind: 'hint', say: LESSON.ui.fallback },
+            : { kind: 'hint', say: st.hint },
+          hint: "Use the student's rule, 5n, not the picture. Replace n with 0, then with 10.",
           // "The picture shows the real counts beside them."
           onCorrect: c => c.el.querySelectorAll('[data-count]').forEach(el => { el.hidden = false; }) },
         { id: 'C', type: 'numbers', prompt: 'What does T = 3n + 2 give for Figures 0, 1 and 10?',
@@ -514,7 +523,8 @@ const LESSON = {
         { id: 'D', type: 'choice', prompt: 'Why can we trust 3n + 2 for every figure?',
           options: [
             { text: 'It worked for Figure 1', say: 'So did 5n. One figure can fit a wrong rule.' },
-            { text: 'It works for three figures, and every figure adds exactly one more group of 3 to the same 2 fixed tiles.', correct: true },
+            { text: 'It works for three figures, and every figure adds exactly one more group of 3 to the same 2 fixed tiles.', correct: true,
+              say: 'Right. Three checks, and a structure that adds the same group every time.' },
           ] },
       ],
       why: ['One figure can fit a wrong rule: 5n and 3n + 2 both give 5 at Figure 1. Another check exposes the wrong one. Figure 0 is a good test because it checks the constant, the tiles there before any group. A figure far away, like Figure 10, checks the coefficient, because a wrong coefficient drifts further off with every figure. When a pattern adds the same amount every time and a straight-line rule works for three figures, it works for all of them.'],
@@ -528,7 +538,8 @@ const LESSON = {
         { id: 'A1', type: 'buildSticks', prompt: 'Drag sticks to build Figure 4.', from: 3 },
         { id: 'A2', type: 'number', prompt: 'How many sticks does Figure 4 have?',
           answer: () => stickCount(4),
-          say: 'Each new square needs only 3 sticks. It shares one with its neighbour.' },
+          say: 'Each new square needs only 3 sticks. It shares one with its neighbour.',
+          hint: 'Count every stick in Figure 4 once.' },
         { id: 'B', type: 'number', prompt: 'How many sticks does Figure 10 have?',
           answer: () => stickCount(10),
           say: '1 + 3 × 10 = 31.',
@@ -538,6 +549,8 @@ const LESSON = {
             { values: [40], path: [
               { id: '·1', type: 'number', prompt: 'If each square has 4 sticks, how many would Figure 2 have?',
                 answer: () => 4 * 2,
+                say: 'Right: 2 squares × 4 sticks = 8, if the claim were true.',
+                hint: "Use the student's claim: 4 sticks for each square, and Figure 2 has 2 squares.",
                 // A 7 is the real count: say so, then go straight to the shared edge (skipping the count).
                 wrong: [{ values: [stickCount(2)], say: '7 is the real count. If every square had its own 4 sticks, Figure 2 would have 8. Why only 7?',
                           path: [{ id: '·2s', type: 'sharedEdge', n: 2 }], skip: 1 }] },
@@ -552,17 +565,21 @@ const LESSON = {
               { id: '·4', type: 'numbers', prompt: 'How many sticks did the 2nd square add? The 3rd?',
                 fields: [{ label: '2nd' }, { label: '3rd' }],
                 answers: () => [stickCount(2) - stickCount(1), stickCount(3) - stickCount(2)],
-                judge: (v, st) => matches(v, st.answers()) ? { kind: 'correct' } : { kind: 'hint', say: LESSON.ui.fallback } },
+                judge: (v, st) => matches(v, st.answers()) ? { kind: 'correct', say: 'Right. Each new square adds only 3 sticks.' } : { kind: 'hint', say: st.hint },
+                hint: 'Compare Figure 1 and Figure 2: how many sticks were added? Then compare Figure 2 and Figure 3.' },
               { id: '·5', type: 'number', lines: ['Does the first one follow the same pattern? If so, Figure 1 is 1 + 3.'],
                 show: [{ sticks: [1, 2, 3], colour: 'rule31' }],
                 prompt: 'Figure 2 is 1 + two 3s. Figure 3 is…?',
                 answer: () => stickCount(3),
-                say: '1 + three 3s. That matches the count.' },
+                say: '1 + three 3s. That matches the count.',
+                hint: 'Figure 1 is 1 + 3. Figure 2 is 1 + two 3s. Follow the same pattern.' },
               { id: '·6', type: 'number', prompt: 'So how many does Figure 10 have?',
                 answer: () => stickCount(10),
-                say: '1 + 3 × 10 = 31.' },
+                say: '1 + 3 × 10 = 31.',
+                hint: 'Figure 10 is 1 plus how many 3s?' },
             ] },
           ],
+          hint: 'Start from Figure 1, then count how many sticks each new square adds.',
           followUp: { id: 'B·f', type: 'number', show: [{ triangles: [1, 2, 3] }],
             prompt: 'How many sticks does Figure 10 have?',
             answer: () => triangleSticks(10),
@@ -588,8 +605,9 @@ const LESSON = {
             const a = st.answers();
             if (matches(v, a)) return { kind: 'correct', say: 'The same values for all three. Are they the same for every n? Simplify the second rule to find out.' };
             if (!matches(v.slice(3), a.slice(3))) return { kind: 'wrong', say: 'Work inside the bracket first, then multiply by 3, then add 4.' };
-            return { kind: 'hint', say: LESSON.ui.fallback };
-          } },
+            return { kind: 'hint', say: st.hint };
+          },
+          hint: 'In 3n + 1, multiply n by 3 first, then add 1.' },
         { id: 'B', type: 'rule', show: [{ reminder: 'The distributive property: 3(n − 1) = 3 × n − 3 × 1.' }],
           prompt: 'Simplify 4 + 3(n − 1).', prefix: 'S =', answer: '4 + 3(n − 1)', simplified: true,
           say: '4 + 3n − 3 = 3n + 1. The two rules are the same.',
@@ -624,7 +642,8 @@ const LESSON = {
         { id: 'C2', type: 'number', prompt: 'How many sticks are left?',
           answer: () => stickCount(0),
           say: 'One lone stick: the constant in 3n + 1.',
-          wrong: [{ values: [4], say: '4 is Figure 1. Take away its three sticks.' }] },
+          wrong: [{ values: [4], say: '4 is Figure 1. Take away its three sticks.' }],
+          hint: 'At Figure 0 there are no squares. Which stick is still there?' },
       ],
       why: [
         'Substituting n = 1, 2 and 3 showed the two rules agree for three figures. Simplifying shows why they agree for every figure: 4 + 3(n − 1) = 4 + 3n − 3 = 3n + 1. In the picture, 4 + 3(n − 1) counts the first full square, then 3 sticks for each square after it. 3n + 1 counts one starting stick, then 3 for every square. Same sticks, grouped differently.',
@@ -639,7 +658,8 @@ const LESSON = {
       steps: [
         { id: 'A', type: 'number', prompt: 'How many sticks are in Figure 40?',
           answer: () => stickCount(40),
-          say: '3 × 40 + 1 = 121.' },
+          say: '3 × 40 + 1 = 121.',
+          hint: 'Replace n with 40 in 3n + 1. Multiply first, then add.' },
         { id: 'B', type: 'number', prompt: 'Which figure uses exactly 100 sticks?', prefix: 'Figure',
           answer: () => range(0, 100).find(n => stickCount(n) === 100),
           say: '3n + 1 = 100 gives 3n = 99, so n = 33.',
@@ -664,14 +684,19 @@ const LESSON = {
         { id: 'B1', type: 'buildRule', prompt: "Build Arun's rule for Figure 1.", who: 'Arun',
           atOne: 'S = {c|4} + {k|3 × 1}', constant: 4, groups: 1 },
         { id: 'B2', type: 'number', prompt: 'How many squares did you build?',
-          answer: () => completeSquares(builtEdges(4, 1).map(x => x.e)) },
+          answer: () => completeSquares(builtEdges(4, 1).map(x => x.e)),
+          say: 'Right: two squares.',
+          hint: 'Count the squares in your build.' },
         { id: 'B3', type: 'number', prompt: 'Which figure is that?', prefix: 'Figure',
           answer: () => completeSquares(builtEdges(4, 1).map(x => x.e)),
-          say: "Arun's rule built Figure 2 when it should have built Figure 1." },
+          say: "Arun's rule built Figure 2 when it should have built Figure 1.",
+          hint: 'Figure n has n squares.' },
         { id: 'C', type: 'buildRule', prompt: "Build Nina's rule for Figure 1.", who: 'Nina',
           atOne: 'S = {f|4} + {k|3 × (1 − 1)}', constant: 4, groups: 0, groupsNote: '3 × (1 − 1) = 0', firstSquare: true,
           result: "That's Figure 1." },
         { id: 'D', type: 'marks', prompt: 'Mark each rule correct or incorrect.', labels: ['correct', 'incorrect'],
+          say: "Right. Mina's and Nina's rules build Figure 1. Arun's builds Figure 2.",
+          hint: 'Build that rule for Figure 1 again. Does it make one square?',
           items: [
             { who: 'Mina', rule: 'S = 3n + 1', correct: true },
             { who: 'Arun', rule: 'S = 4 + 3n', correct: false, ifMarkedCorrect: 'Build his rule for Figure 1 again and count the squares.' },
@@ -690,15 +715,19 @@ const LESSON = {
       steps: [
         { id: 'A', type: 'number', prompt: 'How many tiles are in Figure 4?',
           answer: () => squareTiles(4),
+          say: 'Right: 4 × 4 = 16.',
+          hint: 'Figure 4 is a square 4 tiles wide and 4 tiles tall.',
           wrong: [{ values: [12], say: "That's adding 3 again. Build it: a 4-by-4 square.",
                     act: c => fillBuild(c, 4, 'Fill in the 4-by-4 square.') }] },
         { id: 'B1', type: 'growSquare', prompt: 'Drag the L-shaped border that turns each square into the next.', from: 1, to: 4 },
         { id: 'B2', type: 'number', prompt: 'How many tiles are in the next border?',
           answer: () => borderTiles(5),
           say: 'Each border is 2 tiles longer than the one before.',
-          wrong: [{ values: [7], say: "That's the border from 3 × 3 to 4 × 4. The next one turns 4 × 4 into 5 × 5." }] },
+          wrong: [{ values: [7], say: "That's the border from 3 × 3 to 4 × 4. The next one turns 4 × 4 into 5 × 5." }],
+          hint: 'Look at the borders so far: 3, 5, 7. How much bigger is each one than the last?' },
         { id: 'C', type: 'choice', prompt: 'Is there a common difference?',
-          options: [{ text: 'Yes' }, { text: 'No', correct: true }] },
+          options: [{ text: 'Yes' }, { text: 'No', correct: true, say: 'Right. The borders grow: 3, 5, 7, 9.' }],
+          hint: 'Look at the borders: 3, 5, 7, 9. Is the same amount added each time?' },
       ],
       why: ["Each new square adds an L-shaped border around two sides. The borders are 3, 5, 7, 9: they grow by 2 every time, because each side of the square is 1 longer. With no common difference, this pattern can't be arithmetic."],
     },
@@ -729,6 +758,7 @@ const LESSON = {
             { values: [16], say: "That's how far it has rolled after 4 seconds. Speed is distance travelled ÷ time taken." },
             { values: [4], say: "That's the average from 0 to 4 seconds. We want 3 to 4." },
           ],
+          hint: 'How far does the ball roll between 3 s and 4 s? Then divide by the time it took.',
           // "beside it, the 7-tile border from 3 × 3 to 4 × 4 lights up"
           onCorrect: c => c.s.border.light() },
       ],
@@ -742,7 +772,8 @@ const LESSON = {
       show: [{ shrink: 0.5, rows: ['h (s)', 'Distance in the extra time (m)', 'Average speed = distance ÷ h (m/s)'] }],
       steps: [
         { id: 'A', type: 'number',
-          prompt: `What is the average speed for h = 0.5? (distance at ${fmt(SHRINK.t + 0.5)} s: ${fmt(dist(SHRINK.t + 0.5))} m)`, unit: 'm/s',
+          prompt: `What is the average speed when h = ${fmt(0.5)}? The ball is at ${fmt(dist(SHRINK.t + 0.5))} m at ${fmt(SHRINK.t + 0.5)} seconds.`, unit: 'm/s',
+          hint: 'Find the distance rolled in the extra time: 12.25 − 9. Then divide by h.',
           answer: () => avgSpeed(SHRINK.t, 0.5),
           say: '3.25 m in 0.5 s.',
           wrong: [{ values: [3.25], say: "That's the distance travelled. It took 0.5 seconds. Divide." }],
@@ -754,7 +785,8 @@ const LESSON = {
           wrong: [
             { values: [6.01], say: "That's the average over a tiny gap. What number are these closing in on?" },
             { values: [0], say: "The border shrinks, but border ÷ h doesn't. Look at 6.5, 6.1, 6.01." },
-          ] },
+          ],
+          hint: 'Look at the averages as h gets smaller: 6.5, 6.1, 6.01. What number are they getting closer to?' },
       ],
       why: ['The border is two strips, each 3 × h, plus a corner, h × h, so its area is 6h + h². Divide by the time h: the average speed is 6 + h. As h shrinks, the corner vanishes and the average closes in on 6. That number is the speed at a single instant, the first idea of calculus.'],
     },
