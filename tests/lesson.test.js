@@ -107,6 +107,9 @@ async function bringIntoView(p, a, b) {
 }
 // Place a piece on a target: by tapping both (a real touch tap where the page has touch), by mouse drag, or by touch drag.
 async function place(p, mode, piece, target) {
+  // Pieces, trays and drop targets exist only mid-screen, so their size is checked here, before each placement.
+  const st = await smallTargets(p);
+  ok(st.length === 0, `drag pieces and drop targets are at least 44 px ${JSON.stringify(st)}`);
   if (mode === 'tap') {
     if (p.touch) { await piece.tap(); await target.tap(); } else { await piece.click(); await target.click(); }
     return;
@@ -759,6 +762,8 @@ async function correctPath(browser, label, viewport, extra, mode, shots) {
     ok((await p.locator('#where').innerText()).trim() === `Screen ${n} of ${total}`, `${label}: progress shows Screen ${n} of ${total}`);
     ok(await p.locator('#next').isDisabled() || n === total, `${label} Screen ${n}: Next waits until the screen is done`);
     if (shots) await screenshot(p, `${label}-${pad(n)}-start`);
+    const st0 = await smallTargets(p);
+    ok(st0.length === 0, `${label} Screen ${n}: every target at the start is at least 44 px ${JSON.stringify(st0)}`);
     await SCREENS[n].correct(p, mode);
     if (SCREENS[n].why) {
       await openWhy(p);
