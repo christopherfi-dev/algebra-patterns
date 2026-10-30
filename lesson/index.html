@@ -46,7 +46,6 @@ h1.title { font-size: clamp(25px, 5.6vw, 32px); line-height: 1.2; margin: 0 0 16
 h1.title:focus { outline: none; }
 .intro { margin: 0 0 12px; }
 .formula { font-size: 22px; font-weight: 700; text-align: center; margin: 2px 0; font-variant-numeric: tabular-nums; }
-.reminder { background: var(--soft); border-radius: 14px; padding: 12px 14px; font-weight: 600; margin: 0 0 12px; }
 
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin: 6px 0 4px; }
 .figs { display: flex; flex-wrap: wrap; gap: 16px 18px; align-items: flex-end; justify-content: center; }
@@ -297,12 +296,6 @@ function builtEdges(constant, groups, constCls = 'const') {
   }
   return out;
 }
-
-// "Every wrong answer is tested against the original by substitution": the first n where the two rules differ.
-const testWhereItBreaks = (f, g) => {
-  const n = [1, 2, 3, 0, 4, 5, 10].find(x => !close(f(x), g(x)));
-  return n === undefined ? [] : [`Test at n = ${n}: ${fmt(f(n))}, but the original gives ${fmt(g(n))}.`];
-};
 
 /* =====================================================================
    LESSON DATA. All learner-facing content lives here; the engine below reads it.
@@ -585,41 +578,11 @@ const LESSON = {
           answers: () => ['3n + 1', '4 + 3(n − 1)'].flatMap(r => [1, 2, 3].map(ruleFn(r))),
           judge: (v, st) => {
             const a = st.answers();
-            if (matches(v, a)) return { kind: 'correct', say: 'The same values for all three. Are they the same for every n? Simplify the second rule to find out.' };
+            if (matches(v, a)) return { kind: 'correct', say: 'Right. The same values for all three figures.' };
             if (!matches(v.slice(3), a.slice(3))) return { kind: 'wrong', say: 'Work inside the bracket first, then multiply by 3, then add 4.' };
             return { kind: 'hint', say: st.hint };
           },
           hint: 'In 3n + 1, multiply n by 3 first, then add 1.' },
-        { id: 'B', type: 'rule', show: [{ reminder: 'The distributive property: 3(n − 1) = 3 × n − 3 × 1.' }],
-          prompt: 'Simplify 4 + 3(n − 1).', prefix: 'S =', answer: '4 + 3(n − 1)', simplified: true,
-          say: '4 + 3n − 3 = 3n + 1. The two rules are the same.',
-          answerText: () => 'S = 3n + 1',
-          notCombined: 'Correct so far. Now combine the numbers 4 and −3.',
-          // Every wrong answer is tested against the original by substitution.
-          wrong: [
-            { rule: '3n + 3', say: 'The 3 multiplies both terms in the bracket. You multiplied the n but not the 1.',
-              post: (f, g) => [`Test at n = 1: ${fmt(f(1))}, but the original gives ${fmt(g(1))}.`] },
-            { rule: '3n + 7', say: '3 × (−1) is −3, not +3.',
-              post: (f, g) => [`Test at n = 1: ${fmt(f(1))}, but the original gives ${fmt(g(1))}.`] },
-            { rule: '7n − 7', say: 'You added 4 + 3 before multiplying. Multiply 3(n − 1) first.',
-              post: (f, g) => [`Test: at n = 2 both give ${fmt(f(2))}, but at n = 1 yours gives ${fmt(f(1))} and the original gives ${fmt(g(1))}.`,
-                               { cls: 'say', text: "It matched one figure. One substitution isn't enough." }] },
-            { rule: '7n − 3', say: "4 and 3n aren't like terms. Only the numbers 4 and −3 combine.",
-              post: (f, g) => [`Test: at n = 1 both give ${fmt(f(1))}, but at n = 2 yours gives ${fmt(f(2))} and the original gives ${fmt(g(2))}.`] },
-          ],
-          hint: 'Distribute first: 3 × n and 3 × (−1). Then combine the numbers.',
-          testAll: testWhereItBreaks,
-          followUp: { id: 'B·f', type: 'rule', prompt: 'Simplify 5 + 2(n − 1).', answer: '5 + 2(n − 1)', simplified: true,
-            answerText: () => '2n + 3',
-            say: 'Right. 5 + 2n − 2 = 2n + 3.',
-            wrong: [
-              { rule: '2n + 4', say: 'The 2 multiplies both terms in the bracket. You multiplied the n but not the 1.', post: testWhereItBreaks },
-              { rule: '2n + 7', say: '2 × (−1) is −2, not +2.', post: testWhereItBreaks },
-              { rule: '7n − 7', say: 'You added 5 + 2 before multiplying. Multiply 2(n − 1) first.', post: testWhereItBreaks },
-              { rule: '7n − 2', say: "5 and 2n aren't like terms. Only the numbers 5 and −2 combine.", post: testWhereItBreaks },
-            ],
-            hint: 'Distribute first: 2 × n and 2 × (−1). Then combine the numbers.',
-            testAll: testWhereItBreaks } },
         { id: 'C1', type: 'slide', prompt: 'Slide to Figure 0.', figure: 'sticks', colour: 'rule31', min: 0, max: 10, start: 4, target: 0 },
         { id: 'C2', type: 'number', prompt: 'How many sticks are left?',
           answer: () => stickCount(0),
@@ -847,9 +810,7 @@ function kids(node) {
   return [];
 }
 function some(node, test) { return test(node) || kids(node).some(c => some(c, test)); }
-function count(node, test) { return (test(node) ? 1 : 0) + kids(node).reduce((a, c) => a + count(c, test), 0); }
 const hasN = node => some(node, x => x.k === 'n');
-const hasGroup = node => some(node, x => x.k === 'grp');
 
 // Straight-line rules only: no n times n, no n in a denominator, no power of n. Matching values at a few points
 // proves a straight-line rule is the same, but not any other kind, so anything else is rejected before comparing.
@@ -869,24 +830,6 @@ const close = (a, b) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a -
 // Equivalent: the same value at n = 0, 1, 2, 3, 7 and 1.5.
 const sameRule = (a, b) => TEST_POINTS.every(x => close(evalAt(a, x), evalAt(b, x)));
 const ruleFn = src => { const e = parseRule(src); return n => evalAt(e, n); };
-
-// Simplified: exactly one n term and at most one number.
-function isSimplified(e) {
-  let node = e;
-  while (node.k === 'sum' && node.terms.length === 1 && node.terms[0].node.k === 'grp') node = node.terms[0].node.e;
-  const terms = node.k === 'sum' ? node.terms.map(t => t.node) : [node];
-  let nTerms = 0, nums = 0;
-  for (const t of terms) {
-    if (hasGroup(t)) return false;
-    if (!hasN(t)) { nums++; continue; }
-    if (count(t, x => x.k === 'n') !== 1) return false;
-    if (some(t, x => x.k === 'prod' && x.fs.some(f => f.op === '/' && hasN(f.node)))) return false;
-    nTerms++;
-  }
-  return nTerms === 1 && nums <= 1;
-}
-// True if the expression contains a bracket equal to the given one, e.g. (n − 1).
-const usesBracket = (e, inner) => { const want = parseRule(inner); return some(e, x => x.k === 'grp' && hasN(x.e) && sameRule(x.e, want)); };
 
 // Numbers: "6.5" and "6.50" match; spaces and units after the number are ignored ("13 sticks").
 function parseNumber(raw) {
@@ -923,18 +866,11 @@ const JUDGE = {
     if (!isLinear(e)) return { kind: 'hint', say: st.hint || LESSON.ui.fallback };
     const ans = parseRule(st.answer);
     const yours = n => evalAt(e, n), original = n => evalAt(ans, n);
-    if (sameRule(e, ans)) {
-      if (!st.simplified || isSimplified(e)) return { kind: 'correct', say: st.say };
-      if (!hasGroup(e)) return { kind: 'partial', say: st.notCombined || LESSON.ui.fallback };
-      return { kind: 'hint', say: st.hint || LESSON.ui.fallback };
-    }
+    if (sameRule(e, ans)) return { kind: 'correct', say: st.say };
     for (const w of st.wrong || []) {
-      if (sameRule(e, parseRule(w.rule))) {
-        return { kind: 'wrong', say: w.say, act: w.act,
-          pre: w.pre ? w.pre(yours, original) : [], post: w.post ? w.post(yours, original) : [] };
-      }
+      if (sameRule(e, parseRule(w.rule))) return { kind: 'wrong', say: w.say, act: w.act, pre: w.pre ? w.pre(yours, original) : [] };
     }
-    return { kind: 'hint', say: st.hint || LESSON.ui.fallback, post: st.testAll ? st.testAll(yours, original) : [] };
+    return { kind: 'hint', say: st.hint || LESSON.ui.fallback };
   },
   numbers(st, raws, c) {
     const vals = raws.map(parseNumber);
@@ -1142,7 +1078,6 @@ function trianglesSVG(n) {
 // Things a screen, a step or a Why? panel can show.
 const BLOCKS = {
   formula(b) { return h('p', { class: 'formula' }, rich(b.formula)); },
-  reminder(b) { return h('p', { class: 'reminder' }, rich(b.reminder)); },
   tiles(b) { return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.tiles.map(n => fig(tilesSVG(n, { pattern: b.pattern }), `Figure ${n}`)))); },
   triangles(b) { return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.triangles.map(n => fig(trianglesSVG(n), `Figure ${n}`)))); },
   sticks(b) {
@@ -1288,10 +1223,9 @@ function askStep(st, c, ui) {
     const parts = [
       ...(res.pre || []).map(t => ({ cls: 'test', text: t })),
       ...(res.say ? [{ cls: 'say', text: res.say }] : []),
-      ...(res.post || []).map(t => (typeof t === 'string' ? { cls: 'test', text: t } : t)),
     ];
     fb.replaceChildren(parts.length ? note(res.kind, parts) : '');
-    if (res.kind === 'format' || res.kind === 'partial') { ui.again(); return; }
+    if (res.kind === 'format') { ui.again(); return; }
     if (res.act) res.act(c);
     if (res.kind === 'correct') {
       finished = true;
@@ -1324,7 +1258,6 @@ function askStep(st, c, ui) {
 }
 
 function answerText(st) {
-  if (st.answerText) return st.answerText();
   if (st.type === 'rule') return `${st.prefix ? st.prefix + ' ' : ''}${st.answer}`;
   if (st.type === 'number') return `${st.prefix ? st.prefix + ' ' : ''}${fmt(st.answer())}${st.unit ? ' ' + st.unit : ''}`;
   if (st.type === 'choice') return plain(st.options.find(o => o.correct).text);
