@@ -12,7 +12,7 @@
   --constant: #b45309;
   --coefficient: #1d6fb8;
   --paper: #f6f5f1; --card: #ffffff; --ink: #1d2025; --muted: #5b616b; --line: #d8d5cc; --soft: #ecebe5;
-  --stick-dim: #c4c0b6; --sq-a: #d6d2c8; --sq-b: #b3ad9f; --lit: #1d2025;
+  --stick-dim: #c4c0b6; --sq-a: #e2ded5; --sq-b: #a7a092; --lit: #1d2025;
   --fs: 1;   /* figure scale */
   color-scheme: light;
 }
@@ -22,7 +22,7 @@
     --constant: #f59e4b;
     --coefficient: #6cb6f5;
     --paper: #121418; --card: #1b1e24; --ink: #ecebe6; --muted: #a3a8b1; --line: #363b46; --soft: #22262d;
-    --stick-dim: #4b515c; --sq-a: #3b404a; --sq-b: #5d6470; --lit: #ecebe6;
+    --stick-dim: #4b515c; --sq-a: #3a3f49; --sq-b: #6b7381; --lit: #ecebe6;
     color-scheme: dark;
   }
 }
@@ -153,6 +153,11 @@ table.t { border-collapse: collapse; margin: 6px 0 10px; font-size: 16px; font-v
 @keyframes rowIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 
 /* colour words and swatches */
+.math { white-space: nowrap; }
+.formula, .readout, .student .r, figcaption { white-space: nowrap; }
+.first { display: inline-flex; flex-direction: column; align-items: center; vertical-align: top; line-height: 1.15; }
+.first .fv { font-weight: 750; }
+.first .fl { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .02em; }
 .c { color: var(--constant); font-weight: 750; }
 .k { color: var(--coefficient); font-weight: 750; }
 .sw { display: inline-block; width: .95em; height: .95em; border-radius: 3px; vertical-align: -.12em; margin: 0 .1em; }
@@ -178,6 +183,7 @@ line.slot { stroke-width: 2.5; stroke-linecap: round; }
 .armed .hit { fill: var(--ink); fill-opacity: .06; }
 .ring.ra rect { fill: var(--sq-a); }
 .ring.rb rect { fill: var(--sq-b); }
+.ringline { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
 .ring.lit rect { fill: var(--lit); transition: fill .4s; }
 .counter { font-size: 40px; font-weight: 800; text-align: center; min-height: 1.3em; margin: 4px 0; font-variant-numeric: tabular-nums; }
 .readout { text-align: center; font-weight: 650; font-size: 20px; margin: 8px 0 0; min-height: 1.5em; font-variant-numeric: tabular-nums; }
@@ -337,6 +343,7 @@ const LESSON = {
     progress: (i, n) => `Screen ${i} of ${n}`,
     ruleFormat: 'Type a rule using n, such as 2n + 5.',   // from HANDOFF.md
     edgeTaken: 'That edge is already there.',
+    firstSquare: 'first square',   // Round-2-Wording E: Nina's 4
     cantDoIt: "I can't do it",
     // Not in the spec; listed in REPORT.md for Marc to replace.
     numberFormat: 'Type a number.',
@@ -656,7 +663,7 @@ const LESSON = {
         { id: 'A', type: 'number', prompt: 'How many tiles are in Figure 4?',
           answer: () => squareTiles(4),
           wrong: [{ values: [12], say: "That's adding 3 again. Build it: a 4-by-4 square.",
-                    act: c => { if (!c.s.ghost) { c.s.ghost = true; c.el.append(block({ squares: [4], ghost: true }, c)); } } }] },
+                    act: c => { if (!c.s.ghost) { c.s.ghost = true; add(c.el, block({ squares: [4], ghost: true }, c)); } } }] },
         { id: 'B1', type: 'growSquare', prompt: 'Drag the L-shaped border that turns each square into the next.', from: 1, to: 4 },
         { id: 'B2', type: 'number', prompt: 'How many tiles are in the next border?',
           answer: () => borderTiles(5),
@@ -786,7 +793,7 @@ function normalize(raw) {
 
 function tokenize(str) {
   const out = [];
-  const re = /\s*(?:(\d+(?:[.,]\d+)?|[.,]\d+)|([nN])|([-+*/()]))/y;
+  const re = /\s*(?:(\d+(?:[.,]\d+)?|[.,]\d+)|([nN])|([-+*/()^\u00B2]))/y;
   while (re.lastIndex < str.length) {
     const at = re.lastIndex;
     const m = re.exec(str);
@@ -815,15 +822,24 @@ function parseRule(raw) {
     return { k: 'sum', terms };
   }
   function prod() {
-    const fs = [{ op: '*', node: atom() }];
+    const fs = [{ op: '*', node: power() }];
     for (;;) {
       const p = peek();
       if (!p) break;
-      if (p.t === '*' || p.t === '/') { i++; fs.push({ op: p.t, node: atom() }); }
-      else if (p.t === 'n' || p.t === '(') fs.push({ op: '*', node: atom() });
+      if (p.t === '*' || p.t === '/') { i++; fs.push({ op: p.t, node: power() }); }
+      else if (p.t === 'n' || p.t === '(') fs.push({ op: '*', node: power() });
       else break;
     }
     return fs.length === 1 ? fs[0].node : { k: 'prod', fs };
+  }
+  function power() {
+    let b = atom();
+    for (;;) {
+      const p = peek();
+      if (p && p.t === '^') { i++; b = { k: 'pow', b, e: atom() }; }
+      else if (p && p.t === '\u00B2') { i++; b = { k: 'pow', b, e: { k: 'num', v: 2 } }; }
+      else return b;
+    }
   }
   function atom() {
     const p = toks[i++];
@@ -854,6 +870,7 @@ function evalAt(node, n) {
     case 'neg': return -evalAt(node.e, n);
     case 'sum': return node.terms.reduce((a, t) => a + t.sign * evalAt(t.node, n), 0);
     case 'prod': return node.fs.reduce((a, f) => f.op === '*' ? a * evalAt(f.node, n) : a / evalAt(f.node, n), 1);
+    case 'pow': return evalAt(node.b, n) ** evalAt(node.e, n);
   }
   return NaN;
 }
@@ -861,6 +878,7 @@ function kids(node) {
   if (node.k === 'grp' || node.k === 'neg') return [node.e];
   if (node.k === 'sum') return node.terms.map(t => t.node);
   if (node.k === 'prod') return node.fs.map(f => f.node);
+  if (node.k === 'pow') return [node.b, node.e];
   return [];
 }
 function some(node, test) { return test(node) || kids(node).some(c => some(c, test)); }
@@ -868,6 +886,20 @@ function count(node, test) { return (test(node) ? 1 : 0) + kids(node).reduce((a,
 const hasN = node => some(node, x => x.k === 'n');
 const hasGroup = node => some(node, x => x.k === 'grp');
 
+// Straight-line rules only: no n times n, no n in a denominator, no power of n. Matching values at a few points
+// proves a straight-line rule is the same, but not any other kind, so anything else is rejected before comparing.
+function degree(node) {
+  switch (node.k) {
+    case 'num': return 0;
+    case 'n': return 1;
+    case 'grp': case 'neg': return degree(node.e);
+    case 'sum': return Math.max(...node.terms.map(t => degree(t.node)));
+    case 'prod': return node.fs.reduce((d, f) => d + (f.op === '/' ? (degree(f.node) > 0 ? Infinity : 0) : degree(f.node)), 0);
+    case 'pow': return hasN(node.b) || hasN(node.e) ? Infinity : 0;
+  }
+  return Infinity;
+}
+const isLinear = e => degree(e) <= 1;
 const close = (a, b) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
 // Equivalent: the same value at n = 0, 1, 2, 3, 7 and 1.5.
 const sameRule = (a, b) => TEST_POINTS.every(x => close(evalAt(a, x), evalAt(b, x)));
@@ -906,6 +938,13 @@ function solveLinear(src, target) {
   const f = ruleFn(src), b = f(0), a = f(1) - b;
   return (target - b) / a;
 }
+// A rule written the way it's written by hand: T = n, T = 3n, T = 3n − 2, never T = 1n + 0.
+function ruleText(a, b, letter = 'T') {
+  const term = a === 0 ? '' : a === 1 ? 'n' : a === -1 ? '\u2212n' : `${fmt(a)}n`;
+  if (!term) return `${letter} = ${fmt(b)}`;
+  if (b === 0) return `${letter} = ${term}`;
+  return `${letter} = ${term} ${b < 0 ? '\u2212' : '+'} ${fmt(Math.abs(b))}`;
+}
 // Formatting for anything computed: trims float noise, uses the minus sign.
 function fmt(x) {
   const r = Math.round(x * 1e6) / 1e6;
@@ -923,6 +962,7 @@ const JUDGE = {
   rule(st, [raw]) {
     const e = parseRule(raw);
     if (!e) return { kind: 'format', say: LESSON.ui.ruleFormat };
+    if (!isLinear(e)) return { kind: 'hint', say: st.hint || LESSON.ui.fallback };
     const ans = parseRule(st.answer);
     const yours = n => evalAt(e, n), original = n => evalAt(ans, n);
     if (sameRule(e, ans)) {
@@ -961,10 +1001,12 @@ const JUDGE = {
    DOM HELPERS
    ===================================================================== */
 const SVGNS = 'http://www.w3.org/2000/svg';
+// Every insertion goes through append/add, which skip null, undefined and false, so a missing value never shows as text.
 function append(el, kids) {
   for (const k of [kids].flat(Infinity)) if (k != null && k !== false) el.append(k instanceof Node ? k : String(k));
   return el;
 }
+const add = (el, ...kids) => append(el, kids);
 function h(tag, props, ...kids) {
   const el = document.createElement(tag);
   for (const [k, v] of Object.entries(props || {})) {
@@ -980,20 +1022,36 @@ function s(tag, props, ...kids) {
   for (const [k, v] of Object.entries(props || {})) if (v != null && v !== false) el.setAttribute(k, v);
   return append(el, kids);
 }
+// Math expressions ("S = 4 + 3(n − 1)", "6h + h²", "n = 0") never break across lines: each one is wrapped in a no-wrap span.
+// An operand is a number, a variable or both (3n, 6h, an), with optional brackets and ²; operands are joined by + − × ÷ =.
+const OPERAND = String.raw`[(]*\u2212?(?:\d+(?:\.\d+)?(?:an|[ntdhTSPab])?|an|[ntdhTSPab])(?![A-Za-z])\u00B2?(?:\([^()]*\))?[)]*\u00B2?`;
+const MATH_RE = new RegExp(`(?<![A-Za-z\\d.])${OPERAND}(?:\\s?[+\u2212\u00D7\u00F7=]\\s?${OPERAND})+`, 'g');
+function mathSpans(text) {
+  const out = [];
+  let last = 0;
+  for (const m of text.matchAll(MATH_RE)) {
+    out.push(text.slice(last, m.index), h('span', { class: 'math' }, m[0]));
+    last = m.index + m[0].length;
+  }
+  out.push(text.slice(last));
+  return out.filter(x => x !== '');
+}
+// Learner text: colour tokens ({c|…} constant, {k|…} coefficient, {f|…} Nina's first square, {sw:c} swatches) plus no-wrap math.
 function rich(text) {
   const out = [];
-  const re = /\{(?:sw:(c|k)|(c|k)\|([^}]*))\}/g;
+  const re = /\{(?:sw:(c|k)|(c|k|f)\|([^}]*))\}/g;
   let last = 0, m;
   while ((m = re.exec(text))) {
-    out.push(text.slice(last, m.index));
+    out.push(...mathSpans(text.slice(last, m.index)));
     if (m[1]) out.push(h('span', { class: 'sw ' + m[1], role: 'img', 'aria-label': m[1] === 'c' ? 'first colour' : 'second colour' }));
+    else if (m[2] === 'f') out.push(h('span', { class: 'first' }, h('span', { class: 'fv' }, m[3]), h('span', { class: 'fl' }, LESSON.ui.firstSquare)));
     else out.push(h('span', { class: m[2] }, m[3]));
     last = re.lastIndex;
   }
-  out.push(text.slice(last));
+  out.push(...mathSpans(text.slice(last)));
   return out;
 }
-const plain = text => text.replace(/\{sw:[ck]\}/g, '').replace(/\{[ck]\|([^}]*)\}/g, '$1').replace(/\s+/g, ' ').trim();
+const plain = text => text.replace(/\{sw:[ck]\}/g, '').replace(/\{[ckf]\|([^}]*)\}/g, '$1').replace(/\s+/g, ' ').trim();
 const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const wait = ms => new Promise(r => setTimeout(r, reduceMotion() ? 0 : ms));
 let uid = 0;
@@ -1003,12 +1061,12 @@ const scaled = (w, scale = 1) => `width: calc(${w * scale}px * var(--fs))`;
 function icon(kind) {
   const svg = s('svg', { class: 'icon', viewBox: '0 0 26 26', 'aria-hidden': 'true' });
   if (kind === 'correct') {
-    svg.append(s('circle', { cx: 13, cy: 13, r: 12, fill: 'var(--ink)' }),
+    add(svg, s('circle', { cx: 13, cy: 13, r: 12, fill: 'var(--ink)' }),
       s('path', { d: 'M7.5 13.5l3.6 3.6 7.4-8', fill: 'none', stroke: 'var(--paper)', 'stroke-width': 2.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
   } else if (kind === 'empty') {
-    svg.append(s('rect', { x: 2, y: 2, width: 22, height: 22, rx: 5, fill: 'none', stroke: 'var(--muted)', 'stroke-width': 2 }));
+    add(svg, s('rect', { x: 2, y: 2, width: 22, height: 22, rx: 5, fill: 'none', stroke: 'var(--muted)', 'stroke-width': 2 }));
   } else {
-    svg.append(s('circle', { cx: 13, cy: 13, r: 11, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2 }),
+    add(svg, s('circle', { cx: 13, cy: 13, r: 11, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2 }),
       s('circle', { cx: 13, cy: 13, r: 3.2, fill: 'var(--ink)' }));
   }
   return svg;
@@ -1023,9 +1081,9 @@ function okMark() {
 }
 function note(kind, parts) {
   return h('div', { class: 'note', 'data-kind': kind }, icon(kind),
-    h('div', { class: 'note-body' }, parts.map(p => p instanceof Node ? p : h('p', { class: p.cls }, p.text))));
+    h('div', { class: 'note-body' }, parts.map(p => p instanceof Node ? p : h('p', { class: p.cls }, rich(p.text)))));
 }
-function fig(svg, caption) { return h('figure', {}, svg, caption != null ? h('figcaption', {}, caption) : null); }
+function fig(svg, caption) { return h('figure', {}, svg, caption != null ? h('figcaption', {}, typeof caption === 'string' ? rich(caption) : caption) : null); }
 
 /* =====================================================================
    FIGURES (inline SVG, computed from n)
@@ -1042,22 +1100,22 @@ function tilesSVG(n, opts = {}) {
   const column = (x, k, cls, back) => {
     const g = s('g', {});
     const top = H - (k * TILE + (k - 1) * IN_GAP);
-    g.append(s('rect', { x: x - 3, y: top - 3, width: TILE + 6, height: H - top + 6, rx: 6, class: back }));
-    for (let j = 0; j < k; j++) g.append(s('rect', { x, y: H - (j + 1) * TILE - j * IN_GAP, width: TILE, height: TILE, rx: 3, class: cls }));
+    add(g, s('rect', { x: x - 3, y: top - 3, width: TILE + 6, height: H - top + 6, rx: 6, class: back }));
+    for (let j = 0; j < k; j++) add(g, s('rect', { x, y: H - (j + 1) * TILE - j * IN_GAP, width: TILE, height: TILE, rx: 3, class: cls }));
     return g;
   };
-  svg.append(column(0, TILES.fixed, 't-const', 'g-const'));
-  for (let i = 1; i <= n; i++) svg.append(column(i * (TILE + COL_GAP), TILES.group, 't-coef', 'g-coef'));
+  add(svg, column(0, TILES.fixed, 't-const', 'g-const'));
+  for (let i = 1; i <= n; i++) add(svg, column(i * (TILE + COL_GAP), TILES.group, 't-coef', 'g-coef'));
   if (opts.slot) {
     const x = (n + 1) * (TILE + COL_GAP);
-    for (let j = 0; j < TILES.group; j++) svg.append(s('rect', { x, y: H - (j + 1) * TILE - j * IN_GAP, width: TILE, height: TILE, rx: 3, class: 'slot' }));
+    for (let j = 0; j < TILES.group; j++) add(svg, s('rect', { x, y: H - (j + 1) * TILE - j * IN_GAP, width: TILE, height: TILE, rx: 3, class: 'slot' }));
   }
   return svg;
 }
 function groupPieceSVG() {
   const H = TILE * TILES.group + IN_GAP * (TILES.group - 1);
   const svg = s('svg', { viewBox: `-4 -4 ${TILE + 8} ${H + 8}`, style: scaled(TILE + 8), 'aria-hidden': 'true' });
-  for (let j = 0; j < TILES.group; j++) svg.append(s('rect', { x: 0, y: j * (TILE + IN_GAP), width: TILE, height: TILE, rx: 3, class: 't-coef' }));
+  for (let j = 0; j < TILES.group; j++) add(svg, s('rect', { x: 0, y: j * (TILE + IN_GAP), width: TILE, height: TILE, rx: 3, class: 't-coef' }));
   return svg;
 }
 
@@ -1084,7 +1142,7 @@ function sticksSVG(n, opts = {}) {
   const w = Math.max(opts.width ?? n, 1), pad = 8, scale = opts.scale || 1;
   const svg = s('svg', { viewBox: `${-pad} ${-pad} ${w * SIDE + 2 * pad} ${SIDE + 2 * pad}`, style: scaled(w * SIDE + 2 * pad, scale), role: 'img', 'aria-label': `Figure ${n}` });
   const edges = opts.edges || stickEdges(n).map(e => ({ e, cls: opts.dim ? 'dim' : stickClass(e, opts.colour) }));
-  for (const { e, cls } of edges) svg.append(s('line', { ...edgeLine(e), class: `stick ${cls || ''}`, 'data-edge': e }));
+  for (const { e, cls } of edges) add(svg, s('line', { ...edgeLine(e), class: `stick ${cls || ''}`, 'data-edge': e }));
   return svg;
 }
 function stickPieceSVG(cls) {
@@ -1093,29 +1151,31 @@ function stickPieceSVG(cls) {
 }
 function groupStickSVG() {   // a group of 3: top, right side, bottom
   const svg = s('svg', { viewBox: `-8 -8 ${SIDE + 16} ${SIDE + 16}`, style: scaled(SIDE + 16, 0.9), 'aria-hidden': 'true' });
-  for (const e of ['t0', 'b0', 'v1']) svg.append(s('line', { ...edgeLine(e), class: 'stick coef' }));
+  for (const e of ['t0', 'b0', 'v1']) add(svg, s('line', { ...edgeLine(e), class: 'stick coef' }));
   return svg;
 }
 
-// Squares: k × k tiles; each L-shaped border is shaded as one unit.
-const CELL = 18;
+// Squares: k × k tiles. Each L-shaped border is one unit: its own shade, and an ink outline around it.
+// Neither lesson colour is used, because a border is neither the constant nor a coefficient group.
+const CELL = 26;
+function ringGroup(j, w) {
+  const g = s('g', { class: `ring ${j % 2 ? 'ra' : 'rb'}`, 'data-ring': j });
+  for (const [r, c] of ringCells(j)) add(g, s('rect', { x: c * CELL + 2, y: (w - 1 - r) * CELL + 2, width: CELL - 4, height: CELL - 4, rx: 3 }));
+  // Outline of the L, from its corners in (column, row from the bottom).
+  const corners = j === 1 ? [[0, 0], [0, 1], [1, 1], [1, 0]] : [[0, j - 1], [0, j], [j, j], [j, 0], [j - 1, 0], [j - 1, j - 1]];
+  add(g, s('polygon', { class: 'ringline', points: corners.map(([c, r]) => `${c * CELL},${(w - r) * CELL}`).join(' ') }));
+  return g;
+}
 function squareSVG(k, opts = {}) {
   const w = opts.width ?? k, pad = 4, scale = opts.scale || 1;
   const svg = s('svg', { viewBox: `${-pad} ${-pad} ${w * CELL + 2 * pad} ${w * CELL + 2 * pad}`, style: scaled(w * CELL + 2 * pad, scale), role: 'img', 'aria-label': `Figure ${k}` });
-  const cell = (r, c, props) => s('rect', { x: c * CELL + 1, y: (w - 1 - r) * CELL + 1, width: CELL - 2, height: CELL - 2, rx: 2, ...props });
-  for (let j = 1; j <= k; j++) {
-    const g = s('g', { class: `ring ${j % 2 ? 'ra' : 'rb'}`, 'data-ring': j });
-    for (const [r, c] of ringCells(j)) g.append(cell(r, c));
-    svg.append(g);
-  }
-  if (opts.ghost) for (let j = k + 1; j <= opts.ghost; j++) for (const [r, c] of ringCells(j)) svg.append(cell(r, c, { class: 'slot' }));
+  for (let j = 1; j <= k; j++) add(svg, ringGroup(j, w));
+  if (opts.ghost) for (let j = k + 1; j <= opts.ghost; j++) for (const [r, c] of ringCells(j)) add(svg, s('rect', { x: c * CELL + 2, y: (w - 1 - r) * CELL + 2, width: CELL - 4, height: CELL - 4, rx: 3, class: 'slot' }));
   return svg;
 }
-function ringPieceSVG(j) {
-  const svg = s('svg', { viewBox: `-2 -2 ${j * CELL + 4} ${j * CELL + 4}`, style: scaled(j * CELL + 4, 0.8), 'aria-hidden': 'true' });
-  const g = s('g', { class: `ring ${j % 2 ? 'ra' : 'rb'}` });
-  for (const [r, c] of ringCells(j)) g.append(s('rect', { x: c * CELL + 1, y: (j - 1 - r) * CELL + 1, width: CELL - 2, height: CELL - 2, rx: 2 }));
-  svg.append(g);
+function ringPieceSVG(j, scale = 0.8) {
+  const svg = s('svg', { viewBox: `-2 -2 ${j * CELL + 4} ${j * CELL + 4}`, style: scaled(j * CELL + 4, scale), 'aria-hidden': 'true' });
+  add(svg, ringGroup(j, j));
   return svg;
 }
 function borderRow(js) {
@@ -1128,24 +1188,24 @@ function graphFigure(points) {
   const x = n => X0 + n * XU, y = t => Y0 - t * YU;
   const svg = s('svg', { viewBox: '0 0 340 250', class: 'graph', role: 'img', 'aria-label': 'Points and a line', style: 'width: 100%; max-width: 480px' });
   const clipId = newId('clip');
-  svg.append(s('defs', {}, s('clipPath', { id: clipId }, s('rect', { x: x(0), y: y(TMAX), width: NMAX * XU, height: TMAX * YU }))));
-  for (let n = 0; n <= NMAX; n++) svg.append(s('line', { x1: x(n), y1: y(0), x2: x(n), y2: y(TMAX), class: 'grid' }), s('text', { x: x(n), y: Y0 + 18, 'text-anchor': 'middle' }, fmt(n)));
-  for (let t = 0; t <= TMAX; t += 5) svg.append(s('line', { x1: x(0), y1: y(t), x2: x(NMAX), y2: y(t), class: 'grid' }), s('text', { x: X0 - 8, y: y(t) + 4, 'text-anchor': 'end' }, fmt(t)));
-  svg.append(s('line', { x1: x(0), y1: y(0), x2: x(NMAX) + 10, y2: y(0), class: 'axis' }), s('line', { x1: x(0), y1: y(0), x2: x(0), y2: y(TMAX) - 10, class: 'axis' }),
+  add(svg, s('defs', {}, s('clipPath', { id: clipId }, s('rect', { x: x(0), y: y(TMAX), width: NMAX * XU, height: TMAX * YU }))));
+  for (let n = 0; n <= NMAX; n++) add(svg, s('line', { x1: x(n), y1: y(0), x2: x(n), y2: y(TMAX), class: 'grid' }), s('text', { x: x(n), y: Y0 + 18, 'text-anchor': 'middle' }, fmt(n)));
+  for (let t = 0; t <= TMAX; t += 5) add(svg, s('line', { x1: x(0), y1: y(t), x2: x(NMAX), y2: y(t), class: 'grid' }), s('text', { x: X0 - 8, y: y(t) + 4, 'text-anchor': 'end' }, fmt(t)));
+  add(svg, s('line', { x1: x(0), y1: y(0), x2: x(NMAX) + 10, y2: y(0), class: 'axis' }), s('line', { x1: x(0), y1: y(0), x2: x(0), y2: y(TMAX) - 10, class: 'axis' }),
     s('text', { x: x(NMAX) + 14, y: Y0 + 4, 'font-style': 'italic' }, 'n'), s('text', { x: X0 - 4, y: y(TMAX) - 14, 'font-style': 'italic', 'text-anchor': 'middle' }, 'T'));
   const fit = s('line', { class: 'fit', 'clip-path': `url(#${clipId})` });
-  svg.append(fit);
+  add(svg, fit);
   const rings = points.map(n => s('circle', { cx: x(n), cy: y(squareTiles(n)), r: 11, class: 'ring', hidden: true }));
-  svg.append(...rings);
-  points.forEach(n => svg.append(s('circle', { cx: x(n), cy: y(squareTiles(n)), r: 6, class: 'pt' }),
+  add(svg, ...rings);
+  points.forEach(n => add(svg, s('circle', { cx: x(n), cy: y(squareTiles(n)), r: 6, class: 'pt' }),
     s('text', { x: x(n) - 10, y: y(squareTiles(n)) - 9, 'text-anchor': 'end', class: 'pl' }, fmt(squareTiles(n)))));
   const rises = s('g', { hidden: true });
   points.slice(0, -1).forEach((n, i) => {
     const m = points[i + 1];
-    rises.append(s('line', { x1: x(m), y1: y(squareTiles(n)), x2: x(m), y2: y(squareTiles(m)), class: 'rise' }),
+    add(rises, s('line', { x1: x(m), y1: y(squareTiles(n)), x2: x(m), y2: y(squareTiles(m)), class: 'rise' }),
       s('text', { x: x(m) + 7, y: (y(squareTiles(n)) + y(squareTiles(m))) / 2 + 5, class: 'rl' }, `+${fmt(squareTiles(m) - squareTiles(n))}`));
   });
-  svg.append(rises);
+  add(svg, rises);
   let a = 0, b = 0;
   return {
     svg,
@@ -1161,16 +1221,16 @@ function rampFigure([t0, t1]) {
   const len = Math.hypot(B.x - A.x, B.y - A.y), ux = (B.x - A.x) / len, uy = (B.y - A.y) / len, nx = uy, ny = -ux;
   const at = d => { const f = d / dist(t1); return { x: A.x + ux * len * f, y: A.y + uy * len * f }; };
   const svg = s('svg', { viewBox: '0 0 360 190', class: 'ramp', role: 'img', 'aria-label': 'A ball on a ramp', style: 'width: 100%; max-width: 520px' });
-  svg.append(s('polygon', { points: `${A.x},${A.y} ${B.x},${B.y} ${A.x},${B.y}`, class: 'wedge' }));
+  add(svg, s('polygon', { points: `${A.x},${A.y} ${B.x},${B.y} ${A.x},${B.y}`, class: 'wedge' }));
   range(t0, t1).forEach(t => {
     const p = at(dist(t));
     // The first label sits to the left of the start so it doesn't collide with the next one.
     const label = t === t0 ? { x: p.x - 10, y: p.y + 4, 'text-anchor': 'end' } : { x: p.x - nx * 18, y: p.y - ny * 18 + 4, 'text-anchor': 'middle' };
-    svg.append(s('line', { x1: p.x - nx * 6, y1: p.y - ny * 6, x2: p.x + nx * 6, y2: p.y + ny * 6, class: 'tick' }),
+    add(svg, s('line', { x1: p.x - nx * 6, y1: p.y - ny * 6, x2: p.x + nx * 6, y2: p.y + ny * 6, class: 'tick' }),
       s('text', label, `${fmt(t)} s`));
   });
   const ball = s('circle', { r: R, class: 'ball' });
-  svg.append(ball);
+  add(svg, ball);
   const place = d => { const p = at(d); ball.setAttribute('cx', p.x + nx * R); ball.setAttribute('cy', p.y + ny * R); };
   place(dist(t0));
   if (reduceMotion()) place(dist(t1));
@@ -1192,11 +1252,11 @@ function rampFigure([t0, t1]) {
 function shrinkFigure(h0) {
   const U = 52, side = SHRINK.side, top = 1 * U + 6, left = 30;
   const svg = s('svg', { viewBox: `0 0 ${left + (side + 1) * U + 70} ${top + side * U + 10}`, class: 'shrink', role: 'img', 'aria-label': 'A 3 by 3 square with a border', style: 'width: 100%; max-width: 360px' });
-  for (let r = 0; r < side; r++) for (let c = 0; c < side; c++) svg.append(s('rect', { x: left + c * U, y: top + r * U, width: U, height: U, class: 'sq' }));
+  for (let r = 0; r < side; r++) for (let c = 0; c < side; c++) add(svg, s('rect', { x: left + c * U, y: top + r * U, width: U, height: U, class: 'sq' }));
   const topStrip = s('rect', { class: 'strip' }), rightStrip = s('rect', { class: 'strip' }), corner = s('rect', { class: 'corner' });
   const tTop = s('text', { 'text-anchor': 'middle' }, '3 × h'), tRight = s('text', { 'text-anchor': 'middle' }, '3 × h');
   const lead = s('line', { class: 'lead' }), tCorner = s('text', {}, 'h × h');
-  svg.append(topStrip, rightStrip, corner, lead, tTop, tRight, tCorner);
+  add(svg, topStrip, rightStrip, corner, lead, tTop, tRight, tCorner);
   const set = hv => {
     const w = hv * U, x0 = left + side * U;
     Object.entries({ x: left, y: top - w, width: side * U, height: w }).forEach(([k, v]) => topStrip.setAttribute(k, v));
@@ -1218,7 +1278,7 @@ const BLOCKS = {
     return h('p', { class: 'sequence' }, range(b.from, b.to).map(x => fmt(f(x))).join(', ') + ', …');
   },
   formula(b) { return h('p', { class: 'formula' }, rich(b.formula)); },
-  reminder(b) { return h('p', { class: 'reminder' }, b.reminder); },
+  reminder(b) { return h('p', { class: 'reminder' }, rich(b.reminder)); },
   tiles(b) { return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.tiles.map(n => fig(tilesSVG(n), `Figure ${n}`)))); },
   sticks(b) {
     return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.sticks.map((n, i) =>
@@ -1226,7 +1286,7 @@ const BLOCKS = {
   },
   squares(b) {
     return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.squares.map(n =>
-      fig(b.ghost ? squareSVG(0, { width: n, ghost: n }) : squareSVG(n), `Figure ${n}`))));
+      fig(squareSVG(n, { scale: 1.3 }), `Figure ${n}`))));
   },
   students(b) {
     return h('div', { class: 'students' }, b.students.map(st => h('div', { class: 'student' }, h('span', { class: 'name' }, st.name), h('span', { class: 'r' }, rich(st.rule)))));
@@ -1239,7 +1299,7 @@ const BLOCKS = {
   ramp(b) { return h('div', { class: 'card' }, fig(rampFigure(b.ramp))); },
   squareBorder(b, c) {
     const k = b.squareBorder;
-    const svg = squareSVG(k, { scale: 1.6 });
+    const svg = squareSVG(k, { scale: 1.3 });
     c.s.border = { light: () => svg.querySelector(`[data-ring="${k}"]`).classList.add('lit') };
     return h('div', { class: 'card' }, fig(svg, `${fmt(k - 1)} × ${fmt(k - 1)} → ${fmt(k)} × ${fmt(k)}`));
   },
@@ -1311,7 +1371,7 @@ function draggable(piece, opts) {
         ghost.style.width = r.width + 'px';
         ghost.style.height = r.height + 'px';
         ghost.dataset.w = r.width; ghost.dataset.h = r.height;
-        document.body.append(ghost);
+        add(document.body, ghost);
         justDragged = true;
       }
       ghost.style.transform = `translate(${ev.clientX - ghost.dataset.w / 2}px, ${ev.clientY - ghost.dataset.h / 2}px)`;
@@ -1376,7 +1436,7 @@ function askStep(st, c, ui) {
   const demo = h('div', { class: 'demo' });
   const pathEl = h('div', { class: 'path' });
   const check = h('button', { type: 'button', class: 'btn check' }, LESSON.ui.check);
-  ui.row.append(check);
+  add(ui.row, check);
   append(c.el, [ui.el, fb, demo, pathEl]);
   let misses = 0, finished = false;
   const submit = () => {
@@ -1440,15 +1500,15 @@ function secondMiss(st, c, demoEl, ui) {
   c.log.secondMiss = true;
   if (st.demo) { DEMOS[st.demo.type](st.demo, demoEl, c); return; }
   if (ui.showAnswer) ui.showAnswer();
-  demoEl.append(h('div', { class: 'answer-card', 'data-default-answer': '' },
+  add(demoEl, h('div', { class: 'answer-card', 'data-default-answer': '' },
     h('span', { class: 'label' }, LESSON.ui.answer),
-    h('span', { class: 'val' }, answerText(st)),
-    st.say ? h('p', { class: 'say' }, st.say) : null));
+    h('span', { class: 'val' }, rich(answerText(st))),
+    st.say ? h('p', { class: 'say' }, rich(st.say)) : null));
   if (c.last) c.openWhy();
 }
 
 const DEMOS = {
-  rowTable(d, el) { el.append(h('div', { class: 'answer-card' }, rowTable(d, true))); },
+  rowTable(d, el) { add(el, h('div', { class: 'answer-card' }, rowTable(d, true))); },
 };
 
 function inputsUI(inputs, row, el) {
@@ -1459,14 +1519,14 @@ function inputsUI(inputs, row, el) {
     lock: () => inputs.forEach(i => { i.disabled = true; }),
     again: () => { const i = inputs[inputs.length - 1]; i.focus(); i.select(); },
     onEnter: fn => inputs.forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); fn(); } })),
-    markOk: () => row.append(okMark()),
+    markOk: () => add(row, okMark()),
   };
 }
 function focusSoon(el) { if (state.booting) return; setTimeout(() => { if (!el.disabled && el.isConnected) el.focus({ preventScroll: true }); }, 40); }
 function typed(st, c, kind) {
   const f = inputField(st, kind);
   const row = h('div', { class: 'row' }, f.el);
-  c.el.append(promptEl(st));
+  add(c.el, promptEl(st));
   askStep(st, c, inputsUI([f.inp], row, row));
   focusSoon(f.inp);
 }
@@ -1476,7 +1536,7 @@ const STEPS = {
   rule(st, c) { typed(st, c, 'rule'); },
 
   numbers(st, c) {
-    c.el.append(promptEl(st));
+    add(c.el, promptEl(st));
     let inputs, body;
     const row = h('div', { class: 'row' });
     if (st.grid) {
@@ -1506,7 +1566,7 @@ const STEPS = {
   },
 
   choice(st, c) {
-    c.el.append(promptEl(st));
+    add(c.el, promptEl(st));
     let chosen = null;
     const btns = st.options.map((o, i) => h('button', { type: 'button', class: 'choice', 'aria-pressed': 'false', 'data-choice': i,
       onclick: () => { chosen = i; btns.forEach((b, j) => b.setAttribute('aria-pressed', String(j === i))); } }, h('span', {}, rich(o.text))));
@@ -1518,18 +1578,18 @@ const STEPS = {
       lock: () => btns.forEach(b => { b.disabled = true; }),
       again: () => {},
       onEnter: () => {},
-      markOk: () => btns[chosen].append(okMark()),
+      markOk: () => add(btns[chosen], okMark()),
       showAnswer: () => btns.forEach((b, j) => b.classList.toggle('is-answer', !!st.options[j].correct)),
     });
   },
 
   marks(st, c) {
-    c.el.append(promptEl(st));
+    add(c.el, promptEl(st));
     const vals = st.items.map(() => null);
     const groups = st.items.map((it, i) => {
       const btns = st.labels.map((lab, j) => h('button', { type: 'button', class: 'mark', 'aria-pressed': 'false', 'data-mark': `${i}-${j}`,
         onclick: () => { vals[i] = j === 0; btns.forEach((b, k) => b.setAttribute('aria-pressed', String(k === j))); } }, lab));
-      return { btns, el: h('div', { class: 'mark-row' }, h('span', { class: 'who' }, `${it.who}: ${it.rule}`), h('div', { class: 'mark-btns', role: 'group', 'aria-label': it.who }, btns)) };
+      return { btns, el: h('div', { class: 'mark-row' }, h('span', { class: 'who' }, rich(`${it.who}: ${it.rule}`)), h('div', { class: 'mark-btns', role: 'group', 'aria-label': it.who }, btns)) };
     });
     const row = h('div', { class: 'row' });
     row.style.marginTop = '12px';
@@ -1540,14 +1600,14 @@ const STEPS = {
       lock: () => groups.forEach(g => g.btns.forEach(b => { b.disabled = true; })),
       again: () => {},
       onEnter: () => {},
-      markOk: () => row.append(okMark()),
+      markOk: () => add(row, okMark()),
       showAnswer: () => groups.forEach((g, i) => g.btns.forEach((b, j) => b.classList.toggle('is-answer', (j === 0) === st.items[i].correct))),
     });
   },
 
   // Screen 2: drag one group of 3 onto Figure 3 to build Figure 4.
   placeGroup(st, c) {
-    c.el.append(promptEl(st));
+    add(c.el, promptEl(st));
     const caption = `Figure ${st.from + 1}`;
     const target = h('div', { class: 'drop interactive', role: 'button', tabindex: '0', 'aria-label': caption }, fig(tilesSVG(st.from, { slot: true }), caption));
     const piece = h('button', { type: 'button', class: 'piece', 'aria-label': `group of ${TILES.group}` }, groupPieceSVG());
@@ -1566,12 +1626,12 @@ const STEPS = {
     };
     draggable(piece, opts);
     tapTarget(target, 'slot', opts);
-    c.el.append(h('div', { class: 'card' }, h('div', { class: 'figs' }, target)), tray);
+    add(c.el, h('div', { class: 'card' }, h('div', { class: 'figs' }, target)), tray);
   },
 
   // A figure with a slider for n; done when the learner reaches the target figure.
   slide(st, c) {
-    c.el.append(promptEl(st));
+    add(c.el, promptEl(st));
     const holder = h('div', { class: 'figs' });
     const readout = h('p', { class: 'readout', hidden: true });
     const input = h('input', { type: 'range', min: st.min, max: st.max, step: 1, value: st.start, class: 'interactive', 'aria-label': 'Figure number', 'data-slider': '' });
@@ -1592,12 +1652,12 @@ const STEPS = {
       showRule: fn => { rule = fn; readout.hidden = false; render(); },
     };
     render();
-    c.el.append(h('div', { class: 'card' }, holder, readout, input));
+    add(c.el, h('div', { class: 'card' }, holder, readout, input));
   },
 
   // Screen 7: drag sticks onto the edges of Figure 4. A stick dropped on an existing edge is rejected.
   buildSticks(st, c) {
-    c.el.append(promptEl(st));
+    add(c.el, promptEl(st));
     const n = st.from + 1, all = stickEdges(n), present = new Set(stickEdges(st.from));
     const scale = 1.68, thick = 44 / scale + 2, len = SIDE - 2 * INSET;
     const svg = sticksSVG(n, { scale, edges: [] });
@@ -1610,8 +1670,8 @@ const STEPS = {
       hits[e] = s('rect', { class: 'hit', x: v ? cx - thick / 2 : cx - len / 2, y: v ? cy - len / 2 : cy - thick / 2, width: v ? thick : len, height: v ? len : thick,
         role: 'button', tabindex: '0', 'aria-label': edgeName(e), 'data-hit': e });
     }
-    all.forEach(e => svg.append(lines[e]));
-    all.forEach(e => svg.append(hits[e]));
+    all.forEach(e => add(svg, lines[e]));
+    all.forEach(e => add(svg, hits[e]));
     const target = h('div', { class: 'drop interactive' }, fig(svg, `Figure ${n}`));
     const piece = h('button', { type: 'button', class: 'piece', 'aria-label': 'stick' }, stickPieceSVG(''));
     const tray = h('div', { class: 'tray interactive' }, piece);
@@ -1648,14 +1708,14 @@ const STEPS = {
     };
     draggable(piece, opts);
     for (const e of all) tapTarget(hits[e], e, opts);
-    c.el.append(h('div', { class: 'card' }, h('div', { class: 'figs' }, target)), tray, fb);
+    add(c.el, h('div', { class: 'card' }, h('div', { class: 'figs' }, target)), tray, fb);
   },
 
   // Screen 7, Marc's move: the sticks light up one by one, then the shared edges flash.
   async countSticks(st, c) {
     const svg = sticksSVG(st.n, { dim: true, scale: 1.3 });
     const counter = h('p', { class: 'counter', 'aria-live': 'polite' });
-    c.el.append(h('div', { class: 'card' }, h('div', { class: 'figs' }, fig(svg, `Figure ${st.n}`)), counter));
+    add(c.el, h('div', { class: 'card' }, h('div', { class: 'figs' }, fig(svg, `Figure ${st.n}`)), counter));
     const edges = stickEdges(st.n);
     await wait(500);
     for (let i = 0; i < edges.length; i++) {
@@ -1663,7 +1723,7 @@ const STEPS = {
       counter.textContent = fmt(i + 1);
       await wait(450);
     }
-    for (const t of st.after || []) c.el.append(h('p', { class: 'line' }, t));
+    for (const t of st.after || []) add(c.el, h('p', { class: 'line' }, rich(t)));
     sharedEdges(st.n).forEach(e => svg.querySelector(`[data-edge="${e}"]`).classList.add('flash'));
     await wait(2700);
     c.done();
@@ -1671,7 +1731,7 @@ const STEPS = {
 
   // Screen 10: build a student's rule for Figure 1 from constant sticks and groups of 3.
   buildRule(st, c) {
-    c.el.append(promptEl(st), h('p', { class: 'formula' }, rich(st.atOne)));
+    add(c.el, promptEl(st), h('p', { class: 'formula' }, rich(st.atOne)));
     let nc = 0, ng = 0;
     const area = h('div', { class: 'drop buildarea interactive', role: 'button', tabindex: '0', 'aria-label': `${st.who}'s build` });
     const draw = () => {
@@ -1709,13 +1769,13 @@ const STEPS = {
     draggable(group, opts);
     tapTarget(area, 'area', opts);
     draw();
-    c.el.append(h('div', { class: 'card' }, area), tray, fb);
+    add(c.el, h('div', { class: 'card' }, area), tray, fb);
     update();
   },
 
   // Screen 10, step E: not scored.
   explain(st, c) {
-    c.el.append(promptEl(st));
+    add(c.el, promptEl(st));
     const ta = h('textarea', { class: 'explain', 'aria-label': plain(st.prompt) });
     const btn = h('button', { type: 'button', class: 'btn' }, LESSON.ui.compare);
     btn.disabled = true;
@@ -1726,25 +1786,25 @@ const STEPS = {
       ta.readOnly = true;
       row.remove();
       cmp.classList.add('two');
-      cmp.append(h('p', { class: 'model' }, st.model));
-      c.el.append(h('label', { class: 'tick' }, h('input', { type: 'checkbox' }), LESSON.ui.same));
+      add(cmp, h('p', { class: 'model' }, rich(st.model)));
+      add(c.el, h('label', { class: 'tick' }, h('input', { type: 'checkbox' }), LESSON.ui.same));
       c.revealWhy();
       c.done();
     });
-    c.el.append(cmp, row);
+    add(c.el, cmp, row);
     focusSoon(ta);
   },
 
   // Screen 11: drag the L-shaped border that turns each square into the next.
   growSquare(st, c) {
-    c.el.append(promptEl(st));
+    add(c.el, promptEl(st));
     let k = st.from;
     const area = h('div', { class: 'drop interactive', role: 'button', tabindex: '0', 'aria-label': 'square' });
     const row = h('div', { class: 'bordrow' });
     const piece = h('button', { type: 'button', class: 'piece', 'aria-label': 'L-shaped border' });
     const tray = h('div', { class: 'tray interactive' }, piece);
     const draw = () => {
-      area.replaceChildren(fig(squareSVG(k, { width: st.to, ghost: k < st.to ? k + 1 : 0, scale: 1.5 }), `Figure ${k}`));
+      area.replaceChildren(fig(squareSVG(k, { width: st.to, ghost: k < st.to ? k + 1 : 0, scale: 1.4 }), `Figure ${k}`));
       piece.replaceChildren(ringPieceSVG(k + 1));
     };
     const opts = {
@@ -1753,7 +1813,7 @@ const STEPS = {
       hoverEl: () => area,
       place: () => {
         k += 1;
-        row.append(h('div', { class: 'chip' }, ringPieceSVG(k), h('b', {}, fmt(borderTiles(k)))));
+        add(row, h('div', { class: 'chip' }, ringPieceSVG(k), h('b', {}, fmt(borderTiles(k)))));
         draw();
         if (k >= st.to) {
           tray.remove();
@@ -1766,7 +1826,7 @@ const STEPS = {
     draggable(piece, opts);
     tapTarget(area, 'area', opts);
     draw();
-    c.el.append(h('div', { class: 'card' }, h('div', { class: 'figs' }, area), row), tray);
+    add(c.el, h('div', { class: 'card' }, h('div', { class: 'figs' }, area), row), tray);
   },
 
   // Screen 12: dials for a and b. After three tries, or "I can't do it", the border row reappears.
@@ -1783,7 +1843,7 @@ const STEPS = {
     };
     const update = () => {
       g.set(a, b);
-      formula.textContent = `T = ${fmt(a)}n ${b < 0 ? '−' : '+'} ${fmt(Math.abs(b))}`;
+      formula.textContent = ruleText(a, b);
     };
     const check = h('button', { type: 'button', class: 'btn check' }, LESSON.ui.check);
     const cant = h('button', { type: 'button', class: 'btn ghost', 'data-cant': '' }, LESSON.ui.cantDoIt);
@@ -1794,20 +1854,20 @@ const STEPS = {
       over = true;
       rowEl.remove();
       g.showRises();
-      reveal.append(borderRow(st.points.slice(1).map(n => n)));
+      add(reveal, borderRow(st.points.slice(1).map(n => n)));
       c.revealWhy();
       c.done();
     };
     check.addEventListener('click', () => { g.hits(); tries += 1; if (tries >= st.tries) finish(); });
     cant.addEventListener('click', finish);
-    c.el.append(h('div', { class: 'card' }, h('div', { class: 'figs' }, fig(g.svg)), formula, reveal,
+    add(c.el, h('div', { class: 'card' }, h('div', { class: 'figs' }, fig(g.svg)), formula, reveal,
       h('div', { class: 'dials' }, dial('a', st.a, v => { a = v; }), dial('b', st.b, v => { b = v; }))), h('div', { style: 'margin-top: 12px' }, rowEl));
     update();
   },
 
   // Screen 14: slide h toward 0; the table fills as h shrinks.
   shrinkSlide(st, c) {
-    c.el.append(promptEl(st));
+    add(c.el, promptEl(st));
     const sh = c.s.shrink, STEPS_PER_DECADE = 100, max = 2 * STEPS_PER_DECADE;
     const toH = p => { const v = 10 ** (-p / STEPS_PER_DECADE); const nice = sh.table.find(x => Math.abs(x - v) / x < 0.02); return nice ?? v; };
     const start = Math.round(-Math.log10(0.5) * STEPS_PER_DECADE);
@@ -1820,23 +1880,23 @@ const STEPS = {
       sh.table.forEach(x => { if (hv <= x + 1e-12 && x < 0.5) sh.fill(x); });
       if (!done && +input.value === max) { done = true; c.done(); }
     });
-    c.el.append(h('div', { class: 'card' }, input));
+    add(c.el, h('div', { class: 'card' }, input));
   },
 
   // Screen 15: typed answers only; no hints and no Why? until the learner submits.
   exit(st, c) {
     const items = st.items.map((it, i) => {
       const fbEl = h('div', { class: 'fb', role: 'status', 'aria-live': 'polite' });
-      const q = h('p', { class: 'q' }, h('span', { class: 'num' }, `${i + 1}.`), it.q);
+      const q = h('p', { class: 'q' }, h('span', { class: 'num' }, `${i + 1}.`), rich(it.q));
       let read, lock, mark, input = null;
       if (it.type === 'choice') {
         let chosen = null;
         const btns = it.options.map((o, j) => h('button', { type: 'button', class: 'choice', 'aria-pressed': 'false', 'data-choice': j,
           onclick: () => { chosen = j; btns.forEach((b, k) => b.setAttribute('aria-pressed', String(k === j))); } },
-          h('span', {}, o.text || range(1, 4).map(n => fmt(o.seq(n))).join(', '))));
+          h('span', {}, rich(o.text || range(1, 4).map(n => fmt(o.seq(n))).join(', ')))));
         read = () => chosen;
         lock = () => btns.forEach(b => { b.disabled = true; });
-        mark = ok => { if (ok) btns[chosen].append(okMark()); else btns.forEach((b, j) => b.classList.toggle('is-answer', !!it.options[j].correct)); };
+        mark = ok => { if (ok) add(btns[chosen], okMark()); else btns.forEach((b, j) => b.classList.toggle('is-answer', !!it.options[j].correct)); };
         return { it, fbEl, read, lock, mark, el: h('div', { class: 'item', 'data-item': i + 1 }, q, h('div', { class: 'choices', role: 'group' }, btns), fbEl) };
       }
       const f = inputField({ prefix: it.prefix, label: it.q }, it.type);
@@ -1844,7 +1904,7 @@ const STEPS = {
       const row = h('div', { class: 'row' }, f.el);
       read = () => input.value.trim();
       lock = () => { input.disabled = true; };
-      mark = ok => { if (ok) row.append(okMark()); };
+      mark = ok => { if (ok) add(row, okMark()); };
       return { it, fbEl, read, lock, mark, input, el: h('div', { class: 'item', 'data-item': i + 1 }, q, row, fbEl) };
     });
     const submit = h('button', { type: 'button', class: 'btn', 'data-submit': '' }, LESSON.ui.submit);
@@ -1853,7 +1913,7 @@ const STEPS = {
       if (it.type === 'choice') return it.options[v].correct ? { ok: true } : { ok: false, say: it.options[v].ifChosen || it.ifWrong };
       if (it.type === 'number') return near(parseNumber(v), it.answer()) ? { ok: true } : { ok: false, say: it.ifWrong };
       const e = parseRule(v);
-      const ok = sameRule(e, parseRule(it.answer)) && (!it.mustUse || usesBracket(e, it.mustUse));
+      const ok = isLinear(e) && sameRule(e, parseRule(it.answer)) && (!it.mustUse || usesBracket(e, it.mustUse));
       return ok ? { ok: true } : { ok: false, say: it.ifWrong };
     };
     submit.addEventListener('click', () => {
@@ -1863,21 +1923,21 @@ const STEPS = {
       let unreadable = false;
       items.forEach(x => {
         x.fbEl.replaceChildren();
-        if (x.it.type === 'rule' && !parseRule(x.read())) { unreadable = true; x.fbEl.append(note('format', [{ cls: 'say', text: LESSON.ui.ruleFormat }])); }
-        if (x.it.type === 'number' && parseNumber(x.read()) === null) { unreadable = true; x.fbEl.append(note('format', [{ cls: 'say', text: LESSON.ui.numberFormat }])); }
+        if (x.it.type === 'rule' && !parseRule(x.read())) { unreadable = true; add(x.fbEl, note('format', [{ cls: 'say', text: LESSON.ui.ruleFormat }])); }
+        if (x.it.type === 'number' && parseNumber(x.read()) === null) { unreadable = true; add(x.fbEl, note('format', [{ cls: 'say', text: LESSON.ui.numberFormat }])); }
       });
       if (unreadable) return;
       items.forEach(x => {
         const g = grade(x);
         x.lock();
         x.mark(g.ok);
-        if (!g.ok) x.fbEl.append(note('wrong', [{ cls: 'say', text: g.say }]));
+        if (!g.ok) add(x.fbEl, note('wrong', [{ cls: 'say', text: g.say }]));
       });
       submit.remove();
       c.log.exit = items.map(x => grade(x).ok);
       c.done();
     });
-    c.el.append(h('div', { class: 'items' }, items.map(x => x.el)), h('div', { class: 'row', style: 'margin-top: 20px' }, submit));
+    add(c.el, h('div', { class: 'items' }, items.map(x => x.el)), h('div', { class: 'row', style: 'margin-top: 20px' }, submit));
   },
 
   // Screen 16: ticked by what the learner actually did.
@@ -1886,13 +1946,13 @@ const STEPS = {
       const log = state.log[LESSON.screens.findIndex(sc => sc.n === it.screen)];
       return !!(log && log.done && !log.secondMiss);
     };
-    c.el.append(h('ul', { class: 'checklist' }, st.items.map(it => {
+    add(c.el, h('ul', { class: 'checklist' }, st.items.map(it => {
       const on = ticked(it);
       const ic = icon(on ? 'correct' : 'empty');
       ic.removeAttribute('aria-hidden');
       ic.setAttribute('role', 'img');
       ic.setAttribute('aria-label', on ? 'ticked' : 'not ticked');
-      return h('li', { 'data-ticked': String(on) }, ic, h('span', {}, it.text));
+      return h('li', { 'data-ticked': String(on) }, ic, h('span', {}, rich(it.text)));
     })));
     c.done();
   },
@@ -1914,10 +1974,10 @@ function runSteps(steps, ctx, container, onDone, isPath) {
     const last = !isPath && k === steps.length - 1;
     k += 1;
     const el = h('div', { class: 'step', 'data-step': `${ctx.sc.n}${st.id}` });
-    container.append(el);
+    add(container, el);
     const c = { ...ctx, el, last, done: next };
-    (st.lines || []).forEach(t => el.append(h('p', { class: 'line' }, t)));
-    (st.show || []).forEach(b => el.append(block(b, c)));
+    (st.lines || []).forEach(t => add(el, h('p', { class: 'line' }, rich(t))));
+    (st.show || []).forEach(b => add(el, block(b, c)));
     STEPS[st.type](st, c);
     if (!state.booting && !(k === 1 && !isPath)) requestAnimationFrame(() => el.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'nearest' }));
   };
@@ -1940,13 +2000,13 @@ function renderScreen(i) {
     hideWhy: () => { whyBtn.hidden = true; setWhy(false); },
     openWhy: () => { if (sc.why) { whyBtn.hidden = false; setWhy(true); } },
   };
-  sec.append(h('p', { class: 'eyebrow' }, LESSON.parts[sc.part]), h('h1', { class: 'title', id: titleId, tabindex: '-1' }, sc.title));
-  (sc.intro || []).forEach(t => sec.append(h('p', { class: 'intro' }, rich(t))));
-  (sc.show || []).forEach(b => sec.append(block(b, ctx)));
+  add(sec, h('p', { class: 'eyebrow' }, LESSON.parts[sc.part]), h('h1', { class: 'title', id: titleId, tabindex: '-1' }, sc.title));
+  (sc.intro || []).forEach(t => add(sec, h('p', { class: 'intro' }, rich(t))));
+  (sc.show || []).forEach(b => add(sec, block(b, ctx)));
   const steps = h('div', { class: 'steps' });
   append(whyPanel, (sc.why || []).map(b => block(b, ctx)));
-  sec.append(steps, h('div', { class: 'why-wrap' }, whyBtn, whyPanel));
-  main.append(sec);
+  add(sec, steps, h('div', { class: 'why-wrap' }, whyBtn, whyPanel));
+  add(main, sec);
   runSteps(sc.steps, ctx, steps, () => { log.done = true; chrome(); });
   return sec;
 }
