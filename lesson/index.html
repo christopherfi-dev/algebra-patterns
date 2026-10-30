@@ -83,7 +83,7 @@ figcaption { font-size: 15px; color: var(--muted); margin-top: 6px; font-variant
 .gridtable { border-collapse: collapse; }
 .gridtable th, .gridtable td { padding: 4px 3px; text-align: center; font-weight: 650; }
 .gridtable th[scope="row"] { text-align: left; padding-right: 8px; }
-.gridtable .ans.small { width: 3em; }
+.gridtable .ans.small { width: 50px; padding: 6px 2px; font-size: 20px; }   /* narrow on phones so "S = 4 + 3(n − 1)" fits whole */
 @media (min-width: 520px) { .gridtable th[scope="row"] { white-space: nowrap; } .gridtable .ans.small { width: 4em; } .gridtable td { padding: 4px 6px; } }
 .okmark { width: 30px; height: 30px; flex: 0 0 auto; }
 .btn { min-height: 48px; min-width: 48px; padding: 10px 20px; border-radius: 12px; border: 2px solid var(--ink);
@@ -1144,7 +1144,7 @@ const BLOCKS = {
   // Screen 3's row comparison; tableRow steps add rows to it.
   compare(b, c) {
     const { cols, rows } = b.compare;
-    const tbody = h('tbody', {}, rows.map(([label, f]) => h('tr', {}, h('th', { scope: 'row' }, label), cols.map(n => h('td', {}, fmt(f(n)))))));
+    const tbody = h('tbody', {}, rows.map(([label, f]) => h('tr', {}, h('th', { scope: 'row' }, rich(label)), cols.map(n => h('td', {}, fmt(f(n)))))));
     const el = h('div', { class: 'tablewrap' }, h('table', { class: 't comparetable' }, tbody));
     c.s.compare = { el, tbody, cols };
     return el;
@@ -1160,7 +1160,7 @@ function block(b, c) {
 function rowTable(d) {
   const f = ruleFn(d.rule), g = ruleFn(d.normal), ns = range(d.from, d.to);
   const rows = [ns, ns.map(f), ns.map(g), ns.map(x => f(x) - g(x))];
-  const trs = rows.map((vals, r) => h('tr', {}, h('th', { scope: 'row' }, d.labels[r]), vals.map(v => h('td', {}, fmt(v)))));
+  const trs = rows.map((vals, r) => h('tr', {}, h('th', { scope: 'row' }, rich(d.labels[r])), vals.map(v => h('td', {}, fmt(v)))));
   return h('div', { class: 'tablewrap' }, h('table', { class: 't' }, h('tbody', {}, trs)));
 }
 
@@ -1376,8 +1376,8 @@ const STEPS = {
     const row = h('div', { class: 'row' });
     if (st.grid) {
       inputs = [];
-      const table = h('table', { class: 'gridtable' }, h('thead', {}, h('tr', {}, h('th', {}), st.grid.cols.map(n => h('th', { scope: 'col' }, `n = ${n}`)))),
-        h('tbody', {}, st.grid.rows.map(r => h('tr', {}, h('th', { scope: 'row' }, r), st.grid.cols.map(n => {
+      const table = h('table', { class: 'gridtable' }, h('thead', {}, h('tr', {}, h('th', {}), st.grid.cols.map(n => h('th', { scope: 'col' }, rich(`n = ${n}`))))),
+        h('tbody', {}, st.grid.rows.map(r => h('tr', {}, h('th', { scope: 'row' }, rich(r)), st.grid.cols.map(n => {
           const f = inputField({ small: true }, 'number', `${r}, n = ${n}`);
           inputs.push(f.inp);
           return h('td', {}, f.inp);
@@ -1387,8 +1387,8 @@ const STEPS = {
       const boxes = st.fields.map(fd => {
         const f = inputField({ small: true }, 'number', fd.label);
         const picture = fd.tiles !== undefined
-          ? h('figure', {}, tilesSVG(fd.tiles, { width: 10 }), h('figcaption', {}, fd.label, ' ', h('span', { class: 'count', 'data-count': '', hidden: true }, `· ${LESSON.ui.tiles(fmt(tileCount(fd.tiles)))}`)))
-          : h('span', { class: 'lab' }, fd.label);
+          ? h('figure', {}, tilesSVG(fd.tiles, { width: 10 }), h('figcaption', {}, rich(fd.label), ' ', h('span', { class: 'count', 'data-count': '', hidden: true }, `· ${LESSON.ui.tiles(fmt(tileCount(fd.tiles)))}`)))
+          : h('span', { class: 'lab' }, rich(fd.label));
         return { inp: f.inp, el: h('div', { class: fd.tiles !== undefined ? 'fieldbox left' : 'fieldbox' }, picture, f.inp) };
       });
       inputs = boxes.map(b => b.inp);
@@ -1475,7 +1475,7 @@ const STEPS = {
       inputs.push(f.inp);
       return h('td', {}, f.inp);
     });
-    add(T.tbody, h('tr', { class: 'enter' }, h('th', { scope: 'row' }, st.label), cells));
+    add(T.tbody, h('tr', { class: 'enter' }, h('th', { scope: 'row' }, rich(st.label)), cells));
     const row = h('div', { class: 'row' });
     const fillRest = () => cells.forEach((td, i) => { if (i >= st.typed) { td.textContent = fmt(st.value(T.cols[i])); td.classList.add('filled'); } });
     askStep({ ...st, onCorrect: fillRest }, c, inputsUI(inputs, row, row));
@@ -1668,8 +1668,8 @@ const STEPS = {
       const box = h('div', { class: 'item', 'data-item': i + 1 }, q);
       let fields = [], body, markEl;
       if (it.type === 'table') {
-        const tbody = h('tbody', {}, h('tr', {}, h('th', { scope: 'row' }, it.head), it.cols.map(n => h('td', {}, fmt(n)))),
-          it.rows.map(r => h('tr', {}, h('th', { scope: 'row' }, r.label), it.cols.map((n, j) => {
+        const tbody = h('tbody', {}, h('tr', {}, h('th', { scope: 'row' }, rich(it.head)), it.cols.map(n => h('td', {}, fmt(n)))),
+          it.rows.map(r => h('tr', {}, h('th', { scope: 'row' }, rich(r.label)), it.cols.map((n, j) => {
             if (j < r.given) return h('td', {}, fmt(r.value(n)));
             const f = inputField({ small: true }, 'number', `${r.label}, Figure ${n}`);
             fields.push({ inp: f.inp, row: r, n });
