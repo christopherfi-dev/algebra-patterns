@@ -661,26 +661,33 @@ const LESSON = {
       steps: [
         // Typed answers, no hints and no Why? before submission, one submission; each wrong item shows its response afterwards.
         { id: 'A', type: 'exit', items: [
-          { q: 'Complete the table.', type: 'table', head: 'Figure n', cols: [1, 2, 3, 4, 5],
+          { num: '1', question: 1, q: 'Complete the table.', type: 'table', head: 'Figure n', cols: [1, 2, 3, 4, 5],
             rows: [
               { label: 'Tiles', value: n => tilesIn(TILES_EXIT, n), given: 3, ifWrong: 'Each figure adds 4 tiles.' },
               { label: 'Skip count by 4', value: n => TILES_EXIT.group * n, given: 2, ifWrong: 'Count by 4: 4, 8, 12, …' },
             ] },
-          { q: 'Write the rule.', type: 'rule', prefix: 'T =', answer: '4n + 5',
+          { num: '2', question: 2, q: 'Write the rule.', type: 'rule', prefix: 'T =', answer: '4n + 5',
             wrong: [
               { rule: '9 + 4n', say: '9 is the total for Figure 1. The constant is the value at Figure 0.' },
               { rule: '9n', say: 'Only 4 tiles repeat in each figure.' },
               { rule: '4n', say: 'Each figure also has the 5 fixed tiles.' },
             ],
             otherwise: 'How many tiles does each figure add, and how many are there at Figure 0?' },
-          { q: 'How many tiles are in Figure 25?', type: 'number', answer: () => tilesIn(TILES_EXIT, 25),
+          // HANDOFF-ROUND-3 5: part of question 2, so the ticket stays at four numbered questions.
+          { num: '2b', question: 2, q: 'What does the constant in the rule count?', type: 'choice',
+            options: [
+              { text: 'The tiles in Figure 1', say: "Figure 1 has 9 tiles. The constant is what's there at Figure 0." },
+              { text: 'The fixed tiles, there even at Figure 0', correct: true },
+              { text: 'The tiles added to each new figure', say: 'Each figure adds 4. The constant stays the same in every figure.' },
+            ] },
+          { num: '3', question: 3, q: 'How many tiles are in Figure 25?', type: 'number', answer: () => tilesIn(TILES_EXIT, 25),
             wrong: [
               { values: [TILES_EXIT.group * 25], say: 'You counted the groups. Add the 5 fixed tiles.' },
               { values: [tilesIn(TILES_EXIT, 1) * 25], say: 'Only 4 tiles repeat in each figure.' },
               { values: [tilesIn(TILES_EXIT, 26)], say: "That's Figure 26." },
             ],
             otherwise: 'Replace n with 25 in T = 4n + 5.' },
-          { q: 'Which figure has 65 tiles?', type: 'number', answer: () => solveLinear('4n + 5', 65),
+          { num: '4', question: 4, q: 'Which figure has 65 tiles?', type: 'number', answer: () => solveLinear('4n + 5', 65),
             wrong: [
               { values: [(65 - tilesIn(TILES_EXIT, 1)) / TILES_EXIT.group], say: "Start from the 5 fixed tiles, not Figure 1's 9." },
               { values: [65 / TILES_EXIT.group], say: 'Undo the + 5 first, then the × 4.' },
@@ -697,7 +704,7 @@ const LESSON = {
         // One line per exit item, ticked only if that item was fully correct on the single submission.
         { id: 'A', type: 'selfcheck', items: [
           { text: 'Completed the table', item: 1 },
-          { text: 'Wrote the rule for a new pattern', item: 2 },
+          { text: 'Wrote the rule and identified what the constant counts', item: 2 },   // needs both 2 and 2b
           { text: 'Found the total for any figure', item: 3 },
           { text: 'Found the figure for a given total', item: 4 },
         ] },
@@ -1605,14 +1612,31 @@ const STEPS = {
     focusSoon(ta);
   },
 
-  // The exit ticket: typed answers only; no hints and no Why? until the learner submits, and one submission.
+  // The exit ticket: no hints and no Why? until the learner submits, and one submission.
+  // Each item can say whether it's empty or unreadable, grade itself, and lock.
   exit(st, c) {
-    const items = st.items.map((it, i) => {
+    const items = st.items.map(it => {
       const fbEl = h('div', { class: 'fb', role: 'status', 'aria-live': 'polite' });
-      const q = h('p', { class: 'q' }, h('span', { class: 'num' }, `${i + 1}.`), rich(it.q));
-      const box = h('div', { class: 'item', 'data-item': i + 1 }, q);
-      let fields = [], body, markEl;
+      const el = h('div', { class: 'item', 'data-item': it.num }, h('p', { class: 'q' }, h('span', { class: 'num' }, `${it.num}.`), rich(it.q)));
+      const x = { it, el, fbEl };
+      if (it.type === 'choice') {
+        let chosen = null;
+        const btns = it.options.map((o, j) => h('button', { type: 'button', class: 'choice', 'aria-pressed': 'false', 'data-choice': j,
+          onclick: () => { chosen = j; btns.forEach((b, k) => b.setAttribute('aria-pressed', String(k === j))); } }, h('span', {}, rich(o.text))));
+        Object.assign(x, {
+          empty: () => chosen === null,
+          focus: () => btns[0].focus(),
+          unreadable: () => null,
+          lock: () => btns.forEach(b => { b.disabled = true; }),
+          mark: () => add(btns[chosen], okMark()),
+          grade: () => (it.options[chosen].correct ? { ok: true, says: [] } : { ok: false, says: [it.options[chosen].say] }),
+        });
+        add(el, h('div', { class: 'choices', role: 'group' }, btns), fbEl);
+        return x;
+      }
+      let fields, row;
       if (it.type === 'table') {
+        fields = [];
         const tbody = h('tbody', {}, h('tr', {}, h('th', { scope: 'row' }, rich(it.head)), it.cols.map(n => h('td', {}, fmt(n)))),
           it.rows.map(r => h('tr', {}, h('th', { scope: 'row' }, rich(r.label)), it.cols.map((n, j) => {
             if (j < r.given) return h('td', {}, fmt(r.value(n)));
@@ -1620,54 +1644,63 @@ const STEPS = {
             fields.push({ inp: f.inp, row: r, n });
             return h('td', {}, f.inp);
           }))));
-        body = markEl = h('div', { class: 'row' }, h('div', { class: 'tablewrap' }, h('table', { class: 't extable' }, tbody)));
+        row = h('div', { class: 'row' }, h('div', { class: 'tablewrap' }, h('table', { class: 't extable' }, tbody)));
       } else {
         const f = inputField({ prefix: it.prefix, label: it.q }, it.type);
         fields = [{ inp: f.inp }];
-        body = markEl = h('div', { class: 'row' }, f.el);
+        row = h('div', { class: 'row' }, f.el);
       }
-      add(box, body, fbEl);
-      return { it, fbEl, fields, el: box, markEl, read: () => fields.map(x => x.inp.value.trim()) };
+      const vals = () => fields.map(f => f.inp.value.trim());
+      Object.assign(x, {
+        empty: () => vals().some(v => !v),
+        focus: () => fields.find(f => !f.inp.value.trim()).inp.focus(),
+        unreadable: () => (it.type === 'rule' ? (parseRule(vals()[0]) ? null : LESSON.ui.ruleFormat)
+          : (vals().some(v => parseNumber(v) === null) ? LESSON.ui.numberFormat : null)),
+        lock: () => fields.forEach(f => { f.inp.disabled = true; }),
+        mark: () => add(row, okMark()),
+        grade: () => {
+          if (it.type === 'table') {
+            const says = it.rows.filter(r => fields.some(f => f.row === r && !near(parseNumber(f.inp.value), r.value(f.n)))).map(r => r.ifWrong);
+            return { ok: !says.length, says };
+          }
+          const v = vals()[0];
+          if (it.type === 'number') {
+            const n = parseNumber(v);
+            if (near(n, it.answer())) return { ok: true, says: [] };
+            const w = it.wrong.find(w => w.values.some(y => near(n, y)));
+            return { ok: false, says: [w ? w.say : it.otherwise] };
+          }
+          const e = parseRule(v);
+          if (isLinear(e) && sameRule(e, parseRule(it.answer))) return { ok: true, says: [] };
+          const w = isLinear(e) ? it.wrong.find(w => sameRule(e, parseRule(w.rule))) : null;
+          return { ok: false, says: [w ? w.say : it.otherwise] };
+        },
+      });
+      add(el, row, fbEl);
+      return x;
     });
-    // Each item: right, or the responses its wrong answer earns.
-    const grade = x => {
-      const { it } = x;
-      if (it.type === 'table') {
-        const says = it.rows.filter(r => x.fields.some(f => f.row === r && !near(parseNumber(f.inp.value), r.value(f.n)))).map(r => r.ifWrong);
-        return { ok: !says.length, says };
-      }
-      const [v] = x.read();
-      if (it.type === 'number') {
-        const n = parseNumber(v);
-        if (near(n, it.answer())) return { ok: true, says: [] };
-        const w = it.wrong.find(w => w.values.some(y => near(n, y)));
-        return { ok: false, says: [w ? w.say : it.otherwise] };
-      }
-      const e = parseRule(v);
-      if (isLinear(e) && sameRule(e, parseRule(it.answer))) return { ok: true, says: [] };
-      const w = isLinear(e) ? it.wrong.find(w => sameRule(e, parseRule(w.rule))) : null;
-      return { ok: false, says: [w ? w.say : it.otherwise] };
-    };
     const submit = h('button', { type: 'button', class: 'btn', 'data-submit': '' }, LESSON.ui.submit);
     submit.addEventListener('click', () => {
-      const empty = items.flatMap(x => x.fields).find(f => !f.inp.value.trim());
-      if (empty) { empty.inp.focus(); return; }
+      const empty = items.find(x => x.empty());
+      if (empty) { empty.focus(); return; }
       // Unreadable answers are flagged without submitting; they don't count against the learner.
       let unreadable = false;
       items.forEach(x => {
         x.fbEl.replaceChildren();
-        const bad = x.it.type === 'rule' ? !parseRule(x.read()[0]) : x.read().some(v => parseNumber(v) === null);
-        if (bad) { unreadable = true; add(x.fbEl, note('format', [{ cls: 'say', text: x.it.type === 'rule' ? LESSON.ui.ruleFormat : LESSON.ui.numberFormat }])); }
+        const msg = x.unreadable();
+        if (msg) { unreadable = true; add(x.fbEl, note('format', [{ cls: 'say', text: msg }])); }
       });
       if (unreadable) return;
-      const results = items.map(grade);
+      const results = items.map(x => x.grade());
       items.forEach((x, i) => {
-        x.fields.forEach(f => { f.inp.disabled = true; });
-        if (results[i].ok) add(x.markEl, okMark());
+        x.lock();
+        if (results[i].ok) x.mark();
         else add(x.fbEl, note('wrong', results[i].says.map(text => ({ cls: 'say', text }))));
       });
       submit.remove();
-      state.exit = results.map(r => r.ok);   // the first and only submission
+      // The first and only submission, one result per numbered question: question 2 needs both 2 and 2b.
+      const questions = [...new Set(st.items.map(it => it.question))];
+      state.exit = questions.map(q => items.every((x, i) => x.it.question !== q || results[i].ok));
       c.done();
     });
     add(c.el, h('div', { class: 'items' }, items.map(x => x.el)), h('div', { class: 'row', style: 'margin-top: 20px' }, submit));
