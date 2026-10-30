@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seeing the Rule</title>
+<style>
+/* The two lesson colours. --constant is only ever the constant; --coefficient is only ever a group of the coefficient.
+   Okabe–Ito-style orange and blue: distinct under protan, deutan and tritan simulation, and at least 4.5:1 against the page in both modes. */
+:root {
+  --constant: #b45309;
+  --coefficient: #1d6fb8;
+  --paper: #f6f5f1; --card: #ffffff; --ink: #1d2025; --muted: #5b616b; --line: #d8d5cc; --soft: #ecebe5;
+  --stick-dim: #c4c0b6; --sq-a: #d6d2c8; --sq-b: #bcb7ab; --lit: #1d2025;
+  --fs: 1;   /* figure scale */
+  color-scheme: light;
+}
+@media (min-width: 700px) { :root { --fs: 1.4; } }
+@media (prefers-color-scheme: dark) {
+  :root {
+    --constant: #f59e4b;
+    --coefficient: #6cb6f5;
+    --paper: #121418; --card: #1b1e24; --ink: #ecebe6; --muted: #a3a8b1; --line: #363b46; --soft: #22262d;
+    --stick-dim: #4b515c; --sq-a: #3b404a; --sq-b: #575e6a; --lit: #ecebe6;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink);
+  font: 18px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+button, input, textarea { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+
+/* top bar and progress */
+.top { position: sticky; top: 0; z-index: 20; background: var(--paper); }
+.top-inner { max-width: 760px; margin: 0 auto; padding: 10px 16px 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; color: var(--muted); }
+.brand { font-weight: 750; color: var(--ink); letter-spacing: .01em; }
+.bar { height: 4px; background: var(--soft); }
+.bar > span { display: block; height: 100%; width: 0; background: var(--ink); transition: width .3s ease; }
+
+main { max-width: 760px; margin: 0 auto; padding: 22px 16px 150px; }
+.eyebrow { margin: 0 0 4px; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+h1.title { font-size: clamp(25px, 5.6vw, 32px); line-height: 1.2; margin: 0 0 16px; letter-spacing: -.01em; }
+h1.title:focus { outline: none; }
+.intro { margin: 0 0 12px; }
+.sequence { font-size: clamp(28px, 8vw, 40px); font-weight: 750; letter-spacing: .02em; margin: 6px 0 4px; font-variant-numeric: tabular-nums; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin: 6px 0 4px; }
+.figs { display: flex; flex-wrap: wrap; gap: 16px 18px; align-items: flex-end; justify-content: center; }
+figure { margin: 0; text-align: center; min-width: 0; }
+figure svg { display: block; margin: 0 auto; max-width: 100%; height: auto; overflow: visible; }
+figcaption { font-size: 15px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+
+/* steps */
+.step { margin-top: 24px; scroll-margin: 90px 0 130px; }
+.prompt { font-weight: 650; margin: 0 0 10px; }
+.line { margin: 0 0 10px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.field { display: inline-flex; align-items: center; gap: 8px; }
+.prefix, .unit { font-weight: 650; white-space: nowrap; }
+.ans { font-size: 22px; font-weight: 650; min-height: 52px; width: 6.5em; max-width: 100%; padding: 8px 12px;
+  border: 2px solid var(--muted); border-radius: 12px; background: var(--card); font-variant-numeric: tabular-nums; }
+.ans.rule { width: 11em; }
+.ans.small { width: 4.2em; text-align: center; }
+.ans:focus { outline: 3px solid var(--ink); outline-offset: 1px; border-color: var(--ink); }
+.ans:disabled { opacity: 1; border-style: dashed; background: transparent; }
+.btn { min-height: 48px; min-width: 48px; padding: 10px 20px; border-radius: 12px; border: 2px solid var(--ink);
+  background: var(--ink); color: var(--paper); font-weight: 700; cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--ink); }
+.btn:disabled { opacity: .35; cursor: default; }
+.btn:focus-visible, .choice:focus-visible, .piece:focus-visible, .hit:focus-visible, .mark:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+/* feedback */
+.fb { margin-top: 12px; }
+.fb:empty { display: none; }
+.note { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: var(--card); border: 2px dashed var(--line); }
+.note[data-kind="correct"] { border: 2px solid var(--ink); }
+.note[data-kind="format"] { border-style: solid; }
+.note svg.icon { flex: 0 0 auto; width: 26px; height: 26px; margin-top: 1px; }
+.note-body { min-width: 0; overflow-wrap: anywhere; }
+.note-body p { margin: 0; }
+.note-body p + p { margin-top: 6px; }
+.test { font-variant-numeric: tabular-nums; font-weight: 650; }
+.demo:empty { display: none; }
+.demo { margin-top: 12px; }
+.answer-card { padding: 12px 14px; border-radius: 14px; background: var(--soft); }
+.answer-card .label { display: block; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.answer-card .val { font-size: 22px; font-weight: 750; }
+.answer-card p { margin: 6px 0 0; }
+
+/* choices */
+.choices { display: grid; gap: 10px; margin-bottom: 12px; }
+.choice { text-align: left; min-height: 52px; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); cursor: pointer; line-height: 1.4; }
+.choice[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); font-weight: 650; }
+.choice.is-answer { border-style: dashed; border-color: var(--ink); }
+.choice:disabled { cursor: default; }
+
+/* Why? */
+.why-wrap { margin-top: 26px; }
+.why { margin-top: 12px; background: var(--soft); border-radius: 16px; padding: 14px 16px; }
+.why p { margin: 0 0 10px; }
+.why p:last-child { margin-bottom: 0; }
+
+/* tables */
+.tablewrap { max-width: 100%; overflow-x: auto; }
+table.t { border-collapse: collapse; margin: 6px 0 10px; font-size: 16px; font-variant-numeric: tabular-nums; }
+.t th, .t td { border: 1px solid var(--line); padding: 6px 10px; text-align: center; min-width: 2.4em; }
+.t th[scope="row"] { text-align: left; font-weight: 650; background: var(--soft); min-width: 0; }
+.why .t th[scope="row"] { background: var(--card); }
+.t tr.enter { animation: rowIn .5s ease both; }
+@keyframes rowIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+/* colour words and swatches */
+.c { color: var(--constant); font-weight: 750; }
+.k { color: var(--coefficient); font-weight: 750; }
+.sw { display: inline-block; width: .95em; height: .95em; border-radius: 3px; vertical-align: -.12em; margin: 0 .1em; }
+.sw.c { background: var(--constant); }
+.sw.k { background: var(--coefficient); }
+
+/* figures */
+.t-const { fill: var(--constant); }
+.t-coef { fill: var(--coefficient); }
+.g-const { fill: var(--constant); fill-opacity: .14; }
+.g-coef { fill: var(--coefficient); fill-opacity: .14; }
+.slot { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 3; }
+
+/* drag and tap */
+.tray { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: center; padding: 12px; margin-top: 12px;
+  border: 2px dashed var(--line); border-radius: 16px; min-height: 80px; }
+.piece { touch-action: none; -webkit-user-select: none; user-select: none; background: var(--card); border: 2px solid var(--line);
+  border-radius: 14px; padding: 8px 10px; min-width: 56px; min-height: 56px; cursor: grab; display: inline-flex; align-items: center; justify-content: center; }
+.piece svg { display: block; pointer-events: none; }
+.piece[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--ink); }
+.piece:disabled { opacity: .3; cursor: default; }
+.ghost-piece { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 100; opacity: .92; margin: 0; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+.drop { border-radius: 14px; touch-action: manipulation; }
+.drop.armed { outline: 3px dashed var(--ink); outline-offset: 4px; cursor: pointer; }
+.drop.over { outline: 3px solid var(--ink); outline-offset: 4px; }
+.frozen .interactive { pointer-events: none; }
+
+/* bottom navigation */
+.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--paper); border-top: 1px solid var(--line); }
+.nav-inner { max-width: 760px; margin: 0 auto; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); display: flex; justify-content: space-between; gap: 12px; }
+.nav .btn { min-width: 112px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner"><span class="brand" id="brand"></span><span id="where"></span></div>
+  <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+</header>
+<main id="lesson"></main>
+<nav class="nav" aria-label="Lesson navigation">
+  <div class="nav-inner">
+    <button class="btn ghost" id="back" type="button"></button>
+    <button class="btn" id="next" type="button"></button>
+  </div>
+</nav>
+<script>
+'use strict';
+
+/* =====================================================================
+   MODEL. Every count on screen comes from these functions.
+   ===================================================================== */
+const TILES = { fixed: 2, group: 3 };                       // Screens 2 to 6: 2 fixed tiles plus n groups of 3
+const tileCount = n => TILES.fixed + TILES.group * n;
+
+/* =====================================================================
+   LESSON DATA. All learner-facing content lives here; the engine below reads it.
+   Text in quotes comes word for word from docs/Seeing-the-Rule-Interactive-Lesson-Plan.md.
+   Tokens: {c|text} and {k|text} colour text as constant / coefficient; {sw:c} and {sw:k} are colour swatches.
+   ===================================================================== */
+const LESSON = {
+  title: 'Seeing the Rule',
+  ui: {
+    check: 'Check',
+    why: 'Why?',
+    next: 'Next',
+    back: 'Back',
+    progress: (i, n) => `Screen ${i} of ${n}`,
+    ruleFormat: 'Type a rule using n, such as 2n + 5.',   // from HANDOFF.md
+    numberFormat: 'Type a number.',                       // not in the spec: see REPORT.md
+    fallback: 'Not yet. Try again.',                      // not in the spec: used where a step has no written hint, see REPORT.md
+    answer: 'Answer',                                      // label on the second-miss answer card
+  },
+  parts: {
+    1: 'Part 1: Warm-up',
+    2: 'Part 2: Tiles. See the structure',
+  },
+  screens: [
+    /* ---------------- Screen 1 ---------------- */
+    {
+      n: 1, part: 1, title: 'Retrieval: is 103 in the pattern?',
+      show: [{ sequence: '4n + 3', from: 1, to: 4 }],
+      steps: [
+        { id: 'A', type: 'rule', prompt: 'Type the explicit rule.', prefix: 'T =', answer: '4n + 3',
+          say: 'Right. Each term adds 4, and the value at n = 0 is 3.',
+          wrong: [
+            { rule: '7 + 4n', say: 'Test it at n = 1: it gives 11, but the first term is 7. 7 is the term at n = 1. The constant is the value at n = 0.' },
+            { rule: '4n', say: '4n gives 4, 8, 12, 16. Every term of the pattern is 3 more.' },
+          ],
+          hint: 'What does each term add? Then find the value at n = 0.',
+          // Second miss: Marc's row comparison, built row by row
+          demo: { type: 'rowTable', rule: '4n + 3', normal: '4n', from: 0, to: 4,
+                  labels: ['n', 'Pattern', '"Normal" row (4n)', 'How far off'] } },
+        { id: 'B', type: 'number', prompt: 'Which term is 103?', prefix: 'n =',
+          answer: () => solveLinear('4n + 3', 103),
+          say: '4n + 3 = 103 gives 4n = 100, so n = 25. 103 is the 25th term.',
+          wrong: [{ values: [26, 100], say: 'Solve 4n + 3 = 103. Undo the + 3 first, then the × 4.' }] },
+      ],
+      why: ['Each term adds 4, so the coefficient is 4. The pattern is always 3 more than the 4 times table, and at n = 0 it would be 3, so the constant is 3. The rule is T = 4n + 3. To find which term is 103, solve 4n + 3 = 103: n = 25.'],
+    },
+
+    /* ---------------- Screen 2 ---------------- */
+    {
+      n: 2, part: 2, title: 'What stays and what grows?',
+      show: [{ tiles: [1, 2, 3] }],
+      steps: [
+        { id: 'A', type: 'number', prompt: 'How many tiles of the first colour {sw:c} are in every figure?',
+          answer: () => TILES.fixed,
+          say: 'The same 2 tiles, in every figure.',
+          wrong: [{ values: [5], say: '5 is all of Figure 1. Count only the colour that stays the same size.' }] },
+        { id: 'B', type: 'number', prompt: 'How many tiles does each new figure add?',
+          answer: () => tileCount(2) - tileCount(1),
+          say: 'Each figure adds one group of 3 in the second colour.',
+          wrong: [{ values: [5], say: '5 is the whole of Figure 1. Compare Figure 1 and Figure 2: what was added?' }] },
+        { id: 'C1', type: 'placeGroup', prompt: 'Drag one group of 3 to build Figure 4.', from: 3 },
+        { id: 'C2', type: 'number', prompt: 'How many tiles does Figure 4 have?',
+          answer: () => tileCount(4),
+          say: '4 groups of 3, plus the 2 fixed tiles: 14.',
+          wrong: [
+            { values: [12], say: 'You counted the groups. The 2 fixed tiles are in every figure too.' },
+            { values: [20], say: 'Figure 1 has 5 tiles, but only 3 of them repeat.' },
+          ] },
+      ],
+      why: ['Every figure has the same 2 fixed tiles. Each new figure adds one group of 3. So Figure 4 has 4 groups of 3 and the 2 fixed tiles: 12 + 2 = 14.'],
+    },
+  ],
+};
+
+/* =====================================================================
+   ANSWER CHECKING
+   ===================================================================== */
+const TEST_POINTS = [0, 1, 2, 3, 7, 1.5];
+
+function normalize(raw) {
+  return String(raw)
+    .replace(/[−‒–—﹣－]/g, '-')
+    .replace(/[×✕✖·•∙⋅]/g, '*')
+    .replace(/÷/g, '/')
+    .trim();
+}
+
+function tokenize(str) {
+  const out = [];
+  const re = /\s*(?:(\d+(?:[.,]\d+)?|[.,]\d+)|([nN])|([-+*/()]))/y;
+  while (re.lastIndex < str.length) {
+    const at = re.lastIndex;
+    const m = re.exec(str);
+    if (!m) { if (/^\s*$/.test(str.slice(at))) break; return null; }
+    if (m[1]) out.push({ t: 'num', v: parseFloat(m[1].replace(',', '.')) });
+    else if (m[2]) out.push({ t: 'n' });
+    else out.push({ t: m[3] });
+  }
+  return out;
+}
+
+// Parses a rule in n: strips "T =", "S =", "P ="; accepts × and *, implicit multiplication (3n, 3(n − 1)), brackets, − and -.
+function parseRule(raw) {
+  const str = normalize(raw).replace(/^\s*[tspTSP]\s*(?:\(\s*n\s*\))?\s*=\s*/, '');
+  const toks = tokenize(str);
+  if (!toks || !toks.length) return null;
+  let i = 0;
+  const peek = () => toks[i];
+  const isSign = p => p && (p.t === '+' || p.t === '-');
+  function sum() {
+    const terms = [];
+    let sign = 1;
+    if (isSign(peek())) { sign = peek().t === '-' ? -1 : 1; i++; }
+    terms.push({ sign, node: prod() });
+    while (isSign(peek())) { const sg = peek().t === '-' ? -1 : 1; i++; terms.push({ sign: sg, node: prod() }); }
+    return { k: 'sum', terms };
+  }
+  function prod() {
+    const fs = [{ op: '*', node: atom() }];
+    for (;;) {
+      const p = peek();
+      if (!p) break;
+      if (p.t === '*' || p.t === '/') { i++; fs.push({ op: p.t, node: atom() }); }
+      else if (p.t === 'n' || p.t === '(') fs.push({ op: '*', node: atom() });
+      else break;
+    }
+    return fs.length === 1 ? fs[0].node : { k: 'prod', fs };
+  }
+  function atom() {
+    const p = toks[i++];
+    if (!p) throw new Error('end');
+    if (p.t === 'num') return { k: 'num', v: p.v };
+    if (p.t === 'n') return { k: 'n' };
+    if (p.t === '(') {
+      const e = sum();
+      if (!peek() || peek().t !== ')') throw new Error('bracket');
+      i++;
+      return { k: 'grp', e };
+    }
+    if (p.t === '-') return { k: 'neg', e: atom() };
+    throw new Error('token');
+  }
+  try {
+    const e = sum();
+    if (i !== toks.length || !hasN(e)) return null;
+    return e;
+  } catch (err) { return null; }
+}
+
+function evalAt(node, n) {
+  switch (node.k) {
+    case 'num': return node.v;
+    case 'n': return n;
+    case 'grp': return evalAt(node.e, n);
+    case 'neg': return -evalAt(node.e, n);
+    case 'sum': return node.terms.reduce((a, t) => a + t.sign * evalAt(t.node, n), 0);
+    case 'prod': return node.fs.reduce((a, f) => f.op === '*' ? a * evalAt(f.node, n) : a / evalAt(f.node, n), 1);
+  }
+  return NaN;
+}
+function kids(node) {
+  if (node.k === 'grp' || node.k === 'neg') return [node.e];
+  if (node.k === 'sum') return node.terms.map(t => t.node);
+  if (node.k === 'prod') return node.fs.map(f => f.node);
+  return [];
+}
+function some(node, test) { return test(node) || kids(node).some(c => some(c, test)); }
+function count(node, test) { return (test(node) ? 1 : 0) + kids(node).reduce((a, c) => a + count(c, test), 0); }
+const hasN = node => some(node, x => x.k === 'n');
+const hasGroup = node => some(node, x => x.k === 'grp');
+
+const close = (a, b) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
+const sameRule = (a, b) => TEST_POINTS.every(x => close(evalAt(a, x), evalAt(b, x)));
+const ruleFn = src => { const e = parseRule(src); return n => evalAt(e, n); };
+
+// Simplified: exactly one n term and at most one number.
+function isSimplified(e) {
+  let node = e;
+  while (node.k === 'sum' && node.terms.length === 1 && node.terms[0].node.k === 'grp') node = node.terms[0].node.e;
+  const terms = node.k === 'sum' ? node.terms.map(t => t.node) : [node];
+  let nTerms = 0, nums = 0;
+  for (const t of terms) {
+    if (hasGroup(t)) return false;
+    if (!hasN(t)) { nums++; continue; }
+    if (count(t, x => x.k === 'n') !== 1) return false;
+    if (some(t, x => x.k === 'prod' && x.fs.some(f => f.op === '/' && hasN(f.node)))) return false;
+    nTerms++;
+  }
+  return nTerms === 1 && nums <= 1;
+}
+// True if the expression contains a bracket equal to the given expression, e.g. (n − 1).
+const usesBracket = (e, inner) => { const want = parseRule(inner); return some(e, x => x.k === 'grp' && hasN(x.e) && sameRule(x.e, want)); };
+
+// Numbers: "6.5" and "6.50" match; spaces and units after the number are ignored ("13 sticks").
+function parseNumber(raw) {
+  const str = normalize(raw).toLowerCase().replace(/\s+/g, ' ')
+    .replace(/^[ntspdh] ?= ?/, '').replace(/^(?:figure|fig\.?|term) ?/, '');
+  const m = str.match(/^([+-]?(?:\d+(?:[.,]\d+)?|[.,]\d+))(?: ?[a-z²/%.' ]*)$/);
+  return m ? parseFloat(m[1].replace(',', '.')) : null;
+}
+const near = (a, b) => Math.abs(a - b) < 1e-9;
+
+// Solves a linear rule for a target value.
+function solveLinear(src, target) {
+  const f = ruleFn(src), b = f(0), a = f(1) - b;
+  return (target - b) / a;
+}
+// Number formatting for anything computed: trims float noise, uses the minus sign.
+function fmt(x) {
+  const r = Math.round(x * 1e6) / 1e6;
+  const str = String(Object.is(r, -0) ? 0 : r);
+  return str.replace('-', '−');
+}
+const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+
+const JUDGE = {
+  number(st, [raw]) {
+    const v = parseNumber(raw);
+    if (v === null) return { kind: 'format', say: LESSON.ui.numberFormat };
+    if (near(v, st.answer())) return { kind: 'correct', say: st.say };
+    for (const w of st.wrong || []) if (w.values.some(x => near(v, x))) return { kind: 'wrong', ...w };
+    return { kind: 'hint', say: st.hint || LESSON.ui.fallback };
+  },
+  rule(st, [raw]) {
+    const e = parseRule(raw);
+    if (!e) return { kind: 'format', say: LESSON.ui.ruleFormat };
+    const ans = parseRule(st.answer);
+    const yours = n => evalAt(e, n), original = n => evalAt(ans, n);
+    if (sameRule(e, ans)) {
+      if (!st.simplified || isSimplified(e)) return { kind: 'correct', say: st.say };
+      if (!hasGroup(e) && st.notCombined) return { kind: 'partial', say: st.notCombined };
+      return { kind: 'hint', say: st.hint || LESSON.ui.fallback };
+    }
+    for (const w of st.wrong || []) {
+      if (sameRule(e, parseRule(w.rule))) {
+        return { kind: 'wrong', say: w.say, act: w.act,
+          pre: w.pre ? w.pre(yours, original) : [], post: w.post ? w.post(yours, original) : [] };
+      }
+    }
+    return { kind: 'hint', say: st.hint || LESSON.ui.fallback,
+      post: st.testAll ? st.testAll(yours, original) : [] };
+  },
+  numbers(st, raws, c) {
+    const vals = raws.map(parseNumber);
+    if (vals.some(v => v === null)) return { kind: 'format', say: LESSON.ui.numberFormat };
+    return st.judge(vals, c);
+  },
+  choice(st, [i]) {
+    const o = st.options[i];
+    if (o.correct) return { kind: 'correct', say: o.say || st.say || null };
+    if (o.say) return { kind: 'wrong', say: o.say };
+    return { kind: 'hint', say: st.hint || LESSON.ui.fallback };
+  },
+};
+
+/* =====================================================================
+   DOM HELPERS
+   ===================================================================== */
+const SVGNS = 'http://www.w3.org/2000/svg';
+function append(el, kids) {
+  for (const k of [kids].flat(Infinity)) if (k != null && k !== false) el.append(k instanceof Node ? k : String(k));
+  return el;
+}
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  return append(el, kids);
+}
+function s(tag, props, ...kids) {
+  const el = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(props || {})) if (v != null && v !== false) el.setAttribute(k, v);
+  return append(el, kids);
+}
+function rich(text) {
+  const out = [];
+  const re = /\{(?:sw:(c|k)|(c|k)\|([^}]*))\}/g;
+  let last = 0, m;
+  while ((m = re.exec(text))) {
+    out.push(text.slice(last, m.index));
+    if (m[1]) out.push(h('span', { class: 'sw ' + m[1], role: 'img', 'aria-label': m[1] === 'c' ? 'first colour' : 'second colour' }));
+    else out.push(h('span', { class: m[2] }, m[3]));
+    last = re.lastIndex;
+  }
+  out.push(text.slice(last));
+  return out;
+}
+const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wait = ms => new Promise(r => setTimeout(r, reduceMotion() ? 0 : ms));
+let uid = 0;
+const newId = p => `${p}-${++uid}`;
+
+function icon(kind) {
+  const svg = s('svg', { class: 'icon', viewBox: '0 0 26 26', 'aria-hidden': 'true' });
+  if (kind === 'correct') {
+    svg.append(s('circle', { cx: 13, cy: 13, r: 12, fill: 'var(--ink)' }),
+      s('path', { d: 'M7.5 13.5l3.6 3.6 7.4-8', fill: 'none', stroke: 'var(--paper)', 'stroke-width': 2.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+  } else {
+    svg.append(s('circle', { cx: 13, cy: 13, r: 11, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2 }),
+      s('circle', { cx: 13, cy: 13, r: 3.2, fill: 'var(--ink)' }));
+  }
+  return svg;
+}
+function note(kind, parts) {
+  return h('div', { class: 'note', 'data-kind': kind }, icon(kind),
+    h('div', { class: 'note-body' }, parts.map(p => p instanceof Node ? p : h('p', { class: p.cls }, p.text))));
+}
+
+/* =====================================================================
+   FIGURES (inline SVG, computed from n)
+   ===================================================================== */
+const TILE = 22, IN_GAP = 2, COL_GAP = 9;
+// Tiles: one column of 2 fixed tiles (constant colour), then one column per group of 3 (coefficient colour).
+// The fixed tiles stay in the same place in every figure; each group sits on its own tinted backing.
+function tilesSVG(n, opts = {}) {
+  const cols = (opts.width ?? n) + 1 + (opts.slot ? 1 : 0);
+  const H = TILE * TILES.group + IN_GAP * (TILES.group - 1);
+  const W = cols * TILE + (cols - 1) * COL_GAP;
+  const pad = 5;
+  const scale = opts.scale || 1;
+  const svg = s('svg', { viewBox: `${-pad} ${-pad} ${W + 2 * pad} ${H + 2 * pad}`, style: `width: calc(${(W + 2 * pad) * scale}px * var(--fs))`,
+    role: 'img', 'aria-label': `${TILES.fixed} fixed tiles and ${n} groups of ${TILES.group}` });
+  const column = (x, k, cls, back) => {
+    const g = s('g', {});
+    const top = H - (k * TILE + (k - 1) * IN_GAP);
+    g.append(s('rect', { x: x - 3, y: top - 3, width: TILE + 6, height: H - top + 6, rx: 6, class: back }));
+    for (let j = 0; j < k; j++) g.append(s('rect', { x, y: H - (j + 1) * TILE - j * IN_GAP, width: TILE, height: TILE, rx: 3, class: cls }));
+    return g;
+  };
+  svg.append(column(0, TILES.fixed, 't-const', 'g-const'));
+  for (let i = 1; i <= n; i++) svg.append(column(i * (TILE + COL_GAP), TILES.group, 't-coef', 'g-coef'));
+  if (opts.slot) {
+    const x = (n + 1) * (TILE + COL_GAP);
+    for (let j = 0; j < TILES.group; j++) svg.append(s('rect', { x, y: H - (j + 1) * TILE - j * IN_GAP, width: TILE, height: TILE, rx: 3, class: 'slot' }));
+  }
+  return svg;
+}
+function groupPieceSVG() {
+  const H = TILE * TILES.group + IN_GAP * (TILES.group - 1);
+  const svg = s('svg', { viewBox: `-4 -4 ${TILE + 8} ${H + 8}`, style: `width: calc(${TILE + 8}px * var(--fs))`, 'aria-hidden': 'true' });
+  for (let j = 0; j < TILES.group; j++) svg.append(s('rect', { x: 0, y: j * (TILE + IN_GAP), width: TILE, height: TILE, rx: 3, class: 't-coef' }));
+  return svg;
+}
+function fig(svg, caption) { return h('figure', {}, svg, caption != null ? h('figcaption', {}, caption) : null); }
+
+// Things a screen or Why? panel can show.
+const BLOCKS = {
+  sequence(b) {
+    const f = ruleFn(b.sequence);
+    return h('p', { class: 'sequence' }, range(b.from, b.to).map(x => fmt(f(x))).join(', ') + ', …');
+  },
+  tiles(b) {
+    return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.tiles.map(n => fig(tilesSVG(n), `Figure ${n}`))));
+  },
+  rowTable(b) {
+    return rowTable(b, false);
+  },
+};
+function block(b) {
+  if (typeof b === 'string') return h('p', {}, rich(b));
+  const type = Object.keys(BLOCKS).find(k => k in b);
+  return BLOCKS[type](b);
+}
+
+// Marc's row comparison: n, the pattern, the "normal" row, and how far off.
+function rowTable(d, animate) {
+  const f = ruleFn(d.rule), g = ruleFn(d.normal), ns = range(d.from, d.to);
+  const rows = [ns, ns.map(f), ns.map(g), ns.map(x => f(x) - g(x))];
+  const tbody = h('tbody', {});
+  const trs = rows.map((vals, r) => h('tr', { hidden: (animate && r > 0) || null },
+    h('th', { scope: 'row' }, d.labels[r]), vals.map(v => h('td', {}, fmt(v)))));
+  append(tbody, trs);
+  if (animate) (async () => { for (const tr of trs.slice(1)) { await wait(800); tr.hidden = false; tr.classList.add('enter'); } })();
+  return h('div', { class: 'tablewrap' }, h('table', { class: 't' }, tbody));
+}
+
+/* =====================================================================
+   DRAG, WITH TAP-THEN-TAP AS THE ALTERNATIVE
+   ===================================================================== */
+let picked = null;
+function unpick() {
+  if (!picked) return;
+  picked.piece.setAttribute('aria-pressed', 'false');
+  picked.opts.targets().forEach(t => t.classList.remove('armed'));
+  picked = null;
+}
+function pick(piece, opts) {
+  unpick();
+  picked = { piece, opts };
+  piece.setAttribute('aria-pressed', 'true');
+  opts.targets().forEach(t => t.classList.add('armed'));
+}
+// opts: hit(x, y) -> target or null; place(target); targets() -> elements that accept a tap
+function draggable(piece, opts) {
+  let justDragged = false;
+  piece.setAttribute('aria-pressed', 'false');
+  piece.addEventListener('pointerdown', e => {
+    if (piece.disabled || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    const sx = e.clientX, sy = e.clientY;
+    let ghost = null, over = null;
+    justDragged = false;
+    try { piece.setPointerCapture(e.pointerId); } catch (err) { /* synthetic events */ }
+    const move = ev => {
+      if (!ghost) {
+        if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 8) return;
+        unpick();
+        const r = piece.getBoundingClientRect();
+        ghost = piece.cloneNode(true);
+        ghost.classList.add('ghost-piece');
+        ghost.style.width = r.width + 'px';
+        ghost.style.height = r.height + 'px';
+        ghost.dataset.w = r.width; ghost.dataset.h = r.height;
+        document.body.append(ghost);
+        justDragged = true;
+      }
+      ghost.style.transform = `translate(${ev.clientX - ghost.dataset.w / 2}px, ${ev.clientY - ghost.dataset.h / 2}px)`;
+      const t = opts.hit(ev.clientX, ev.clientY);
+      const el = t == null ? null : (opts.hoverEl ? opts.hoverEl(t) : null);
+      if (over && over !== el) over.classList.remove('over');
+      over = el; if (over) over.classList.add('over');
+    };
+    const end = ev => {
+      piece.removeEventListener('pointermove', move);
+      piece.removeEventListener('pointerup', end);
+      piece.removeEventListener('pointercancel', end);
+      if (over) over.classList.remove('over');
+      if (!ghost) return;
+      ghost.remove();
+      if (ev.type === 'pointerup') {
+        const t = opts.hit(ev.clientX, ev.clientY);
+        if (t != null) opts.place(t);
+      }
+    };
+    piece.addEventListener('pointermove', move);
+    piece.addEventListener('pointerup', end);
+    piece.addEventListener('pointercancel', end);
+  });
+  piece.addEventListener('click', () => {
+    if (justDragged) { justDragged = false; return; }
+    if (piece.disabled) return;
+    if (picked && picked.piece === piece) unpick(); else pick(piece, opts);
+  });
+}
+// Makes an element a tap target for whatever piece is picked.
+function tapTarget(el, target, opts) {
+  const go = () => {
+    if (!picked || picked.opts !== opts) return;
+    unpick();
+    opts.place(target);
+  };
+  el.addEventListener('click', go);
+  el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+}
+const inside = (el, x, y, m = 0) => { const r = el.getBoundingClientRect(); return x >= r.left - m && x <= r.right + m && y >= r.top - m && y <= r.bottom + m; };
+
+/* =====================================================================
+   STEPS
+   ===================================================================== */
+function promptEl(st) { return st.prompt ? h('p', { class: 'prompt', id: newId('p') }, rich(st.prompt)) : null; }
+
+function inputField(st, kind, label) {
+  const inp = h('input', { class: 'ans' + (kind === 'rule' ? ' rule' : '') + (st.small ? ' small' : ''), type: 'text',
+    inputmode: kind === 'rule' ? 'text' : 'decimal', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false',
+    'aria-label': label || (st.prompt ? st.prompt.replace(/\{[^}]*\}/g, '').trim() : 'answer'), 'data-input': '' });
+  return { inp, el: h('span', { class: 'field' }, st.prefix ? h('span', { class: 'prefix' }, st.prefix) : null, inp, st.unit ? h('span', { class: 'unit' }, st.unit) : null) };
+}
+
+// The Check flow shared by every typed or chosen answer.
+function askStep(st, c, ui) {
+  const fb = h('div', { class: 'fb', role: 'status', 'aria-live': 'polite' });
+  const demo = h('div', { class: 'demo' });
+  const pathEl = h('div', { class: 'path' });
+  const check = h('button', { type: 'button', class: 'btn check' }, LESSON.ui.check);
+  ui.row.append(check);
+  append(c.el, [ui.el, fb, demo, pathEl]);
+  let misses = 0, finished = false;
+  const submit = () => {
+    if (finished) return;
+    const vals = ui.values();
+    if (vals.some(v => v === '' || v == null)) { ui.focusEmpty(); return; }
+    const res = (st.judge && st.type !== 'numbers') ? st.judge(vals, c) : JUDGE[st.type](st, vals, c);
+    const parts = [
+      ...(res.pre || []).map(t => ({ cls: 'test', text: t })),
+      ...(res.say ? [{ cls: 'say', text: res.say }] : []),
+      ...(res.post || []).map(t => typeof t === 'string' ? { cls: 'test', text: t } : t),
+    ];
+    fb.replaceChildren(parts.length || res.kind === 'correct' ? note(res.kind, parts) : '');
+    if (res.kind === 'format' || res.kind === 'partial') { ui.again(); return; }
+    if (res.act) res.act(c);
+    if (res.kind === 'correct') {
+      finished = true; ui.lock(); check.remove();
+      if (st.onCorrect) st.onCorrect(c);
+      if (c.last) c.revealWhy();
+      c.done();
+      return;
+    }
+    misses += 1;
+    if (res.path) {
+      finished = true; ui.lock(); check.remove();
+      runSteps(res.path, c, pathEl, () => { if (c.last) c.revealWhy(); c.done(); }, true);
+      return;
+    }
+    if (c.last && res.kind === 'wrong') c.revealWhy();
+    if (misses === 2) secondMiss(st, c, demo, ui);
+    ui.again();
+  };
+  check.addEventListener('click', submit);
+  ui.onEnter(submit);
+}
+
+function answerText(st) {
+  if (st.answerText) return st.answerText();
+  if (st.type === 'rule') return `${st.prefix ? st.prefix + ' ' : ''}${st.answer}`;
+  if (st.type === 'number') return `${st.prefix ? st.prefix + ' ' : ''}${fmt(st.answer())}${st.unit ? ' ' + st.unit : ''}`;
+  if (st.type === 'choice') return st.options.find(o => o.correct).text;
+  return '';
+}
+
+// Second miss: the step's own demonstration if it has one; otherwise the answer (and, on a screen's last step, the Why? text).
+function secondMiss(st, c, demoEl, ui) {
+  c.log.secondMiss = true;
+  if (st.demo) { DEMOS[st.demo.type](st.demo, demoEl, c); return; }
+  if (ui.showAnswer) ui.showAnswer();
+  demoEl.append(h('div', { class: 'answer-card' },
+    h('span', { class: 'label' }, LESSON.ui.answer),
+    h('span', { class: 'val' }, answerText(st)),
+    st.say ? h('p', { class: 'say' }, st.say) : null));
+  if (c.last) c.openWhy();
+}
+
+const DEMOS = {
+  rowTable(d, el) { el.append(h('div', { class: 'answer-card' }, rowTable(d, true))); },
+};
+
+const STEPS = {
+  number(st, c) { typed(st, c, 'number'); },
+  rule(st, c) { typed(st, c, 'rule'); },
+  numbers(st, c) {
+    const fields = st.fields.map(f => inputField({ ...st, prefix: f.prefix, unit: f.unit, small: true }, 'number', f.label));
+    const row = h('div', { class: 'row' }, fields.map(f => f.el));
+    c.el.append(promptEl(st));
+    const ui = inputsUI(fields.map(f => f.inp), row, h('div', {}, row));
+    askStep(st, c, ui);
+    focusSoon(fields[0].inp);
+  },
+  choice(st, c) {
+    c.el.append(promptEl(st));
+    let chosen = null;
+    const btns = st.options.map((o, i) => h('button', { type: 'button', class: 'choice', 'aria-pressed': 'false', 'data-choice': i,
+      onclick: () => { chosen = i; btns.forEach((b, j) => b.setAttribute('aria-pressed', String(j === i))); } }, rich(o.text)));
+    const list = h('div', { class: 'choices', role: 'group' }, btns);
+    const row = h('div', { class: 'row' });
+    askStep(st, c, {
+      el: h('div', {}, list, row), row,
+      values: () => [chosen],
+      focusEmpty: () => btns[0].focus(),
+      lock: () => btns.forEach(b => b.disabled = true),
+      again: () => {},
+      onEnter: () => {},
+      showAnswer: () => btns.forEach((b, j) => b.classList.toggle('is-answer', !!st.options[j].correct)),
+    });
+  },
+  placeGroup(st, c) {
+    c.el.append(promptEl(st));
+    const target = h('div', { class: 'drop interactive', role: 'button', tabindex: '0', 'aria-label': `Figure ${st.from + 1}` });
+    const caption = `Figure ${st.from + 1}`;
+    target.append(fig(tilesSVG(st.from, { slot: true }), caption));
+    const piece = h('button', { type: 'button', class: 'piece', 'aria-label': `one group of ${TILES.group}` }, groupPieceSVG());
+    const tray = h('div', { class: 'tray interactive' }, piece);
+    const opts = {
+      targets: () => [target],
+      hit: (x, y) => inside(target, x, y, 24) ? 'slot' : null,
+      hoverEl: () => target,
+      place: () => {
+        target.replaceChildren(fig(tilesSVG(st.from + 1), caption));
+        target.removeAttribute('role'); target.removeAttribute('tabindex'); target.classList.remove('drop');
+        tray.remove();
+        c.done();
+      },
+    };
+    draggable(piece, opts);
+    tapTarget(target, 'slot', opts);
+    c.el.append(h('div', { class: 'card' }, h('div', { class: 'figs' }, target)), tray);
+  },
+};
+
+function inputsUI(inputs, row, el) {
+  const ui = {
+    el, row,
+    values: () => inputs.map(i => i.value.trim()),
+    focusEmpty: () => (inputs.find(i => !i.value.trim()) || inputs[0]).focus(),
+    lock: () => inputs.forEach(i => i.disabled = true),
+    again: () => { const i = inputs[inputs.length - 1]; i.focus(); i.select(); },
+    onEnter: fn => inputs.forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); fn(); } })),
+  };
+  return ui;
+}
+function typed(st, c, kind) {
+  const f = inputField(st, kind);
+  const row = h('div', { class: 'row' }, f.el);
+  c.el.append(promptEl(st));
+  askStep(st, c, inputsUI([f.inp], row, row));
+  focusSoon(f.inp);
+}
+function focusSoon(el) { if (state.booting) return; setTimeout(() => el.focus({ preventScroll: true }), 30); }
+
+/* =====================================================================
+   ENGINE
+   ===================================================================== */
+const state = { at: -1, view: -1, sections: [], log: [], booting: true };
+const $ = id => document.getElementById(id);
+const main = $('lesson');
+
+// Runs steps one after another: each appears only when the one before it is done.
+function runSteps(steps, ctx, container, onDone, isPath) {
+  let k = 0;
+  const next = () => {
+    if (k >= steps.length) { onDone(); return; }
+    const st = steps[k];
+    const last = !isPath && k === steps.length - 1;
+    k += 1;
+    const el = h('div', { class: 'step', 'data-step': `${ctx.sc.n}${st.id}` });
+    container.append(el);
+    STEPS[st.type](st, { ...ctx, el, last, done: next });
+    if (!state.booting && k > 1) requestAnimationFrame(() => el.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'nearest' }));
+  };
+  next();
+}
+
+function renderScreen(i) {
+  const sc = LESSON.screens[i];
+  const log = state.log[i] = { secondMiss: false, done: false };
+  const titleId = newId('t');
+  const sec = h('section', { class: 'screen', 'data-screen': sc.n, 'aria-labelledby': titleId });
+  sec.append(h('p', { class: 'eyebrow' }, LESSON.parts[sc.part]), h('h1', { class: 'title', id: titleId, tabindex: '-1' }, sc.title));
+  (sc.intro || []).forEach(t => sec.append(h('p', { class: 'intro' }, rich(t))));
+  (sc.show || []).forEach(b => sec.append(block(b)));
+  const steps = h('div', { class: 'steps' });
+  const panelId = newId('why');
+  const whyBtn = h('button', { type: 'button', class: 'btn ghost why-btn', 'aria-expanded': 'false', 'aria-controls': panelId, hidden: true }, LESSON.ui.why);
+  const whyPanel = h('div', { class: 'why', id: panelId, hidden: true }, (sc.why || []).map(block));
+  const setWhy = open => { whyPanel.hidden = !open; whyBtn.setAttribute('aria-expanded', String(open)); };
+  whyBtn.addEventListener('click', () => setWhy(whyPanel.hidden));
+  sec.append(steps, h('div', { class: 'why-wrap' }, whyBtn, whyPanel));
+  const ctx = {
+    sc, sec, log, i,
+    revealWhy: () => { if (sc.why) whyBtn.hidden = false; },
+    openWhy: () => { if (sc.why) { whyBtn.hidden = false; setWhy(true); } },
+  };
+  runSteps(sc.steps, ctx, steps, () => { log.done = true; chrome(); });
+  return sec;
+}
+
+function freeze(sec) {
+  unpick();
+  sec.classList.add('frozen');
+  sec.querySelectorAll('input, button, textarea').forEach(el => { if (!el.classList.contains('why-btn')) el.disabled = true; });
+  sec.querySelectorAll('[tabindex]').forEach(el => { if (el.tagName !== 'H1') el.setAttribute('tabindex', '-1'); });
+}
+
+function show(i) {
+  unpick();
+  state.view = i;
+  state.sections.forEach((el, j) => { el.hidden = j !== i; });
+  chrome();
+  window.scrollTo(0, 0);
+  if (!state.booting) state.sections[i].querySelector('h1').focus({ preventScroll: true });
+}
+
+function forward() {
+  if (state.view < state.at) { show(state.view + 1); return; }
+  if (state.at >= 0 && !state.log[state.at].done) return;
+  if (state.at === LESSON.screens.length - 1) return;
+  if (state.at >= 0) freeze(state.sections[state.at]);
+  state.at += 1;
+  const sec = renderScreen(state.at);
+  state.sections.push(sec);
+  main.append(sec);
+  show(state.at);
+}
+
+function chrome() {
+  const total = LESSON.screens.length, i = state.view;
+  $('where').textContent = LESSON.ui.progress(i + 1, total);
+  $('bar').style.width = `${((i + 1) / total) * 100}%`;
+  $('back').disabled = i <= 0;
+  const canNext = i < state.at || (state.log[i] && state.log[i].done && i < total - 1);
+  $('next').disabled = !canNext;
+  $('next').hidden = i === total - 1;
+}
+
+$('brand').textContent = LESSON.title;
+$('back').textContent = LESSON.ui.back;
+$('next').textContent = LESSON.ui.next;
+$('back').addEventListener('click', () => { if (state.view > 0) show(state.view - 1); });
+$('next').addEventListener('click', forward);
+forward();
+state.booting = false;
+</script>
+</body>
+</html>
