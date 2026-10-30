@@ -1,12 +1,18 @@
 # Seeing the Rule: project rules
 
-An interactive math lesson in one self-contained HTML file. The spec is `docs/Seeing-the-Rule-Interactive-Lesson-Plan.md`. It is the single source of truth.
+An interactive math lesson in one self-contained HTML file.
+
+## Source of truth
+
+- The spec is `docs/Seeing-the-Rule-Interactive-Lesson-Plan.md`.
+- Marc's approved changes are in `docs/Round-2-Decisions.md` and `docs/Round-2-Wording.md`.
+- Where a round 2 file differs from the spec, the round 2 file wins. Everything the round 2 files don't change still comes from the spec.
 
 ## Who decides
 
 - Marc decides every change. Build what the spec says.
-- Learner-facing text, numbers, answers, predicted errors, responses, Why? explanations and screen order come from the spec. Do not reword, add or remove any of them.
-- If something in the spec is contradictory, impossible to build as written, or doesn't fit on a phone screen, stop and list it in `REPORT.md`. Don't fix it silently.
+- Learner-facing text, numbers, answers, predicted errors, responses, Why? explanations and screen order come from the source of truth above. Do not reword, add or remove any of them.
+- If something in the source of truth is contradictory, impossible to build as written, or doesn't fit on a phone screen, stop and list it in `REPORT.md`. Don't fix it silently.
 - `docs/Marc-Teaching-Moves.md` explains why screens work the way they do. Read it; don't build from it.
 
 ## Fixed rules
@@ -22,7 +28,8 @@ An interactive math lesson in one self-contained HTML file. The spec is `docs/Se
 
 - Test with Playwright. The Playwright CLI is fine; the MCP is optional.
 - Screenshot every screen at phone size (390 × 844) and desktop size (1280 × 800).
-- Run every correct path and every predicted wrong answer in the spec, and confirm each gives the response the spec gives it.
+- Run every correct path and every predicted wrong answer, and confirm each gives the response the source of truth gives it.
+- Check that no rendered text anywhere reads "null" or "undefined".
 
 ## After each round
 
@@ -32,4 +39,5 @@ An interactive math lesson in one self-contained HTML file. The spec is `docs/Se
 ## Don't
 
 - Don't deploy. Marc deploys.
-- Don't add features, screens, sounds, scores, points or timers the spec doesn't have.
+- Don't add features, screens, sounds, scores, points or timers the source of truth doesn't have.
+- Don't write new tests for every way a learner might phrase an answer. Test the paths and errors the source of truth names, and the specific fixes each round asks for.
