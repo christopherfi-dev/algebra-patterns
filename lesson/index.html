@@ -152,11 +152,13 @@ table.t { border-collapse: collapse; margin: 6px 0 10px; font-size: 16px; font-v
 @keyframes rowIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 
 /* colour words and swatches */
-.math { white-space: nowrap; }
+.math { display: inline-block; white-space: nowrap; }   /* inline-block: WebKit measures it as one box when breaking lines */
 .formula, .readout, .student .r, figcaption { white-space: nowrap; }
-.first { display: inline-flex; flex-direction: column; align-items: center; vertical-align: top; line-height: 1.15; }
+/* Nina's 4 (Q2): neutral, with "first square" hung underneath so the rule keeps its normal spacing. */
+.first { position: relative; display: inline-block; margin-bottom: 15px; }
 .first .fv { font-weight: 750; }
-.first .fl { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .02em; }
+.first .fl { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); white-space: nowrap; line-height: 1.1;
+  font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .02em; }
 .c { color: var(--constant); font-weight: 750; }
 .k { color: var(--coefficient); font-weight: 750; }
 .sw { display: inline-block; width: .95em; height: .95em; border-radius: 3px; vertical-align: -.12em; margin: 0 .1em; }
@@ -1091,8 +1093,10 @@ function mathSpans(text) {
   const out = [];
   let last = 0;
   for (const m of text.matchAll(MATH_RE)) {
-    out.push(text.slice(last, m.index), h('span', { class: 'math' }, m[0]));
-    last = m.index + m[0].length;
+    // Punctuation right after an expression ("h = 0.5?") joins it, so it can't hang past the edge of the line.
+    const end = m.index + m[0].length + (/[.,:;?!]/.test(text[m.index + m[0].length] || '') ? 1 : 0);
+    out.push(text.slice(last, m.index), h('span', { class: 'math' }, text.slice(m.index, end)));
+    last = end;
   }
   out.push(text.slice(last));
   return out.filter(x => x !== '');
@@ -1629,7 +1633,15 @@ function inputsUI(inputs, row, el) {
     markOk: () => add(row, okMark()),
   };
 }
-function focusSoon(el) { if (state.booting) return; setTimeout(() => { if (!el.disabled && el.isConnected) el.focus({ preventScroll: true }); }, 40); }
+// Moves focus to a new step's first field, unless the learner is already typing in a field (never steal focus mid-typing).
+function focusSoon(el) {
+  if (state.booting) return;
+  setTimeout(() => {
+    const a = document.activeElement;
+    const typing = a && a !== el && a.matches('input:not([type="range"]), textarea') && !a.disabled && !a.readOnly;
+    if (!typing && !el.disabled && el.isConnected) el.focus({ preventScroll: true });
+  }, 40);
+}
 function typed(st, c, kind) {
   const f = inputField(st, kind);
   const row = h('div', { class: 'row' }, f.el);
