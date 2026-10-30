@@ -184,6 +184,14 @@ line.slot { stroke-width: 2.5; stroke-linecap: round; }
 .ring.rb rect { fill: var(--sq-b); }
 .ringline { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
 .ring.lit rect { fill: var(--lit); transition: fill .4s; }
+.flabel { font-size: 12px; font-weight: 600; fill: var(--muted); }
+.fillbuild { margin-top: 16px; }
+.fillgrid { display: grid; gap: 4px; justify-content: center; }
+.cellbtn { width: 48px; height: 48px; padding: 0; border-radius: 6px; border: 2px dashed var(--muted); background: transparent; cursor: pointer; }
+.cellbtn.filled { border: 2px solid var(--ink); background: var(--sq-a); cursor: default; }
+.cellbtn.armed { border-color: var(--ink); }
+.cellbtn.over { outline: 3px solid var(--ink); outline-offset: 1px; }
+.filltile { fill: var(--sq-a); stroke: var(--ink); stroke-width: 2; }
 .counter { font-size: 40px; font-weight: 800; text-align: center; min-height: 1.3em; margin: 4px 0; font-variant-numeric: tabular-nums; }
 .readout { text-align: center; font-weight: 650; font-size: 20px; margin: 8px 0 0; min-height: 1.5em; font-variant-numeric: tabular-nums; }
 .bordrow { display: flex; flex-wrap: wrap; gap: 10px 16px; justify-content: center; align-items: flex-end; margin-top: 10px; }
@@ -280,7 +288,10 @@ const range = (a, b) => (b < a ? [] : Array.from({ length: b - a + 1 }, (_, i) =
 
 // Tiles (Screens 2 to 6): 2 fixed tiles plus n groups of 3.
 const TILES = { fixed: 2, group: 3 };
-const tileCount = n => TILES.fixed + TILES.group * n;
+const tilesIn = (P, n) => P.fixed + P.group * n;
+const tileCount = n => tilesIn(TILES, n);
+// The follow-up pattern after a second miss on 3B (Round-2-Wording D): 4 fixed tiles plus n groups of 2.
+const TILES_FOLLOW = { fixed: 4, group: 2 };
 
 // Sticks (Screens 7 to 10): a straight row of n squares, neighbours sharing an edge.
 // Edges: uprights v0…vn, tops t0…, bottoms b0…, listed in counting order. Figure 0 is the lone stick v0.
@@ -296,11 +307,19 @@ function completeSquares(edges) {
   while ([`v${k}`, `t${k}`, `b${k}`, `v${k + 1}`].every(e => edges.includes(e))) k++;
   return k;
 }
-// Building a student's rule (Screen 10): constant sticks fill the first square in this order;
-// each group of 3 then adds a top, a bottom and a right side.
+// Triangles (follow-up after a second miss on 7B): a row of n triangles of equal sticks, neighbours sharing a stick.
+// Diagonals d0…dn and one horizontal h0…h(n−1) per triangle, in counting order.
+function triangleEdges(n) {
+  const e = n > 0 ? ['d0'] : [];
+  for (let i = 0; i < n; i++) e.push(`h${i}`, `d${i + 1}`);
+  return e;
+}
+const triangleSticks = n => triangleEdges(n).length;
+// Building a student's rule (Screen 10): sticks before the groups fill the first square in this order;
+// each group of 3 then adds a top, a bottom and a right side. constCls is the colour of those first sticks.
 const CONST_ORDER = ['v0', 't0', 'b0', 'v1'];
-function builtEdges(constant, groups) {
-  const out = CONST_ORDER.slice(0, constant).map(e => ({ e, cls: 'const' }));
+function builtEdges(constant, groups, constCls = 'const') {
+  const out = CONST_ORDER.slice(0, constant).map(e => ({ e, cls: constCls }));
   const start = constant >= CONST_ORDER.length ? 1 : 0;
   for (let i = 0; i < groups; i++) {
     const k = start + i;
@@ -324,6 +343,12 @@ const avgSpeed = (t, h) => (dist(t + h) - dist(t)) / h;
 // The shrinking border (Screen 14): a 3 × 3 square, two strips 3 × h and a corner h × h.
 const SHRINK = { side: 3, t: 3, table: [1, 0.5, 0.1, 0.01] };
 const stripsPerH = () => 2 * SHRINK.side;   // what the average speed closes in on as the corner vanishes
+
+// "Every wrong answer is tested against the original by substitution": the first n where the two rules differ.
+const testWhereItBreaks = (f, g) => {
+  const n = [1, 2, 3, 0, 4, 5, 10].find(x => !close(f(x), g(x)));
+  return n === undefined ? [] : [`Test at n = ${n}: ${fmt(f(n))}, but the original gives ${fmt(g(n))}.`];
+};
 
 /* =====================================================================
    LESSON DATA. All learner-facing content lives here; the engine below reads it.
@@ -409,7 +434,14 @@ const LESSON = {
               say: 'Only 3 tiles repeat in each figure, not 5.' },
           ],
           hint: 'How many tiles does each figure add, and how many are there at Figure 0?',
-          onCorrect: c => c.s.slider.showRule(n => `T = {k|3 × ${fmt(n)}} + {c|2} = ${fmt(ruleFn('3n + 2')(n))}`) },
+          onCorrect: c => c.s.slider.showRule(n => `T = {k|3 × ${fmt(n)}} + {c|2} = ${fmt(ruleFn('3n + 2')(n))}`),
+          // After the "Answer" card only (Q3): the same idea with new numbers.
+          followUp: { id: 'B·f', type: 'rule', show: [{ tiles: [1, 2, 3], pattern: TILES_FOLLOW }],
+            prompt: 'Type the rule for this pattern.', prefix: 'T =', answer: '2n + 4',
+            say: 'Right. 4 tiles at Figure 0, and each figure adds 2.',
+            wrong: [{ rule: '6 + 2n', pre: f => [`n = 1: ${fmt(f(1))}, but Figure 1 has ${fmt(tilesIn(TILES_FOLLOW, 1))}`],
+                      say: '6 is the total for Figure 1. The constant is the value at Figure 0.' }],
+            hint: 'How many tiles does each figure add, and how many are there at Figure 0?' } },
       ],
       why: [
         "The coefficient 3 counts the tiles in each group, so it multiplies the figure number n. The constant 2 counts the fixed tiles, which are there even at Figure 0. You can also see it in a table, the way you'd compare rows:",
@@ -463,6 +495,7 @@ const LESSON = {
           options: [
             { text: 'Yes', say: "It works for Figure 1, but one figure isn't enough. Try another one." },
             { text: 'Maybe', correct: true, say: 'Maybe. Always try another one.' },
+            { text: 'No', say: "It might be wrong, but one figure can't tell you. Try another one." },
           ] },
         { id: 'B', type: 'numbers', prompt: 'What does T = 5n give for Figure 0 and Figure 10?',
           fields: [{ label: 'Figure 0', tiles: 0 }, { label: 'Figure 10', tiles: 10 }],
@@ -504,7 +537,10 @@ const LESSON = {
             // Marc's move: test the claim on smaller figures, one step at a time.
             { values: [40], path: [
               { id: '·1', type: 'number', prompt: 'If each square has 4 sticks, how many would Figure 2 have?',
-                answer: () => 4 * 2 },
+                answer: () => 4 * 2,
+                // A 7 is the real count: say so, then go straight to the shared edge (skipping the count).
+                wrong: [{ values: [stickCount(2)], say: '7 is the real count. If every square had its own 4 sticks, Figure 2 would have 8. Why only 7?',
+                          path: [{ id: '·2s', type: 'sharedEdge', n: 2 }], skip: 1 }] },
               { id: '·2', type: 'countSticks', n: 2, lines: ['Count them.'], after: ['Why?'] },
               { id: '·3', type: 'number', prompt: 'Then how many does Figure 3 have?',
                 judge: ([raw]) => {
@@ -526,7 +562,16 @@ const LESSON = {
                 answer: () => stickCount(10),
                 say: '1 + 3 × 10 = 31.' },
             ] },
-          ] },
+          ],
+          followUp: { id: 'B·f', type: 'number', show: [{ triangles: [1, 2, 3] }],
+            prompt: 'How many sticks does Figure 10 have?',
+            answer: () => triangleSticks(10),
+            say: 'Right. 1 + ten 2s = 21.',
+            wrong: [
+              { values: [30], say: 'Neighbouring triangles share a stick. Each new triangle adds only 2.' },
+              { values: [20], say: '2 for each triangle, but Figure 1 needs one more stick.' },
+            ],
+            hint: 'Count how many sticks each new triangle adds.' } },
       ],
       why: ['Every square after the first adds only 3 sticks, because it shares an edge with the square before it. The first square follows the same pattern if you see it as 1 stick plus 3. So Figure 1 is 1 + 3, Figure 2 is 1 + two 3s, Figure 3 is 1 + three 3s, and Figure 10 is 1 + ten 3s = 31.'],
     },
@@ -563,10 +608,18 @@ const LESSON = {
               post: (f, g) => [`Test: at n = 1 both give ${fmt(f(1))}, but at n = 2 yours gives ${fmt(f(2))} and the original gives ${fmt(g(2))}.`] },
           ],
           hint: 'Distribute first: 3 × n and 3 × (−1). Then combine the numbers.',
-          testAll: (f, g) => {
-            const n = [1, 2, 3, 0, 4, 5, 10].find(x => !close(f(x), g(x)));
-            return n === undefined ? [] : [`Test at n = ${n}: ${fmt(f(n))}, but the original gives ${fmt(g(n))}.`];
-          } },
+          testAll: testWhereItBreaks,
+          followUp: { id: 'B·f', type: 'rule', prompt: 'Simplify 5 + 2(n − 1).', answer: '5 + 2(n − 1)', simplified: true,
+            answerText: () => '2n + 3',
+            say: 'Right. 5 + 2n − 2 = 2n + 3.',
+            wrong: [
+              { rule: '2n + 4', say: 'The 2 multiplies both terms in the bracket. You multiplied the n but not the 1.', post: testWhereItBreaks },
+              { rule: '2n + 7', say: '2 × (−1) is −2, not +2.', post: testWhereItBreaks },
+              { rule: '7n − 7', say: 'You added 5 + 2 before multiplying. Multiply 2(n − 1) first.', post: testWhereItBreaks },
+              { rule: '7n − 2', say: "5 and 2n aren't like terms. Only the numbers 5 and −2 combine.", post: testWhereItBreaks },
+            ],
+            hint: 'Distribute first: 2 × n and 2 × (−1). Then combine the numbers.',
+            testAll: testWhereItBreaks } },
         { id: 'C1', type: 'slide', prompt: 'Slide to Figure 0.', figure: 'sticks', colour: 'rule31', min: 0, max: 10, start: 4, target: 0 },
         { id: 'C2', type: 'number', prompt: 'How many sticks are left?',
           answer: () => stickCount(0),
@@ -602,7 +655,7 @@ const LESSON = {
       show: [{ students: [
         { name: 'Mina', rule: 'S = {k|3n} + {c|1}' },
         { name: 'Arun', rule: 'S = {c|4} + {k|3n}' },
-        { name: 'Nina', rule: 'S = {c|4} + {k|3(n − 1)}' },
+        { name: 'Nina', rule: 'S = {f|4} + {k|3(n − 1)}' },
       ] }],
       steps: [
         { id: 'A', type: 'buildRule', prompt: "Build Mina's rule for Figure 1.", who: 'Mina',
@@ -616,7 +669,7 @@ const LESSON = {
           answer: () => completeSquares(builtEdges(4, 1).map(x => x.e)),
           say: "Arun's rule built Figure 2 when it should have built Figure 1." },
         { id: 'C', type: 'buildRule', prompt: "Build Nina's rule for Figure 1.", who: 'Nina',
-          atOne: 'S = {c|4} + {k|3 × (1 − 1)}', constant: 4, groups: 0, groupsNote: '3 × (1 − 1) = 0',
+          atOne: 'S = {f|4} + {k|3 × (1 − 1)}', constant: 4, groups: 0, groupsNote: '3 × (1 − 1) = 0', firstSquare: true,
           result: "That's Figure 1." },
         { id: 'D', type: 'marks', prompt: 'Mark each rule correct or incorrect.', labels: ['correct', 'incorrect'],
           items: [
@@ -638,7 +691,7 @@ const LESSON = {
         { id: 'A', type: 'number', prompt: 'How many tiles are in Figure 4?',
           answer: () => squareTiles(4),
           wrong: [{ values: [12], say: "That's adding 3 again. Build it: a 4-by-4 square.",
-                    act: c => { if (!c.s.ghost) { c.s.ghost = true; add(c.el, block({ squares: [4], ghost: true }, c)); } } }] },
+                    act: c => fillBuild(c, 4, 'Fill in the 4-by-4 square.') }] },
         { id: 'B1', type: 'growSquare', prompt: 'Drag the L-shaped border that turns each square into the next.', from: 1, to: 4 },
         { id: 'B2', type: 'number', prompt: 'How many tiles are in the next border?',
           answer: () => borderTiles(5),
@@ -655,7 +708,9 @@ const LESSON = {
       n: 12, part: 5, title: 'Can a line fit?',
       intro: ['Make the line pass through every point.'],
       steps: [
-        { id: 'A', type: 'dials', points: [1, 2, 3, 4], tries: 3, a: { min: 0, max: 10, start: 1 }, b: { min: -15, max: 10, start: 0 } },
+        { id: 'A', type: 'dials', points: [1, 2, 3, 4], tries: 3, a: { min: 0, max: 10, start: 1 }, b: { min: -15, max: 10, start: 0 },
+          moveFirst: 'Move a slider first.',
+          passes: (k, total) => `Your line passes through ${k} of the ${total} points.` },
       ],
       why: ['A straight-line rule adds the same amount every step. These figures add 3, then 5, then 7. No single a works, so no line passes through every point.'],
     },
@@ -683,7 +738,8 @@ const LESSON = {
     /* ---------------- Screen 14 ---------------- */
     {
       n: 14, part: 6, title: 'Shrink the border',
-      show: [{ shrink: 0.5 }],
+      intro: ['h is the extra time after 3 seconds.'],
+      show: [{ shrink: 0.5, rows: ['h (s)', 'Distance in the extra time (m)', 'Average speed = distance ÷ h (m/s)'] }],
       steps: [
         { id: 'A', type: 'number',
           prompt: `What is the average speed for h = 0.5? (distance at ${fmt(SHRINK.t + 0.5)} s: ${fmt(dist(SHRINK.t + 0.5))} m)`, unit: 'm/s',
@@ -734,18 +790,17 @@ const LESSON = {
 
     /* ---------------- Screen 16 ---------------- */
     {
-      n: 16, part: 7, title: 'Self-check',
+      n: 16, part: 7, title: 'What you showed on your own',
       steps: [
-        // Ticked by what the learner actually did: the correct answer on that screen, without the second-miss demonstration.
+        // One line per exit item, ticked only if that item was right on the first and only submission.
         { id: 'A', type: 'selfcheck', items: [
-          { text: 'found the fixed part and the growing part', screen: 2 },
-          { text: 'found the constant at figure 0', screen: 3 },
-          { text: 'told a first total from a constant', screen: 4 },
-          { text: 'solved for a figure number', screen: 5 },
-          { text: 'tested a rule on more than one figure, including Figure 0', screen: 6 },
-          { text: 'showed two rules are equivalent', screen: 8 },
-          { text: 'recognized a pattern with no common difference', screen: 11 },
-          { text: 'found a speed at a single instant', screen: 14 },
+          { text: 'Wrote a rule from a situation', item: 1 },
+          { text: 'Found the value at n = 0', item: 2 },
+          { text: 'Used a rule to find a total', item: 3 },
+          { text: 'Found where a shifted rule goes wrong', item: 4 },
+          { text: 'Wrote an equivalent rule using (n − 1)', item: 5 },
+          { text: 'Recognized which pattern has a constant difference', item: 6 },
+          { text: 'Explained why a rule works for every n', item: 7 },
         ] },
       ],
     },
@@ -941,7 +996,7 @@ const JUDGE = {
     const yours = n => evalAt(e, n), original = n => evalAt(ans, n);
     if (sameRule(e, ans)) {
       if (!st.simplified || isSimplified(e)) return { kind: 'correct', say: st.say };
-      if (!hasGroup(e) && st.notCombined) return { kind: 'partial', say: st.notCombined };
+      if (!hasGroup(e)) return { kind: 'partial', say: st.notCombined || LESSON.ui.fallback };
       return { kind: 'hint', say: st.hint || LESSON.ui.fallback };
     }
     for (const w of st.wrong || []) {
@@ -1066,8 +1121,10 @@ function fig(svg, caption) { return h('figure', {}, svg, caption != null ? h('fi
 // The fixed tiles stay in the same place in every figure; each group sits on its own tinted backing.
 const TILE = 22, IN_GAP = 2, COL_GAP = 9;
 function tilesSVG(n, opts = {}) {
+  const P = opts.pattern || TILES;
   const cols = (opts.width ?? n) + 1 + (opts.slot ? 1 : 0);
-  const H = TILE * TILES.group + IN_GAP * (TILES.group - 1);
+  const rows = Math.max(P.fixed, P.group);
+  const H = TILE * rows + IN_GAP * (rows - 1);
   const W = cols * TILE + (cols - 1) * COL_GAP;
   const pad = 5;
   const svg = s('svg', { viewBox: `${-pad} ${-pad} ${W + 2 * pad} ${H + 2 * pad}`, style: scaled(W + 2 * pad), role: 'img', 'aria-label': `Figure ${n}` });
@@ -1078,11 +1135,11 @@ function tilesSVG(n, opts = {}) {
     for (let j = 0; j < k; j++) add(g, s('rect', { x, y: H - (j + 1) * TILE - j * IN_GAP, width: TILE, height: TILE, rx: 3, class: cls }));
     return g;
   };
-  add(svg, column(0, TILES.fixed, 't-const', 'g-const'));
-  for (let i = 1; i <= n; i++) add(svg, column(i * (TILE + COL_GAP), TILES.group, 't-coef', 'g-coef'));
+  add(svg, column(0, P.fixed, 't-const', 'g-const'));
+  for (let i = 1; i <= n; i++) add(svg, column(i * (TILE + COL_GAP), P.group, 't-coef', 'g-coef'));
   if (opts.slot) {
     const x = (n + 1) * (TILE + COL_GAP);
-    for (let j = 0; j < TILES.group; j++) add(svg, s('rect', { x, y: H - (j + 1) * TILE - j * IN_GAP, width: TILE, height: TILE, rx: 3, class: 'slot' }));
+    for (let j = 0; j < P.group; j++) add(svg, s('rect', { x, y: H - (j + 1) * TILE - j * IN_GAP, width: TILE, height: TILE, rx: 3, class: 'slot' }));
   }
   return svg;
 }
@@ -1103,7 +1160,7 @@ function edgeLine(id) {
 }
 function stickClass(id, colour) {
   if (colour === 'rule31') return id === 'v0' ? 'const' : 'coef';          // 3n + 1: one starting stick, then groups of 3
-  if (colour === 'rule4') return CONST_ORDER.includes(id) ? 'const' : 'coef'; // 4 + 3(n − 1): a full first square, then groups of 3
+  if (colour === 'rule4') return CONST_ORDER.includes(id) ? 'first' : 'coef'; // 4 + 3(n − 1): a neutral first square, then groups of 3
   return '';
 }
 function edgeName(id) {
@@ -1112,11 +1169,13 @@ function edgeName(id) {
   if (id[0] === 'b') return `bottom of square ${k + 1}`;
   return k === 0 ? 'left side of square 1' : `right side of square ${k}`;
 }
+// opts.firstSquare: room below the first square for its "first square" label; opts.labelled: show the label.
 function sticksSVG(n, opts = {}) {
-  const w = Math.max(opts.width ?? n, 1), pad = 8, scale = opts.scale || 1;
-  const svg = s('svg', { viewBox: `${-pad} ${-pad} ${w * SIDE + 2 * pad} ${SIDE + 2 * pad}`, style: scaled(w * SIDE + 2 * pad, scale), role: 'img', 'aria-label': `Figure ${n}` });
+  const w = Math.max(opts.width ?? n, 1), pad = 8, scale = opts.scale || 1, below = opts.firstSquare ? 20 : 0;
+  const svg = s('svg', { viewBox: `${-pad} ${-pad} ${w * SIDE + 2 * pad} ${SIDE + 2 * pad + below}`, style: scaled(w * SIDE + 2 * pad, scale), role: 'img', 'aria-label': `Figure ${n}` });
   const edges = opts.edges || stickEdges(n).map(e => ({ e, cls: opts.dim ? 'dim' : stickClass(e, opts.colour) }));
   for (const { e, cls } of edges) add(svg, s('line', { ...edgeLine(e), class: `stick ${cls || ''}`, 'data-edge': e }));
+  if (opts.firstSquare && opts.labelled !== false) add(svg, s('text', { x: SIDE / 2, y: SIDE + 20, 'text-anchor': 'middle', class: 'flabel' }, LESSON.ui.firstSquare));
   return svg;
 }
 function stickPieceSVG(cls) {
@@ -1126,6 +1185,22 @@ function stickPieceSVG(cls) {
 function groupStickSVG() {   // a group of 3: top, right side, bottom
   const svg = s('svg', { viewBox: `-8 -8 ${SIDE + 16} ${SIDE + 16}`, style: scaled(SIDE + 16, 0.9), 'aria-hidden': 'true' });
   for (const e of ['t0', 'b0', 'v1']) add(svg, s('line', { ...edgeLine(e), class: 'stick coef' }));
+  return svg;
+}
+
+// Triangles: points along the bottom (B) and top (T) edges of the strip; each stick is drawn slightly short.
+const TRI_H = SIDE * Math.sqrt(3) / 2;
+function triangleLine(id) {
+  const k = +id.slice(1), m = Math.floor(k / 2);
+  const B = j => ({ x: j * SIDE, y: TRI_H }), T = j => ({ x: (j + 0.5) * SIDE, y: 0 });
+  const [a, b] = id[0] === 'd' ? (k % 2 ? [T(m), B(m + 1)] : [B(m), T(m)]) : (k % 2 ? [T(m), T(m + 1)] : [B(m), B(m + 1)]);
+  const len = Math.hypot(b.x - a.x, b.y - a.y), ux = (b.x - a.x) / len, uy = (b.y - a.y) / len;
+  return { x1: a.x + ux * INSET, y1: a.y + uy * INSET, x2: b.x - ux * INSET, y2: b.y - uy * INSET };
+}
+function trianglesSVG(n) {
+  const W = (n + 1) / 2 * SIDE, pad = 8;
+  const svg = s('svg', { viewBox: `${-pad} ${-pad} ${W + 2 * pad} ${TRI_H + 2 * pad}`, style: scaled(W + 2 * pad), role: 'img', 'aria-label': `Figure ${n}` });
+  for (const e of triangleEdges(n)) add(svg, s('line', { ...triangleLine(e), class: 'stick', 'data-edge': e }));
   return svg;
 }
 
@@ -1249,10 +1324,11 @@ function shrinkFigure(h0) {
 const BLOCKS = {
   formula(b) { return h('p', { class: 'formula' }, rich(b.formula)); },
   reminder(b) { return h('p', { class: 'reminder' }, rich(b.reminder)); },
-  tiles(b) { return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.tiles.map(n => fig(tilesSVG(n), `Figure ${n}`)))); },
+  tiles(b) { return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.tiles.map(n => fig(tilesSVG(n, { pattern: b.pattern }), `Figure ${n}`)))); },
+  triangles(b) { return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.triangles.map(n => fig(trianglesSVG(n), `Figure ${n}`)))); },
   sticks(b) {
     return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.sticks.map((n, i) =>
-      fig(sticksSVG(n, { colour: b.colours ? b.colours[i] : b.colour }), b.captions ? b.captions[i] : `Figure ${n}`))));
+      fig(sticksSVG(n, { colour: b.colours ? b.colours[i] : b.colour, firstSquare: (b.colours ? b.colours[i] : b.colour) === 'rule4' }), b.captions ? b.captions[i] : `Figure ${n}`))));
   },
   squares(b) {
     return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.squares.map(n =>
@@ -1276,13 +1352,22 @@ const BLOCKS = {
   shrink(b, c) {
     const f = shrinkFigure(b.shrink);
     const readout = h('p', { class: 'readout' });
-    const cells = {};
-    const tbl = h('table', { class: 't' }, h('tbody', {},
-      h('tr', {}, h('th', { scope: 'row' }, 'h (s)'), SHRINK.table.map(x => h('td', {}, fmt(x)))),
-      h('tr', {}, h('th', { scope: 'row' }, 'Average speed (m/s)'), SHRINK.table.map(x => (cells[x] = h('td', {}))))));
-    const fill = x => { if (!cells[x].textContent || cells[x].textContent === '?') { cells[x].textContent = fmt(avgSpeed(SHRINK.t, x)); cells[x].classList.add('filled'); } };
+    const extra = x => dist(SHRINK.t + x) - dist(SHRINK.t);   // distance in the extra time
+    const cells = { d: {}, v: {} };
+    const tbl = h('table', { class: 't shrinktable' }, h('tbody', {},
+      h('tr', {}, h('th', { scope: 'row' }, b.rows[0]), SHRINK.table.map(x => h('td', {}, fmt(x)))),
+      h('tr', {}, h('th', { scope: 'row' }, b.rows[1]), SHRINK.table.map(x => (cells.d[x] = h('td', {})))),
+      h('tr', {}, h('th', { scope: 'row' }, b.rows[2]), SHRINK.table.map(x => (cells.v[x] = h('td', {}))))));
+    const fill = x => {
+      [[cells.d[x], extra(x)], [cells.v[x], extra(x) / x]].forEach(([cell, v]) => {
+        if (cell.textContent && cell.textContent !== '?') return;
+        cell.textContent = fmt(v);
+        cell.classList.add('filled');
+      });
+    };
     fill(SHRINK.table[0]);
-    cells[0.5].textContent = '?';
+    cells.d[0.5].textContent = '?';
+    cells.v[0.5].textContent = '?';
     const set = hv => { f.set(hv); readout.textContent = `h = ${fmt(Math.round(hv * 1000) / 1000)}`; };
     set(b.shrink);
     c.s.shrink = { set, fill, table: SHRINK.table };
@@ -1389,6 +1474,31 @@ function toSVG(svg, x, y) { const p = svg.createSVGPoint(); p.x = x; p.y = y; re
 /* =====================================================================
    STEPS
    ===================================================================== */
+// Screen 11, after "12": the learner fills in a k-by-k square, tapping each space or dragging a tile onto it.
+function fillBuild(c, k, prompt) {
+  if (c.s.fill) return;
+  c.s.fill = true;
+  const cells = range(1, k * k).map(i => h('button', { type: 'button', class: 'cellbtn', 'aria-label': `space ${i}`, 'aria-pressed': 'false', 'data-cell': i }));
+  const tile = h('button', { type: 'button', class: 'piece', 'aria-label': 'tile' },
+    s('svg', { viewBox: '0 0 30 30', style: scaled(30), 'aria-hidden': 'true' }, s('rect', { x: 2, y: 2, width: 26, height: 26, rx: 4, class: 'filltile' })));
+  const tray = h('div', { class: 'tray interactive' }, tile);
+  const fill = cell => {
+    unpick();
+    cell.classList.add('filled');
+    cell.setAttribute('aria-pressed', 'true');
+    if (cells.every(x => x.classList.contains('filled'))) tray.remove();
+  };
+  const opts = {
+    targets: () => cells,
+    hit: (x, y) => cells.find(cell => inside(cell, x, y)) ?? null,
+    hoverEl: cell => cell,
+    place: fill,
+  };
+  draggable(tile, opts);
+  cells.forEach(cell => cell.addEventListener('click', () => fill(cell)));
+  add(c.el, h('div', { class: 'fillbuild', 'data-fill': '' }, h('p', { class: 'prompt' }, rich(prompt)),
+    h('div', { class: 'card' }, h('div', { class: 'fillgrid interactive', style: `grid-template-columns: repeat(${k}, 48px)` }, cells)), tray));
+}
 function promptEl(st) { return st.prompt ? h('p', { class: 'prompt', id: newId('p') }, rich(st.prompt)) : null; }
 
 function inputField(st, kind, label) {
@@ -1406,7 +1516,7 @@ function askStep(st, c, ui) {
   const check = h('button', { type: 'button', class: 'btn check' }, LESSON.ui.check);
   add(ui.row, check);
   append(c.el, [ui.el, fb, demo, pathEl]);
-  let misses = 0, finished = false;
+  let misses = 0, finished = false, cardShown = false;
   const submit = () => {
     if (finished) return;
     const vals = ui.values();
@@ -1428,7 +1538,9 @@ function askStep(st, c, ui) {
       demo.querySelectorAll('[data-default-answer]').forEach(el => el.remove());   // the confirmation now says the same
       if (st.onCorrect) st.onCorrect(c);
       if (c.last) c.revealWhy();
-      c.done();
+      // Q3: after the "Answer" card, a follow-up item with new numbers must be answered before going on.
+      if (st.followUp && cardShown) runSteps([st.followUp], c, pathEl, () => c.done(), true);
+      else c.done();
       return;
     }
     misses += 1;
@@ -1437,11 +1549,11 @@ function askStep(st, c, ui) {
       ui.lock();
       check.remove();
       if (c.last) c.hideWhy();
-      runSteps(res.path, c, pathEl, () => { if (c.last) c.revealWhy(); c.done(); }, true);
+      runSteps(res.path, c, pathEl, () => { if (c.last) c.revealWhy(); c.done(res.skip || 0); }, true);
       return;
     }
     if (c.last && res.kind === 'wrong') c.revealWhy();
-    if (misses === 2) secondMiss(st, c, demo, ui);
+    if (misses === 2) { secondMiss(st, c, demo, ui); cardShown = true; }
     ui.again();
   };
   check.addEventListener('click', submit);
@@ -1697,11 +1809,13 @@ const STEPS = {
     add(c.el, promptEl(st), h('p', { class: 'formula' }, rich(st.atOne)));
     let nc = 0, ng = 0;
     const area = h('div', { class: 'drop buildarea interactive', role: 'button', tabindex: '0', 'aria-label': `${st.who}'s build` });
+    // Nina's 4 is her first square, not the value at Figure 0, so its sticks are neutral rather than the constant colour.
+    const constCls = st.firstSquare ? 'first' : 'const';
     const draw = () => {
-      const edges = builtEdges(nc, ng);
-      area.replaceChildren(fig(sticksSVG(2, { width: 2, scale: 1.3, edges })));
+      const edges = builtEdges(nc, ng, constCls);
+      area.replaceChildren(fig(sticksSVG(2, { width: 2, scale: 1.3, edges, firstSquare: st.firstSquare, labelled: nc >= CONST_ORDER.length })));
     };
-    const stick = h('button', { type: 'button', class: 'piece', 'aria-label': 'stick in the first colour', 'data-piece': 'stick' }, stickPieceSVG('const'));
+    const stick = h('button', { type: 'button', class: 'piece', 'aria-label': st.firstSquare ? 'stick' : 'stick in the first colour', 'data-piece': 'stick' }, stickPieceSVG(constCls));
     const group = h('button', { type: 'button', class: 'piece', 'aria-label': 'group of 3 in the second colour', 'data-piece': 'group' }, groupStickSVG());
     const tray = h('div', { class: 'tray interactive' }, stick, group, st.groupsNote ? h('span', { class: 'aside' }, st.groupsNote) : null);
     const fb = h('div', { class: 'fb', role: 'status', 'aria-live': 'polite' });
@@ -1734,6 +1848,16 @@ const STEPS = {
     draw();
     add(c.el, h('div', { class: 'card' }, area), tray, fb);
     update();
+  },
+
+  // Screen 7, a 7 on step 1: Figure 2 with its shared edge flashing.
+  async sharedEdge(st, c) {
+    const svg = sticksSVG(st.n, { scale: 1.3 });
+    add(c.el, h('div', { class: 'card' }, h('div', { class: 'figs' }, fig(svg, `Figure ${st.n}`))));
+    await wait(400);
+    sharedEdges(st.n).forEach(e => svg.querySelector(`[data-edge="${e}"]`).classList.add('flash'));
+    await wait(2700);
+    c.done();
   },
 
   // Screen 10, step E: not scored.
@@ -1796,11 +1920,12 @@ const STEPS = {
   dials(st, c) {
     const g = graphFigure(st.points);
     const formula = h('p', { class: 'formula' });
-    let a = st.a.start, b = st.b.start, tries = 0, over = false;
+    let a = st.a.start, b = st.b.start, tries = 0, over = false, moved = false;
+    const fb = h('div', { class: 'fb', role: 'status', 'aria-live': 'polite' });
     const dial = (name, cfg, setv) => {
       const out = h('output', {});
       const inp = h('input', { type: 'range', min: cfg.min, max: cfg.max, step: 1, value: cfg.start, 'aria-label': name, 'data-dial': name });
-      inp.addEventListener('input', () => { setv(+inp.value); out.textContent = fmt(+inp.value); update(); });
+      inp.addEventListener('input', () => { setv(+inp.value); out.textContent = fmt(+inp.value); moved = true; update(); });
       out.textContent = fmt(cfg.start);
       return [h('label', {}, name), inp, out];
     };
@@ -1821,10 +1946,16 @@ const STEPS = {
       c.revealWhy();
       c.done();
     };
-    check.addEventListener('click', () => { g.hits(); tries += 1; if (tries >= st.tries) finish(); });
+    check.addEventListener('click', () => {
+      if (!moved) { fb.replaceChildren(note('format', [{ cls: 'say', text: st.moveFirst }])); return; }
+      moved = false;
+      tries += 1;
+      fb.replaceChildren(note('hint', [{ cls: 'say', text: st.passes(g.hits(), st.points.length) }]));
+      if (tries >= st.tries) finish();
+    });
     cant.addEventListener('click', finish);
     add(c.el, h('div', { class: 'card' }, h('div', { class: 'figs' }, fig(g.svg)), formula, reveal,
-      h('div', { class: 'dials' }, dial('a', st.a, v => { a = v; }), dial('b', st.b, v => { b = v; }))), h('div', { style: 'margin-top: 12px' }, rowEl));
+      h('div', { class: 'dials' }, dial('a', st.a, v => { a = v; }), dial('b', st.b, v => { b = v; }))), h('div', { style: 'margin-top: 12px' }, rowEl), fb);
     update();
   },
 
@@ -1897,18 +2028,16 @@ const STEPS = {
         if (!g.ok) add(x.fbEl, note('wrong', [{ cls: 'say', text: g.say }]));
       });
       submit.remove();
-      c.log.exit = items.map(x => grade(x).ok);
+      state.exit = items.map(x => grade(x).ok);   // the first and only submission
       c.done();
     });
     add(c.el, h('div', { class: 'items' }, items.map(x => x.el)), h('div', { class: 'row', style: 'margin-top: 20px' }, submit));
   },
 
   // Screen 16: ticked by what the learner actually did.
+  // Screen 16: one line per exit item, ticked only if that item was right on the exit ticket's one submission.
   selfcheck(st, c) {
-    const ticked = it => {
-      const log = state.log[LESSON.screens.findIndex(sc => sc.n === it.screen)];
-      return !!(log && log.done && !log.secondMiss);
-    };
+    const ticked = it => !!(state.exit && state.exit[it.item - 1]);
     add(c.el, h('ul', { class: 'checklist' }, st.items.map(it => {
       const on = ticked(it);
       const ic = icon(on ? 'correct' : 'empty');
@@ -1931,7 +2060,8 @@ const main = $('lesson');
 // Runs steps one after another: each appears only when the one before it is done.
 function runSteps(steps, ctx, container, onDone, isPath) {
   let k = 0;
-  const next = () => {
+  const next = (skip = 0) => {
+    k += skip;
     if (k >= steps.length) { onDone(); return; }
     const st = steps[k];
     const last = !isPath && k === steps.length - 1;
