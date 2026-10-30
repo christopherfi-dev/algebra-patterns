@@ -24,6 +24,11 @@ An interactive math lesson in one self-contained HTML file. The spec is `docs/Se
 - Screenshot every screen at phone size (390 × 844) and desktop size (1280 × 800).
 - Run every correct path and every predicted wrong answer in the spec, and confirm each gives the response the spec gives it.
 
+## After each round
+
+- Write `handback/round-N.md`, a short, self-contained report for Marc to give to the master thread. Cover: status (commits, test results, what wasn't tested), and what Marc and the master thread need to decide or write next, keyed by step ID. End with suggestions for the next handoff. `REPORT.md` stays the full report.
+- Send it to Marc as a file he can download.
+
 ## Don't
 
 - Don't deploy. Marc deploys.
