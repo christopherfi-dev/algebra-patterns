@@ -45,7 +45,6 @@ main { max-width: 760px; margin: 0 auto; padding: 22px 16px 150px; }
 h1.title { font-size: clamp(25px, 5.6vw, 32px); line-height: 1.2; margin: 0 0 16px; letter-spacing: -.01em; }
 h1.title:focus { outline: none; }
 .intro { margin: 0 0 12px; }
-.sequence { font-size: clamp(28px, 8vw, 40px); font-weight: 750; letter-spacing: .02em; margin: 6px 0 4px; font-variant-numeric: tabular-nums; }
 .formula { font-size: 22px; font-weight: 700; text-align: center; margin: 2px 0; font-variant-numeric: tabular-nums; }
 .reminder { background: var(--soft); border-radius: 14px; padding: 12px 14px; font-weight: 600; margin: 0 0 12px; }
 
@@ -354,7 +353,6 @@ const LESSON = {
     tiles: n => `${n} tiles`,
   },
   parts: {
-    1: 'Part 1: Warm-up',
     2: 'Part 2: Tiles. See the structure',
     3: 'Part 3: Sticks. Two ways to see one rule',
     4: 'Part 4: Evaluate and repair',
@@ -363,29 +361,6 @@ const LESSON = {
     7: 'Part 7: Exit ticket',
   },
   screens: [
-    /* ---------------- Screen 1 ---------------- */
-    {
-      n: 1, part: 1, title: 'Retrieval: is 103 in the pattern?',
-      show: [{ sequence: '4n + 3', from: 1, to: 4 }],
-      steps: [
-        { id: 'A', type: 'rule', prompt: 'Type the explicit rule.', prefix: 'T =', answer: '4n + 3',
-          say: 'Right. Each term adds 4, and the value at n = 0 is 3.',
-          wrong: [
-            { rule: '7 + 4n', say: 'Test it at n = 1: it gives 11, but the first term is 7. 7 is the term at n = 1. The constant is the value at n = 0.' },
-            { rule: '4n', say: '4n gives 4, 8, 12, 16. Every term of the pattern is 3 more.' },
-          ],
-          hint: 'What does each term add? Then find the value at n = 0.',
-          // Second miss: Marc's row comparison, built row by row.
-          demo: { type: 'rowTable', rule: '4n + 3', normal: '4n', from: 0, to: 4,
-                  labels: ['n', 'Pattern', '"Normal" row (4n)', 'How far off'] } },
-        { id: 'B', type: 'number', prompt: 'Which term is 103?', prefix: 'n =',
-          answer: () => solveLinear('4n + 3', 103),
-          say: '4n + 3 = 103 gives 4n = 100, so n = 25. 103 is the 25th term.',
-          wrong: [{ values: [26, 100], say: 'Solve 4n + 3 = 103. Undo the + 3 first, then the × 4.' }] },
-      ],
-      why: ['Each term adds 4, so the coefficient is 4. The pattern is always 3 more than the 4 times table, and at n = 0 it would be 3, so the constant is 3. The rule is T = 4n + 3. To find which term is 103, solve 4n + 3 = 103: n = 25.'],
-    },
-
     /* ---------------- Screen 2 ---------------- */
     {
       n: 2, part: 2, title: 'What stays and what grows?',
@@ -688,8 +663,7 @@ const LESSON = {
     /* ---------------- Screen 13 ---------------- */
     {
       n: 13, part: 6, title: 'A square that grows smoothly',
-      intro: ['Figures come in whole numbers. Now imagine the square growing smoothly.',
-              'A ball rolling down a ramp: after t seconds it has rolled d = t² metres.'],
+      intro: ["Figures come in whole numbers, but time doesn't. A ball rolls d = t² metres in t seconds."],
       show: [{ ramp: [0, 4] }, { table: [['t (s)', t => t], ['d (m)', t => dist(t)]], cols: [0, 1, 2, 3, 4] }],
       steps: [
         { id: 'A', type: 'number', show: [{ squareBorder: 4 }],
@@ -731,8 +705,8 @@ const LESSON = {
 
     /* ---------------- Screen 15 ---------------- */
     {
-      n: 15, part: 7, title: 'The garden (independent evidence)',
-      intro: ['A garden starts with 24 plants before any new beds are built. Each new bed adds exactly 6 plants. None are removed. Let n be the number of new beds and P the total number of plants.'],
+      n: 15, part: 7, title: 'The garden',
+      intro: ['A garden starts with 24 plants before any new beds are built, and each new bed adds exactly 6 plants. Let n be the number of new beds and P the total number of plants.'],
       steps: [
         { id: 'A', type: 'exit', items: [
           { q: 'Write the rule for P.', type: 'rule', prefix: 'P =', answer: '24 + 6n',
@@ -1273,10 +1247,6 @@ function shrinkFigure(h0) {
 
 // Things a screen, a step or a Why? panel can show.
 const BLOCKS = {
-  sequence(b) {
-    const f = ruleFn(b.sequence);
-    return h('p', { class: 'sequence' }, range(b.from, b.to).map(x => fmt(f(x))).join(', ') + ', …');
-  },
   formula(b) { return h('p', { class: 'formula' }, rich(b.formula)); },
   reminder(b) { return h('p', { class: 'reminder' }, rich(b.reminder)); },
   tiles(b) { return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.tiles.map(n => fig(tilesSVG(n), `Figure ${n}`)))); },
@@ -1295,7 +1265,7 @@ const BLOCKS = {
     return h('div', { class: 'tablewrap' }, h('table', { class: 't' }, h('tbody', {},
       b.table.map(([label, f]) => h('tr', {}, h('th', { scope: 'row' }, label), b.cols.map(x => h('td', {}, fmt(f(x)))))))));
   },
-  rowTable(b) { return rowTable(b, false); },
+  rowTable(b) { return rowTable(b); },
   ramp(b) { return h('div', { class: 'card' }, fig(rampFigure(b.ramp))); },
   squareBorder(b, c) {
     const k = b.squareBorder;
@@ -1326,12 +1296,10 @@ function block(b, c) {
 }
 
 // Marc's row comparison: n, the pattern, the "normal" row, and how far off.
-function rowTable(d, animate) {
+function rowTable(d) {
   const f = ruleFn(d.rule), g = ruleFn(d.normal), ns = range(d.from, d.to);
   const rows = [ns, ns.map(f), ns.map(g), ns.map(x => f(x) - g(x))];
-  const trs = rows.map((vals, r) => h('tr', { hidden: (animate && r > 0) || null },
-    h('th', { scope: 'row' }, d.labels[r]), vals.map(v => h('td', {}, fmt(v)))));
-  if (animate) (async () => { for (const tr of trs.slice(1)) { await wait(800); tr.hidden = false; tr.classList.add('enter'); } })();
+  const trs = rows.map((vals, r) => h('tr', {}, h('th', { scope: 'row' }, d.labels[r]), vals.map(v => h('td', {}, fmt(v)))));
   return h('div', { class: 'tablewrap' }, h('table', { class: 't' }, h('tbody', {}, trs)));
 }
 
@@ -1494,11 +1462,10 @@ function answerText(st) {
   return '';
 }
 
-// Second miss: the step's own demonstration if it has one; otherwise the answer, with the step's explanation,
-// and on a screen's last step the Why? text opens too. The learner still enters the answer to continue.
+// Second miss: the answer, with the step's explanation, and on a screen's last step the Why? text opens too.
+// The learner still enters the answer to continue.
 function secondMiss(st, c, demoEl, ui) {
   c.log.secondMiss = true;
-  if (st.demo) { DEMOS[st.demo.type](st.demo, demoEl, c); return; }
   if (ui.showAnswer) ui.showAnswer();
   add(demoEl, h('div', { class: 'answer-card', 'data-default-answer': '' },
     h('span', { class: 'label' }, LESSON.ui.answer),
@@ -1506,10 +1473,6 @@ function secondMiss(st, c, demoEl, ui) {
     st.say ? h('p', { class: 'say' }, rich(st.say)) : null));
   if (c.last) c.openWhy();
 }
-
-const DEMOS = {
-  rowTable(d, el) { add(el, h('div', { class: 'answer-card' }, rowTable(d, true))); },
-};
 
 function inputsUI(inputs, row, el) {
   return {
