@@ -770,6 +770,7 @@ const LESSON = {
             { who: 'Nina', rule: 'S = 4 + 3(n − 1)', correct: true },
           ] },
         { id: 'E', type: 'explain', prompt: "In your own words, why is Arun's rule one figure ahead?",
+          frame: "Arun's 4 is already ___. Then he adds ___ for every square, so ___.",   // HANDOFF-ROUND-8 6
           model: "Arun's 4 is already a whole square. Then he adds 3 more sticks for every square, so he counts one square too many." },
       ],
       why: ["Arun's constant, 4, is already a complete square. His 3n then adds a three-stick piece for every square, so at n = 1 he builds two squares: Figure 2. Mina starts from 1 stick, so n pieces of 3 make exactly n squares. Nina keeps the full first square but uses (n − 1), so she only adds pieces for the squares after the first. Her rule simplifies to Mina's: equivalent rules can look different and still give the same value for every n."],
@@ -1821,7 +1822,7 @@ const STEPS = {
 
   // Screen 10, step E: not scored.
   explain(st, c) {
-    add(c.el, promptEl(st));
+    add(c.el, promptEl(st), st.frame ? h('p', { class: 'line frame' }, rich(st.frame)) : null);   // a sentence frame above the box (round 8)
     const ta = h('textarea', { class: 'explain', 'aria-label': plain(st.prompt) });
     const btn = h('button', { type: 'button', class: 'btn' }, LESSON.ui.compare);
     btn.disabled = true;
