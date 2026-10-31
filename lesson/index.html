@@ -55,7 +55,7 @@ h1.title:focus { outline: none; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin: 6px 0 4px; }
 .figs { display: flex; flex-wrap: wrap; gap: 16px 18px; align-items: flex-end; justify-content: center; }
 /* Round 6: Figures 1 to 4 above the skip-count table are a little smaller on narrow phones, so they take two rows, not three. */
-@media (max-width: 419px) { .figs.compact { --fs: .85; } }
+@media (max-width: 419px) { .figs.compact { --fs: .85; } .figs.compact.sticks { --fs: .7; } }   /* round 7: sticks at the slider's 70% */
 figure { margin: 0; text-align: center; min-width: 0; max-width: 100%; }
 figure svg { display: block; margin: 0 auto; max-width: 100%; height: auto; overflow: visible; }
 figcaption { font-size: 15px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
@@ -297,6 +297,7 @@ function stickEdges(n) {
   return e;
 }
 const stickCount = n => stickEdges(n).length;
+const stickSkip = n => (stickCount(1) - stickCount(0)) * n;   // the skip count by 3 for the sticks (round 7, Screen 9)
 const sharedEdges = n => range(1, n - 1).map(i => `v${i}`);
 function completeSquares(edges) {
   let k = 0;
@@ -659,10 +660,58 @@ const LESSON = {
       why: ['Every square after the first adds only 3 sticks, because it shares an edge with the square before it. The first square follows the same pattern if you see it as 1 stick plus 3. So Figure 1 is 1 + 3, Figure 2 is 1 + two 3s, Figure 3 is 1 + three 3s, and Figure 10 is 1 + ten 3s = 31.'],
     },
 
+    /* ---------------- New in round 7: the rule for the sticks (HANDOFF-ROUND-7 5) ---------------- */
+    // The second supported practice of Marc's move 1, with less help than the tiles. The table is built up one row at a time.
+    {
+      n: 7, key: '7r', part: 2, title: 'The rule for the sticks',
+      show: [{ sticks: [1, 2, 3, 4], compact: true }, { compare: { cols: [1, 2, 3, 4], rows: [['Figure n', n => n]] } }],
+      steps: [
+        { id: 'R1', type: 'tableRow', prompt: 'Fill in the Sticks row: count the sticks in each figure.', label: 'Sticks', typed: 4,
+          value: stickCount,
+          answers: () => [1, 2, 3, 4].map(stickCount),
+          say: 'Right: 4, 7, 10, 13.',
+          wrong: [{ values: [1, 2, 3, 4].map(n => 4 * n), say: 'That gives every square its own 4 sticks. Neighbouring squares share one.' }],
+          hint: 'Count each stick once, including the ones two squares share.' },
+        { id: 'R2', type: 'number', prompt: 'How many more sticks does each new figure add?',
+          answer: () => stickCount(2) - stickCount(1),
+          say: 'Right. Each new square adds 3 sticks. That 3 is the coefficient.',
+          wrong: [{ values: [4], say: 'Each new square shares a stick with the square before, so it adds only 3.' }],
+          hint: 'Compare Figure 1 and Figure 2: 4 and 7.' },
+        { id: 'R3', type: 'tableRow', prompt: 'Fill in the skip-count row: count by 3.', label: 'Skip count by\u00A03', typed: 2,
+          value: stickSkip,
+          answers: () => [1, 2].map(stickSkip),
+          say: 'Right: 3, 6, 9, 12.',
+          wrong: [{ values: [stickCount(1), stickCount(2)], say: 'Those are the sticks. Skip count by 3 on its own: 3, 6, …' }],
+          hint: 'Count by 3, the number each figure adds.' },
+        { id: 'R4', type: 'tableRow', prompt: 'How many more sticks does each figure have than the skip count?', label: 'How many more', typed: 4,
+          value: n => stickCount(n) - stickSkip(n),
+          answers: () => [1, 2, 3, 4].map(n => stickCount(n) - stickSkip(n)),
+          say: 'Right. Every figure has exactly 1 more.',
+          wrong: [{ any: [stickSkip(1)], say: '3 is what each figure adds. Compare the two rows: 4 and 3, then 7 and 6.' }],   // a 3 in any box
+          hint: 'Subtract in each column: 4 − 3, 7 − 6, 10 − 9, 13 − 12.' },
+        // Moved here from Screen 8, keeping their IDs; 8C2 has a new confirmation.
+        { id: 'C1', of: 8, type: 'slide', prompt: 'Slide to Figure 0.', figure: 'sticks', colour: 'rule31', min: 0, max: 10, start: 4, target: 0 },
+        { id: 'C2', of: 8, type: 'number', prompt: 'How many sticks are left?',
+          answer: () => stickCount(0),
+          say: "One lone stick. That's the constant: what's there at Figure 0.",
+          wrong: [{ values: [4], say: '4 is Figure 1. Take away its three sticks.' }],
+          hint: 'At Figure 0 there are no squares. Which stick is still there?' },
+        { id: 'R5', type: 'rule', prompt: 'Type the rule.', prefix: 'S =', answer: '3n + 1',
+          say: 'Right: S = 3n + 1.',
+          wrong: [
+            { rule: '4 + 3n', say: "Test it at Figure 1: it gives 7, but Figure 1 has 4 sticks. 4 is Figure 1's total; the constant is what's there at Figure 0." },
+            { rule: '3n', say: 'Every figure has 1 more than the skip count.' },
+            { rule: '4n', say: 'Each figure adds 3, not 4.' },
+          ],
+          hint: 'Start with the skip count for figure n, then add how many more every figure has.' },
+      ],
+      why: ['Each new square adds 3 sticks, so the sticks grow like the skip count by 3: the coefficient is 3. Every figure has 1 more stick than the skip count: the starting stick, there even at Figure 0. That 1 is the constant. So S = 3n + 1.'],
+    },
+
     /* ---------------- Screen 8 ---------------- */
     {
       n: 8, part: 2, title: 'Are these two rules the same?',
-      intro: ['Two rules for the sticks: S = 3n + 1 and S = 4 + 3(n − 1). Are these two rules the same?'],
+      intro: ['Your rule for the sticks is S = 3n + 1. Another student wrote S = 4 + 3(n − 1). Are these two rules the same?'],   // HANDOFF-ROUND-7 6
       steps: [
         { id: 'A', type: 'numbers', prompt: 'Type the value of each rule for n = 1, 2 and 3.',
           grid: { rows: ['S = 3n + 1', 'S = 4 + 3(n − 1)'], cols: [1, 2, 3] },
@@ -674,12 +723,6 @@ const LESSON = {
             return { kind: 'hint', say: st.hint };
           },
           hint: 'In 3n + 1, multiply n by 3 first, then add 1.' },
-        { id: 'C1', type: 'slide', prompt: 'Slide to Figure 0.', figure: 'sticks', colour: 'rule31', min: 0, max: 10, start: 4, target: 0 },
-        { id: 'C2', type: 'number', prompt: 'How many sticks are left?',
-          answer: () => stickCount(0),
-          say: 'One lone stick: the constant in 3n + 1.',
-          wrong: [{ values: [4], say: '4 is Figure 1. Take away its three sticks.' }],
-          hint: 'At Figure 0 there are no squares. Which stick is still there?' },
       ],
       why: [
         'Substituting n = 1, 2 and 3 showed the two rules agree for three figures. Simplifying shows why they agree for every figure: 4 + 3(n − 1) = 4 + 3n − 3 = 3n + 1. In the picture, 4 + 3(n − 1) counts the first full square, then 3 sticks for each square after it. 3n + 1 counts one starting stick, then 3 for every square. Same sticks, grouped differently.',
@@ -1195,7 +1238,7 @@ const BLOCKS = {
   tiles(b) { return h('div', { class: 'card' }, h('div', { class: b.compact ? 'figs compact' : 'figs' }, b.tiles.map(n => fig(tilesSVG(n, { pattern: b.pattern }), `Figure ${n}`)))); },
   triangles(b) { return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.triangles.map(n => fig(trianglesSVG(n), `Figure ${n}`)))); },
   sticks(b) {
-    return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.sticks.map((n, i) =>
+    return h('div', { class: 'card' }, h('div', { class: b.compact ? 'figs compact sticks' : 'figs' }, b.sticks.map((n, i) =>
       fig(sticksSVG(n, { colour: b.colours ? b.colours[i] : b.colour, firstSquare: (b.colours ? b.colours[i] : b.colour) === 'rule4' }), b.captions ? b.captions[i] : `Figure ${n}`))));
   },
   students(b) {
@@ -1907,7 +1950,7 @@ function runSteps(steps, ctx, container, onDone, isPath) {
     const st = steps[k];
     const last = !isPath && k === steps.length - 1;
     k += 1;
-    const el = h('div', { class: 'step', 'data-step': `${ctx.sc.n}${st.id}` });
+    const el = h('div', { class: 'step', 'data-step': `${st.of ?? ctx.sc.n}${st.id}` });   // of: a step moved from another screen keeps its ID
     add(container, el);
     const c = { ...ctx, el, last, done: next };
     (st.lines || []).forEach(t => add(el, h('p', { class: 'line' }, rich(t))));
