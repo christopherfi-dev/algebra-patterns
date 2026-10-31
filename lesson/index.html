@@ -82,7 +82,14 @@ figcaption { font-size: 15px; color: var(--muted); margin-top: 6px; font-variant
 .gridtable { border-collapse: collapse; }
 .gridtable th, .gridtable td { padding: 4px 3px; text-align: center; font-weight: 650; }
 .gridtable th[scope="row"] { text-align: left; padding-right: 8px; }
-.gridtable .ans.small { width: 50px; padding: 6px 2px; font-size: 20px; }   /* narrow on phones so "S = 4 + 3(n − 1)" fits whole */
+.gridtable .ans.small { width: 50px; padding: 6px 2px; font-size: 20px; }
+/* On narrow phones each rule sits above its own row of three boxes, so "S = 4 + 3(n − 1)" never crowds the boxes. */
+@media (max-width: 419px) {
+  .gridtable, .gridtable thead, .gridtable tbody { display: block; }
+  .gridtable tr { display: grid; grid-template-columns: repeat(3, 62px); column-gap: 6px; }
+  .gridtable thead th:first-child { display: none; }
+  .gridtable th[scope="row"] { grid-column: 1 / -1; padding: 10px 0 2px; }
+}
 @media (min-width: 520px) { .gridtable th[scope="row"] { white-space: nowrap; } .gridtable .ans.small { width: 4em; } .gridtable td { padding: 4px 6px; } }
 .okmark { width: 30px; height: 30px; flex: 0 0 auto; }
 .btn { min-height: 48px; min-width: 48px; padding: 10px 20px; border-radius: 12px; border: 2px solid var(--ink);
@@ -159,7 +166,7 @@ table.t { border-collapse: collapse; margin: 6px 0 10px; font-size: 16px; font-v
 
 /* colour words and swatches */
 .math { display: inline-block; white-space: nowrap; }   /* inline-block: WebKit measures it as one box when breaking lines */
-.formula, .readout, .student .r, figcaption { white-space: nowrap; }
+.formula, .student .r, figcaption { white-space: nowrap; }
 /* Nina's 4 (Q2): neutral, with "first square" hung underneath so the rule keeps its normal spacing. */
 .first { position: relative; display: inline-block; margin-bottom: 15px; }
 .first .fv { font-weight: 750; }
@@ -943,11 +950,17 @@ function mathSpans(text) {
   for (const m of text.matchAll(MATH_RE)) {
     // Punctuation right after an expression ("h = 0.5?") joins it, so it can't hang past the edge of the line.
     const end = m.index + m[0].length + (/[.,:;?!]/.test(text[m.index + m[0].length] || '') ? 1 : 0);
-    out.push(text.slice(last, m.index), h('span', { class: 'math' }, text.slice(m.index, end)));
+    out.push(text.slice(last, m.index), ...chainUnits(text.slice(m.index, end)));
     last = end;
   }
   out.push(text.slice(last));
   return out.filter(x => x !== '');
+}
+// A single equation (T = 3n + 2) is one unbreakable unit. A chain of equalities, with two or more "=", may break after
+// each "=", and each piece between the breaks stays whole (HANDOFF-ROUND-4 2).
+function chainUnits(expr, render = x => x) {
+  const parts = (expr.match(/=/g) || []).length >= 2 ? expr.split(/(?<==) /) : [expr];
+  return parts.flatMap((part, i) => [i ? ' ' : null, h('span', { class: 'math' }, render(part))]).filter(Boolean);
 }
 // Learner text: colour tokens ({c|…} constant, {k|…} coefficient, {f|…} Nina's first square, {sw:c} swatches) plus no-wrap math.
 function rich(text) {
@@ -1452,7 +1465,7 @@ const STEPS = {
       const svg = st.figure === 'tiles' ? tilesSVG(n, { width: st.max }) : sticksSVG(n, { width: st.max, colour: st.colour, scale: 0.7 });
       holder.replaceChildren(fig(svg, `Figure ${n}`));
       input.setAttribute('aria-valuetext', `Figure ${n}`);
-      if (rule) readout.replaceChildren(...rich(rule(n)));
+      if (rule) readout.replaceChildren(...chainUnits(rule(n), rich));
     };
     input.addEventListener('input', () => {
       render();
