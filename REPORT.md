@@ -113,7 +113,26 @@ Marc approved everything listed for him in round 2 ("approved as built", HANDOFF
 
 ## 4. Conflicts and things to decide
 
-Nothing is open. Round 4 answered the one round 3 question: the non-breaking spaces are approved.
+### Round 5 stopped: the new title doesn't fit the header on one line
+
+HANDOFF-ROUND-5 renames the lesson "Growing Patterns: Finding the Rule". It asks that the header still fit on one line at 360 and 390 px with the 16 px margin, and if not, to stop and report rather than shorten the title.
+
+The header holds the title and the progress text ("Screen 12 of 12" at its longest) side by side. Measured in Chromium and WebKit, which agree:
+
+| Width | Room | Title alone | Progress | Both on one line | Spare |
+|---|---|---|---|---|---|
+| 360 px | 328 px | 241 px | 100 px | 353 px | **−25 px**: the title wraps to two lines |
+| 390 px | 358 px | 241 px | 100 px | 353 px | **5 px**: one line, but short of the 16 px margin |
+
+The title change itself is made: the browser tab and the header both read the new title, and "Seeing the Rule" no longer appears in the file. Nothing else has changed. There is no new test run or handback yet, because the file isn't ready to deploy.
+
+Options, none of which shortens the title:
+1. **Recommended, layout only:** on phones narrower than 420 px, put "Screen k of 12" on its own line under the title. The title alone then has 87 px spare at 360 px and 117 px at 390 px. The header gets about 20 px taller on phones; desktop is unchanged.
+2. **Smaller header text on phones** (14 px → 12 px). This fits with about 25 px spare at 360 px, but 12 px is small to read.
+3. **Shorten the progress text** to "12 / 12". That's a change to approved interface text.
+4. **Let the title wrap to two lines** on narrow phones, as it does now at 360 px. That goes against the handoff's "one line".
+
+Earlier rounds left nothing else open.
 
 ---
 

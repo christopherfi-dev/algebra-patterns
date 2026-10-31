@@ -1,4 +1,4 @@
-# Seeing the Rule
+# Growing Patterns: Finding the Rule
 
 An interactive math lesson built from Marc's Grade 7 MYP visual-pattern lessons: from a growing figure to its rule. In 12 screens the learner:
 - reads a linear rule from tile and stick pictures, with the constant in one colour and each group of the coefficient in another;
