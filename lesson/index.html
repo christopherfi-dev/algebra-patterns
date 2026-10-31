@@ -202,6 +202,11 @@ line.slot { stroke-width: 2.5; stroke-linecap: round; }
 .hit { fill: transparent; cursor: pointer; outline: none; }
 .hit:focus-visible { fill: var(--soft); stroke: var(--ink); stroke-width: 2; }
 .armed .hit { fill: var(--ink); fill-opacity: .06; }
+/* Round 7: tiles the learner taps to select (Screen 5). The figure is drawn at double size, so each tile is a 44 px target. */
+.tap { cursor: pointer; outline: none; }
+.tap:focus-visible { stroke: var(--muted); stroke-width: 2; }
+.tap.is-answer { stroke: var(--ink); stroke-width: 2; stroke-dasharray: 4 3; }
+.tap[aria-pressed="true"] { stroke: var(--ink); stroke-width: 2.5; stroke-dasharray: none; }
 .flabel { font-size: 12px; font-weight: 600; fill: var(--muted); }
 .counter { font-size: 40px; font-weight: 800; text-align: center; min-height: 1.3em; margin: 4px 0; font-variant-numeric: tabular-nums; }
 .readout { text-align: center; font-weight: 650; font-size: 20px; margin: 8px 0 0; min-height: 1.5em; font-variant-numeric: tabular-nums; }
@@ -504,6 +509,18 @@ const LESSON = {
       n: 4, part: 1, title: 'Why does Figure 1 have 5 tiles if the constant is 2?',
       show: [{ tiles: [1] }],
       steps: [
+        // HANDOFF-ROUND-7 3: the learner taps the parts of Figure 1 before choosing the explanation.
+        { id: 'T1', type: 'tapTiles', prompt: 'Tap the tiles the constant counts in Figure 1.', figure: 1, answer: 'fixed',
+          say: 'Right: the 2 fixed tiles.',
+          wrong: [
+            { when: s => s.group > 0, say: "Those tiles are a group, which each figure adds. The constant is what's there at Figure 0." },
+            { when: s => s.fixed > 0, say: "There's one more fixed tile." },   // some fixed tiles but not both
+          ],
+          hint: 'Which tiles are in every figure, even Figure 0?' },
+        { id: 'T2', type: 'tapTiles', prompt: 'Now tap the tiles the coefficient counts.', figure: 1, answer: 'group',
+          say: 'Right: one group of 3. Figure 1 is 2 + 3 = 5.',
+          wrong: [{ when: s => s.fixed > 0, say: 'The fixed tiles are the constant. The coefficient counts the tiles in each group.' }],
+          hint: 'Which tiles does each new figure add?' },
         { id: 'A', type: 'choice',
           options: [
             { text: 'The rule must be wrong for Figure 1',
@@ -965,6 +982,15 @@ const JUDGE = {
     if (o.say) return { kind: 'wrong', say: o.say };
     return { kind: 'hint', say: st.hint || LESSON.ui.fallback };
   },
+  // Tapped tiles (round 7): right when exactly the answer's tiles are selected, all of them; otherwise the first wrong entry
+  // that matches, otherwise the hint. Check with nothing tapped also gets the hint (Marc, round 7).
+  tapTiles(st, [s]) {
+    const all = { fixed: TILES.fixed, group: TILES.group * st.figure };
+    const other = st.answer === 'fixed' ? 'group' : 'fixed';
+    if (s[st.answer] === all[st.answer] && s[other] === 0) return { kind: 'correct', say: st.say };
+    for (const w of st.wrong || []) if (w.when(s)) return { kind: 'wrong', say: w.say };
+    return { kind: 'hint', say: st.hint || LESSON.ui.fallback };
+  },
   marks(st, vals) {
     if (vals.every((v, i) => v === st.items[i].correct)) return { kind: 'correct', say: st.say || null };
     const w = st.items.find((it, i) => it.ifMarkedCorrect && vals[i] === true);
@@ -1082,7 +1108,7 @@ function tilesSVG(n, opts = {}) {
   const H = TILE * rows + IN_GAP * (rows - 1);
   const W = cols * TILE + (cols - 1) * COL_GAP;
   const pad = 5;
-  const svg = s('svg', { viewBox: `${-pad} ${-pad} ${W + 2 * pad} ${H + 2 * pad}`, style: scaled(W + 2 * pad), role: 'img', 'aria-label': `Figure ${n}` });
+  const svg = s('svg', { viewBox: `${-pad} ${-pad} ${W + 2 * pad} ${H + 2 * pad}`, style: scaled(W + 2 * pad, opts.scale), role: 'img', 'aria-label': `Figure ${n}` });
   const column = (x, k, cls, back) => {
     const g = s('g', {});
     const top = H - (k * TILE + (k - 1) * IN_GAP);
@@ -1347,6 +1373,7 @@ function answerText(st) {
   if (st.type === 'choice') return st.options.filter(o => o.correct).map(o => plain(o.text)).join('\n');   // every right option, one per line
   if (st.type === 'marks') return st.items.map(it => `${it.who}: ${it.correct ? st.labels[0] : st.labels[1]}`).join(', ');
   if (st.type === 'tableRow') return st.answers().map(fmt).join(', ');
+  if (st.type === 'tapTiles') return '';   // the answer is shown by marking the tiles
   if (st.type === 'numbers') {
     const a = st.answers().map(fmt);
     if (st.grid) return st.grid.rows.map((r, i) => `${r}: ${a.slice(i * st.grid.cols.length, (i + 1) * st.grid.cols.length).join(', ')}`).join('; ');
@@ -1362,7 +1389,7 @@ function secondMiss(st, c, demoEl, ui) {
   if (ui.showAnswer) ui.showAnswer();
   add(demoEl, h('div', { class: 'answer-card', 'data-default-answer': '' },
     h('span', { class: 'label' }, LESSON.ui.answer),
-    h('span', { class: 'val' }, rich(answerText(st))),
+    answerText(st) ? h('span', { class: 'val' }, rich(answerText(st))) : null,
     st.say ? h('p', { class: 'say' }, rich(st.say)) : null));
   if (c.last) c.openWhy();
 }
@@ -1491,6 +1518,35 @@ const STEPS = {
     draggable(piece, opts);
     tapTarget(target, 'slot', opts);
     add(c.el, h('div', { class: 'card' }, h('div', { class: 'figs' }, target)), tray);
+  },
+
+  // Screen 4 (round 7): tap tiles in a figure to select them, then Check. Tap again to deselect.
+  tapTiles(st, c) {
+    add(c.el, promptEl(st));
+    const svg = tilesSVG(st.figure, { scale: 2 });
+    let locked = false;
+    const tiles = [...svg.querySelectorAll('rect.t-const, rect.t-coef')].map(r => {
+      const kind = r.classList.contains('t-const') ? 'fixed' : 'group';
+      const toggle = () => { if (!locked) r.setAttribute('aria-pressed', String(r.getAttribute('aria-pressed') !== 'true')); };
+      r.classList.add('tap');
+      for (const [k, v] of Object.entries({ role: 'button', tabindex: '0', 'aria-pressed': 'false', 'aria-label': `${kind === 'fixed' ? 'first' : 'second'} colour tile` })) r.setAttribute(k, v);
+      r.addEventListener('click', toggle);
+      r.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+      return { r, kind };
+    });
+    svg.removeAttribute('role');
+    const picked = kind => tiles.filter(t => t.kind === kind && t.r.getAttribute('aria-pressed') === 'true').length;
+    const row = h('div', { class: 'row' });
+    askStep(st, c, {
+      el: h('div', {}, h('div', { class: 'card' }, h('div', { class: 'figs' }, fig(svg, `Figure ${st.figure}`))), row), row,
+      values: () => [{ fixed: picked('fixed'), group: picked('group') }],
+      focusEmpty: () => tiles[0].r.focus(),
+      lock: () => { locked = true; tiles.forEach(t => { t.r.setAttribute('tabindex', '-1'); t.r.setAttribute('aria-disabled', 'true'); }); },
+      again: () => {},
+      onEnter: () => {},
+      markOk: () => add(row, okMark()),
+      showAnswer: () => tiles.forEach(t => t.r.classList.toggle('is-answer', t.kind === st.answer)),
+    });
   },
 
   // Screen 3: a new row of the comparison table. The learner types the first cells; the rest fill in when they're right.
