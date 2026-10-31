@@ -230,7 +230,7 @@ input[type="range"]:disabled { opacity: .5; cursor: default; }
 .piece[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--ink); }
 .piece:disabled { opacity: .3; cursor: default; }
 .ghost-piece { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 100; opacity: .92; margin: 0; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
-.drop { display: block; border-radius: 14px; touch-action: manipulation; }
+.drop { display: block; border-radius: 14px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }   /* the armed outline is the tap feedback */
 .drop.armed { outline: 3px dashed var(--ink); outline-offset: 4px; cursor: pointer; }
 .drop.over { outline: 3px solid var(--ink); outline-offset: 4px; }
 .buildarea { min-height: 120px; display: flex; align-items: center; justify-content: center; }
@@ -539,9 +539,13 @@ const LESSON = {
       n: 5, part: 1, title: 'Which figure has 23 tiles?',
       show: [{ formula: 'T = {k|3n} + {c|2}' }],
       steps: [
+        // HANDOFF-ROUND-7 4: build up to 23 before solving.
+        // Groups of 3 from 2 always land on 23, so the handoff's "more than 23" response can't happen; Marc chose to leave it out.
+        { id: 'M', type: 'buildTo', prompt: 'Start from the 2 fixed tiles. Add groups of 3 until there are 23 tiles.', target: 23,
+          say: '23 tiles.' },
         { id: 'A', type: 'number', prefix: 'Figure', label: 'Which figure has 23 tiles?',
           answer: () => solveLinear('3n + 2', 23),
-          say: '3n + 2 = 23 gives 3n = 21, so n = 7.',
+          say: "Right: 7 groups of 3 on top of the 2 fixed tiles. That's 3n + 2 = 23, so 3n = 21 and n = 7.",
           hint: 'Undo the + 2 first, then the × 3.' },
       ],
       why: [
@@ -1518,6 +1522,39 @@ const STEPS = {
     draggable(piece, opts);
     tapTarget(target, 'slot', opts);
     add(c.el, h('div', { class: 'card' }, h('div', { class: 'figs' }, target)), tray);
+  },
+
+  // Screen 5 (round 7): add groups of 3 to the fixed tiles, by drag or tap, until the figure has the target total.
+  // Adding one group at a time always lands on the target, so there's no way past it (Marc, round 7).
+  buildTo(st, c) {
+    add(c.el, promptEl(st));
+    const most = (st.target - TILES.fixed) / TILES.group;
+    let groups = 0;
+    const target = h('div', { class: 'drop interactive', role: 'button', tabindex: '0' });
+    const piece = h('button', { type: 'button', class: 'piece', 'aria-label': `group of ${TILES.group}` }, groupPieceSVG());
+    const tray = h('div', { class: 'tray interactive' }, piece);
+    const fb = h('div', { class: 'fb', role: 'status', 'aria-live': 'polite' });
+    const update = () => {
+      const total = tileCount(groups);
+      target.replaceChildren(fig(tilesSVG(groups, { width: most }), LESSON.ui.tiles(fmt(total))));
+      target.setAttribute('aria-label', LESSON.ui.tiles(fmt(total)));
+      if (total !== st.target) return;
+      fb.replaceChildren(note('correct', [{ cls: 'say', text: st.say }]));
+      ['role', 'tabindex', 'aria-label'].forEach(a => target.removeAttribute(a));
+      target.classList.remove('drop');
+      tray.remove();
+      c.done();
+    };
+    const opts = {
+      targets: () => [target],
+      hit: (x, y) => (inside(target, x, y, 24) ? 'figure' : null),
+      hoverEl: () => target,
+      place: () => { groups += 1; update(); },
+    };
+    draggable(piece, opts);
+    tapTarget(target, 'figure', opts);
+    add(c.el, h('div', { class: 'card' }, h('div', { class: 'figs' }, target)), tray, fb);
+    update();
   },
 
   // Screen 4 (round 7): tap tiles in a figure to select them, then Check. Tap again to deselect.
