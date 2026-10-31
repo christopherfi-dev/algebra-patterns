@@ -2,7 +2,7 @@
 //   Chromium: node tests/lesson.test.js
 //   WebKit:   PLAYWRIGHT_BROWSERS_PATH=<folder with webkit> node tests/lesson.test.js --webkit
 // Every expected learner-facing string is wrapped in S(), which also checks it appears word for word in the source of
-// truth: the spec, docs/Round-2-Decisions.md, docs/Round-2-Wording.md, ROUND-2-AMENDMENT.md and Marc's answers to it.
+// truth: the spec, the round 2 files, ROUND-2-AMENDMENT.md with Marc's answers to it, and HANDOFF-ROUND-3.md.
 'use strict';
 const playwright = require('playwright');
 const fs = require('fs');
@@ -14,7 +14,7 @@ const ROOT = path.resolve(__dirname, '..');
 const URL = 'file://' + path.join(ROOT, 'lesson', 'index.html');
 const read = (...p) => fs.readFileSync(path.join(ROOT, ...p), 'utf8');
 const SPEC = read('docs', 'Seeing-the-Rule-Interactive-Lesson-Plan.md');
-const TRUTH = [SPEC, read('docs', 'Round-2-Decisions.md'), read('docs', 'Round-2-Wording.md'), read('ROUND-2-AMENDMENT.md'), read('docs', 'Round-2-Amendment-Answers.md')].join('\n');
+const TRUTH = [SPEC, read('docs', 'Round-2-Decisions.md'), read('docs', 'Round-2-Wording.md'), read('ROUND-2-AMENDMENT.md'), read('docs', 'Round-2-Amendment-Answers.md'), read('HANDOFF-ROUND-3.md')].join('\n');
 const HANDOFF = read('HANDOFF.md');
 // Round-2-Wording A approves the round 1 prompts "as written" in the round 1 handback (■ marks the colour swatch).
 const PROMPTS = read('handback', 'round-1.md').replace(/ ■/g, '');
@@ -37,7 +37,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 /* ---------------- page helpers ---------------- */
 const step = (p, id) => p.locator(`[data-step="${id}"]`);
 const screenEl = p => p.locator('section.screen:not([hidden])');
-const TABLE_ROWS = new Set(['3T1', '3T3']);   // these steps type into the comparison table at the top of Screen 3
+const TABLE_ROWS = new Set(['3T1', '3T3']);   // these steps type into the table at the top of the skip-count table screen
 async function fill(p, id, values) {
   const inputs = TABLE_ROWS.has(id) ? screenEl(p).locator('.comparetable input:enabled') : step(p, id).locator(':scope input[data-input]:enabled');
   const vals = [].concat(values);
@@ -196,6 +196,23 @@ async function wrapProblems(p) {
       // One line box, and no taller than one line (the spans are inline-blocks, so a wrap would show as height).
       if (rects.length > 1 || rects[0].height > parseFloat(getComputedStyle(el).lineHeight) * 1.4) out.push(`"${el.textContent}" wraps`);
     });
+    // Any rule or expression anywhere in the text (table headers, row labels, captions, options, prose): an "=" with n,
+    // or a bracketed expression in n. Each one must sit on a single line.
+    const EXPR = /[\w.()\u00B2\u2212]+(?:\s?[=+\u2212\u00D7\u00F7]\s?[\w.()\u00B2\u2212]+)+/g;
+    const hasN = s => /(^|[^A-Za-z])n([^A-Za-z]|$)/.test(s);
+    const walker = document.createTreeWalker(sec, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      if (!node.parentElement.getClientRects().length) continue;
+      for (const m of node.textContent.matchAll(EXPR)) {
+        const e = m[0].replace(/[.,]$/, '');
+        if (!hasN(e) || !(e.includes('=') || /\([^)]*n[^)]*\)/.test(e))) continue;
+        const r = document.createRange();
+        r.setStart(node, m.index);
+        r.setEnd(node, m.index + e.length);
+        const lines = new Set([...r.getClientRects()].filter(x => x.width > 0).map(x => Math.round(x.top)));
+        if (lines.size > 1) out.push(`"${e}" breaks across lines`);
+      }
+    }
     sec.querySelectorAll('.formula, .student .r, .readout, figcaption').forEach(el => {
       if (!el.getClientRects().length) return;
       // Text nodes only, leaving out the small label hung under Nina's 4.
@@ -248,22 +265,17 @@ const SCREENS = {
     why: S('Every figure has the same 2 fixed tiles. Each new figure adds one group of 3. So Figure 4 has 4 groups of 3 and the 2 fixed tiles: 12 + 2 = 14.'),
   },
 
-  3: {
-    async correct(p, mode) {
-      ok(same(await SCREENS[3].table(p), [['Figure n', '1', '2', '3', '4'], ['Tiles', '5', '8', '11', '14'], ['Skip count by 3', '', '', '', '']]),
-        'Screen 3: the table starts with Figure n and Tiles, and the empty skip-count row to fill in; "How many more" waits for its step');
+  '3t': {
+    async correct(p) {
+      ok((await screenEl(p).locator('h1').textContent()).trim() === S('The skip-count table'), 'The table screen: title (round 3 split)');
+      ok(same(await SCREENS['3t'].table(p), [['Figure n', '1', '2', '3', '4'], ['Tiles', '5', '8', '11', '14'], ['Skip count by 3', '', '', '', '']]),
+        'The table starts with Figure n and Tiles, and the empty skip-count row to fill in; "How many more" waits for its step');
       await typed(p, '3T1', [3, 6], 'correct', S('Right: 3, 6, 9, 12.'));
-      ok(same((await SCREENS[3].table(p))[2], [S('Skip count by 3'), '', '', '9', '12']), '3T1: the rest of the skip-count row fills in');
+      ok(same((await SCREENS['3t'].table(p))[2], [S('Skip count by 3'), '', '', '9', '12']), '3T1: the rest of the skip-count row fills in');
       await typed(p, '3T2', '30', 'correct', S('Right: 10 × 3 = 30. So the skip-count row is 3n.'));
       await typed(p, '3T3', '2', 'correct', S('Right: 2 more every time.'));
-      ok(same((await SCREENS[3].table(p))[3], [S('How many more'), '', '2', '2', '2']), '3T3: the rest of the "How many more" row fills in');
-      await slideTo(p, '3A1', 'Home', mode);
-      ok((await step(p, '3A1').locator('figcaption').textContent()).trim() === 'Figure 0', '3A: slider reaches Figure 0');
-      await typed(p, '3A2', '2', 'correct', S('Figure 0 has no groups, only the 2 fixed tiles. The same 2 as in the table.'));
-      await typed(p, '3B', 'T = 3n + 2', 'correct', S('Right. Slide to check any figure.'));
-      await slideTo(p, '3A1', 'End', mode);
-      ok((await step(p, '3A1').locator('.readout').textContent()).trim() === 'T = 3 × 10 + 2 = 32', '3B: sliding checks any figure');
-      ok((await step(p, '3B·f').count()) === 0, '3B: no follow-up item on the correct path');
+      ok(same((await SCREENS['3t'].table(p))[3], [S('How many more'), '', '2', '2', '2']), '3T3: the rest of the "How many more" row fills in');
+      ok((await step(p, '3A1').count()) === 0, 'The table screen ends after 3T3; the slider is on the next screen');
     },
     async wrong(p) {
       await typed(p, '3T1', [5, 8], 'wrong', S('Those are the tiles. Skip count by 3 on its own: 3, 6, …'));
@@ -276,6 +288,27 @@ const SCREENS = {
       await typed(p, '3T3', '3', 'wrong', S('3 is what each figure adds. Compare the two rows: 5 and 3, then 8 and 6.'));
       await typed(p, '3T3', '1', 'hint', S('Subtract: 5 − 3, then 8 − 6.'));
       await typed(p, '3T3', '2', 'correct', 'Right: 2 more every time.');
+    },
+    why: S('Each figure adds 3 tiles, so the tiles grow like the skip count by 3. Every figure has 2 more tiles than the skip count. Those 2 are the fixed tiles.'),
+    table: p => screenEl(p).locator('.comparetable tr').evaluateAll(trs => trs.map(tr => [...tr.cells].map(c => c.textContent.trim()))),
+  },
+
+  3: {
+    async correct(p, mode) {
+      ok((await screenEl(p).locator('h1').textContent()).trim() === 'Figure 0, and the rule', 'The rule screen: title unchanged');
+      const carried = await screenEl(p).locator('.comparetable').evaluate(tb => ({ caption: tb.caption && tb.caption.textContent.trim(), inputs: tb.querySelectorAll('input').length,
+        rows: [...tb.rows].map(r => [...r.cells].map(c => c.textContent.trim())) }));
+      ok(carried.caption === S('From the last screen') && carried.inputs === 0 && same(carried.rows, [['Figure n', '1', '2', '3', '4'], ['Tiles', '5', '8', '11', '14'], ['Skip count by 3', '3', '6', '9', '12'], ['How many more', '2', '2', '2', '2']]),
+        `The rule screen opens with the completed table, read-only, captioned "From the last screen" (got ${JSON.stringify(carried)})`);
+      await slideTo(p, '3A1', 'Home', mode);
+      ok((await step(p, '3A1').locator('figcaption').textContent()).trim() === 'Figure 0', '3A: slider reaches Figure 0');
+      await typed(p, '3A2', '2', 'correct', S('Figure 0 has no groups, only the 2 fixed tiles. The same 2 as in the table.'));
+      await typed(p, '3B', 'T = 3n + 2', 'correct', S('Right. Slide to check any figure.'));
+      await slideTo(p, '3A1', 'End', mode);
+      ok((await step(p, '3A1').locator('.readout').textContent()).trim() === 'T = 3 × 10 + 2 = 32', '3B: sliding checks any figure');
+      ok((await step(p, '3B·f').count()) === 0, '3B: no follow-up item on the correct path');
+    },
+    async wrong(p) {
       await slideTo(p, '3A1', 'Home');
       await typed(p, '3A2', '5', 'wrong', S('5 is Figure 1. Take away its group of 3.'));
       await typed(p, '3A2', '0', 'wrong', S('The groups are gone, but look at the picture: the fixed tiles stay.'));
@@ -307,7 +340,6 @@ const SCREENS = {
       ok(same(rows, [['n', '0', '1', '2', '3', '4'], ['Tiles', '2', '5', '8', '11', '14'], [S('Skip count by 3 (3n)'), '0', '3', '6', '9', '12'], [S('How many more'), '2', '2', '2', '2', '2']]),
         `Screen 3: Why? table, with its rows renamed to match the new steps (got ${JSON.stringify(rows)})`);
     },
-    table: p => screenEl(p).locator('.comparetable tr').evaluateAll(trs => trs.map(tr => [...tr.cells].map(c => c.textContent.trim()))),
   },
 
   4: {
@@ -395,47 +427,20 @@ const SCREENS = {
   8: {
     async correct(p, mode) {
       ok(await keptWhole(p, 'S = 4 + 3(n − 1)'), 'Screen 8: "S = 4 + 3(n − 1)" is kept whole');
-      await typed(p, '8A', [4, 7, 10, 4, 7, 10], 'correct', S('The same values for all three. Are they the same for every n? Simplify the second rule to find out.'));
-      await typed(p, '8B', 'S = 3n + 1', 'correct', S('4 + 3n − 3 = 3n + 1. The two rules are the same.'));
-      ok((await step(p, '8B·f').count()) === 0, '8B: no follow-up item on the correct path');
+      const label = await screenEl(p).locator('.gridtable th[scope="row"]').nth(1).evaluate(th => {
+        const m = th.querySelector('.math');
+        return m && { text: m.textContent, oneLine: m.getClientRects().length === 1 && m.getBoundingClientRect().height <= parseFloat(getComputedStyle(m).lineHeight) * 1.4 };
+      });
+      ok(label && label.text === 'S = 4 + 3(n − 1)' && label.oneLine, `Screen 8: the row label "S = 4 + 3(n − 1)" is one unit on one line (got ${JSON.stringify(label)})`);
+      await typed(p, '8A', [4, 7, 10, 4, 7, 10], 'correct', S('Right. The same values for all three figures.'));
+      ok((await step(p, '8B').count()) === 0 && (await screenEl(p).locator('.reminder').count()) === 0, 'Screen 8: no simplification step (cut in round 3)');
       await slideTo(p, '8C1', 'Home', mode);
       await typed(p, '8C2', '1', 'correct', S('One lone stick: the constant in 3n + 1.'));
     },
     async wrong(p) {
       await typed(p, '8A', [4, 7, 10, 4, 7, 11], 'wrong', S('Work inside the bracket first, then multiply by 3, then add 4.'));
       await typed(p, '8A', [4, 7, 9, 4, 7, 10], 'hint', S('In 3n + 1, multiply n by 3 first, then add 1.'));
-      await typed(p, '8A', [4, 7, 10, 4, 7, 10], 'correct', 'The same values for all three. Are they the same for every n? Simplify the second rule to find out.');
-      await typed(p, '8B', '4 + 3n − 3', 'partial', S('Correct so far. Now combine the numbers 4 and −3.'));
-      let fb = await typed(p, '8B', '3n + 3', 'wrong', S('The 3 multiplies both terms in the bracket. You multiplied the n but not the 1.'));
-      ok(same(fb.tests, [S('Test at n = 1: 6, but the original gives 4.')]), `8B 3n + 3: substitution test (got ${JSON.stringify(fb.tests)})`);
-      ok((await step(p, '8B·f').count()) === 0, '8B: no follow-up after one miss');
-      await typed(p, '8B', '3 + 3n', 'wrong', 'The 3 multiplies both terms in the bracket. You multiplied the n but not the 1.', '8B (3 + 3n, same error)');
-      fb = await typed(p, '8B', '3n + 7', 'wrong', S('3 × (−1) is −3, not +3.'));
-      ok(same(fb.tests, [S('Test at n = 1: 10, but the original gives 4.')]), `8B 3n + 7: substitution test (got ${JSON.stringify(fb.tests)})`);
-      fb = await typed(p, '8B', '7n − 7', 'wrong', S('You added 4 + 3 before multiplying. Multiply 3(n − 1) first.'));
-      ok(same(fb.tests, [S('Test: at n = 2 both give 7, but at n = 1 yours gives 0 and the original gives 4.')]) && fb.says.includes(S("It matched one figure. One substitution isn't enough.")), '8B 7n − 7: substitution test');
-      fb = await typed(p, '8B', '7n − 3', 'wrong', S("4 and 3n aren't like terms. Only the numbers 4 and −3 combine."));
-      ok(same(fb.tests, [S('Test: at n = 1 both give 4, but at n = 2 yours gives 11 and the original gives 7.')]), '8B 7n − 3: substitution test');
-      fb = await typed(p, '8B', '2n + 2', 'hint', S('Distribute first: 3 × n and 3 × (−1). Then combine the numbers.'));
-      ok(same(fb.tests, ['Test at n = 2: 6, but the original gives 7.']), `8B unpredicted: tested where it breaks (got ${JSON.stringify(fb.tests)})`);
-      await typed(p, '8B', 'S = 1 + 3n', 'correct', '4 + 3n − 3 = 3n + 1. The two rules are the same.');
-      // The follow-up item (Q3): 5 + 2(n − 1), every wrong answer tested by substitution.
-      ok(await step(p, '8B·f').isVisible(), '8B: the follow-up item appears after the second miss');
-      ok((await step(p, '8B·f').locator('.prompt').textContent()).trim() === S('Simplify 5 + 2(n − 1).'), '8B follow-up prompt');
-      const follow = [
-        ['2n + 4', S('The 2 multiplies both terms in the bracket. You multiplied the n but not the 1.'), 'Test at n = 1: 6, but the original gives 5.'],
-        ['2n + 7', S('2 × (−1) is −2, not +2.'), 'Test at n = 1: 9, but the original gives 5.'],
-        ['7n − 7', S('You added 5 + 2 before multiplying. Multiply 2(n − 1) first.'), 'Test at n = 1: 0, but the original gives 5.'],
-        ['7n − 2', S("5 and 2n aren't like terms. Only the numbers 5 and −2 combine."), 'Test at n = 2: 12, but the original gives 7.'],
-      ];
-      for (const [v, say, test] of follow) {
-        fb = await typed(p, '8B·f', v, 'wrong', say);
-        ok(same(fb.tests, [test]), `8B follow-up ${v}: tested by substitution (got ${JSON.stringify(fb.tests)})`);
-      }
-      await typed(p, '8B·f', '5 + 2n − 2', 'partial', FALLBACK, '8B follow-up (not combined; no text in the source of truth)');
-      fb = await typed(p, '8B·f', 'n + 1', 'hint', S('Distribute first: 2 × n and 2 × (−1). Then combine the numbers.'));
-      ok(same(fb.tests, ['Test at n = 1: 2, but the original gives 5.']), `8B follow-up unpredicted: tested by substitution (got ${JSON.stringify(fb.tests)})`);
-      await typed(p, '8B·f', '2n + 3', 'correct', S('Right. 5 + 2n − 2 = 2n + 3.'));
+      await typed(p, '8A', [4, 7, 10, 4, 7, 10], 'correct', 'Right. The same values for all three figures.');
       await slideTo(p, '8C1', 'Home');
       await typed(p, '8C2', '4', 'wrong', S('4 is Figure 1. Take away its three sticks.'));
       await typed(p, '8C2', '2', 'hint', S('At Figure 0 there are no squares. Which stick is still there?'));
@@ -524,37 +529,46 @@ const SCREENS = {
       const rows = await screenEl(p).locator('table.extable tr').evaluateAll(trs => trs.map(tr => [...tr.cells].map(c => c.querySelector('input') ? '?' : c.textContent.trim())));
       ok(same(rows, [['Figure n', '1', '2', '3', '4', '5'], ['Tiles', '9', '13', '17', '?', '?'], [S('Skip count by 4'), '4', '8', '?', '?', '?']]), `Exit item 1: the table to complete (got ${JSON.stringify(rows)})`);
       ok(!(await whyVisible(p)) && (await screenEl(p).locator('.note').count()) === 0, 'Exit ticket: no Why? and no hints before submitting');
-      await SCREENS[15].submit(p, [[21, 25, 12, 16, 20], '4n + 5', '105', '15']);
-      ok((await screenEl(p).locator('.item .okmark').count()) === 4 && (await screenEl(p).locator('.item .note').count()) === 0, 'Exit ticket: all four correct');
+      ok(same((await texts(screenEl(p).locator('.item .num'))), ['1.', '2.', '2b.', '3.', '4.']), 'Exit ticket: four numbered questions, with 2b part of question 2');
+      ok((await screenEl(p).locator('[data-item="2b"] .q').textContent()).includes(S('What does the constant in the rule count?')), 'Exit item 2b: the question');
+      ok(same(await texts(screenEl(p).locator('[data-item="2b"] .choice')), [S('The tiles in Figure 1'), S('The fixed tiles, there even at Figure 0'), S('The tiles added to each new figure')]),
+        'Exit item 2b: the three options, the correct one not first');
+      await SCREENS[15].submit(p, [[21, 25, 12, 16, 20], '4n + 5', 1, '105', '15']);
+      ok((await screenEl(p).locator('.item .okmark').count()) === 5 && (await screenEl(p).locator('.item .note').count()) === 0, 'Exit ticket: all correct, 2b included');
       ok(!(await whyVisible(p)), 'Exit ticket: no Why? after submitting');
     },
     async wrong(p) {
       // An unreadable rule is flagged and nothing is submitted.
-      await SCREENS[15].fillAll(p, [[20, 24, 12, 15, 20], 'abc', '100', '14']);
+      await SCREENS[15].fillAll(p, [[20, 24, 12, 15, 20], 'abc', 0, '100', '14']);
       await screenEl(p).locator('[data-submit]').click();
       ok(same(await texts(screenEl(p).locator('[data-item="2"] .say')), [H('Type a rule using n, such as 2n + 5.')]) && await screenEl(p).locator('[data-item="2"] input').isEnabled(),
         'Exit ticket: an unreadable rule is flagged and the ticket is not submitted');
-      await SCREENS[15].submit(p, [[20, 24, 12, 15, 20], '9 + 4n', '100', '14']);
+      await SCREENS[15].submit(p, [[20, 24, 12, 15, 20], '9 + 4n', 0, '100', '14']);
       await SCREENS[15].expect(p, [
         [S('Each figure adds 4 tiles.'), S('Count by 4: 4, 8, 12, …')],
         [S('9 is the total for Figure 1. The constant is the value at Figure 0.')],
+        [S("Figure 1 has 9 tiles. The constant is what's there at Figure 0.")],
         [S('You counted the groups. Add the 5 fixed tiles.')],
         [S("Start from the 5 fixed tiles, not Figure 1's 9.")],
       ], 'all wrong');
     },
-    async fillAll(p, [table, rule, fig25, fig65]) {
+    // vals: [table blanks, rule, 2b option index, Figure 25, the figure with 65 tiles]
+    async fillAll(p, [table, rule, choice2b, fig25, fig65]) {
       const tableInputs = screenEl(p).locator('[data-item="1"] input');
       for (let i = 0; i < table.length; i++) await tableInputs.nth(i).fill(String(table[i]));
-      for (const [i, v] of [[2, rule], [3, fig25], [4, fig65]]) await screenEl(p).locator(`[data-item="${i}"] input`).fill(v);
+      for (const [i, v] of [['2', rule], ['3', fig25], ['4', fig65]]) await screenEl(p).locator(`[data-item="${i}"] input`).fill(v);
+      await screenEl(p).locator(`[data-item="2b"] [data-choice="${choice2b}"]`).click();
     },
     async submit(p, vals) {
       await SCREENS[15].fillAll(p, vals);
       await screenEl(p).locator('[data-submit]').click();
     },
+    // says: one list per item, in order 1, 2, 2b, 3, 4
     async expect(p, says, label) {
-      for (let i = 0; i < 4; i++) {
-        const got = await texts(screenEl(p).locator(`[data-item="${i + 1}"] .say`));
-        ok(same(got, says[i]), `Exit ticket (${label}) item ${i + 1}: ${says[i].length ? 'responses' : 'right'} ${JSON.stringify(says[i])} (got ${JSON.stringify(got)})`);
+      const ids = ['1', '2', '2b', '3', '4'];
+      for (let i = 0; i < ids.length; i++) {
+        const got = await texts(screenEl(p).locator(`[data-item="${ids[i]}"] .say`));
+        ok(same(got, says[i]), `Exit ticket (${label}) item ${ids[i]}: ${says[i].length ? 'responses' : 'right'} ${JSON.stringify(says[i])} (got ${JSON.stringify(got)})`);
       }
     },
   },
@@ -563,7 +577,7 @@ const SCREENS = {
     async correct(p) {
       ok((await screenEl(p).locator('h1').textContent()).trim() === S('What you showed on your own'), 'Self-check: title');
       const items = await texts(screenEl(p).locator('.checklist li'));
-      ok(same(items, [S('Completed the table'), S('Wrote the rule for a new pattern'), S('Found the total for any figure'), S('Found the figure for a given total')]), `Self-check: the four lines in order (got ${JSON.stringify(items)})`);
+      ok(same(items, [S('Completed the table'), S('Wrote the rule and identified what the constant counts'), S('Found the total for any figure'), S('Found the figure for a given total')]), `Self-check: the four lines in order (got ${JSON.stringify(items)})`);
       ok(same(await SCREENS[16].ticks(p), [true, true, true, true]), 'Self-check: 4 ticks when every exit item is right');
       ok(await p.locator('#next').isHidden(), 'Self-check: no Next on the last screen');
     },
@@ -619,11 +633,10 @@ async function checkerTests(p) {
   section = 'answer checker';
   const r = await p.evaluate(() => {
     const eq = (a, b) => { const x = parseRule(a), y = parseRule(b); return !!(x && y && isLinear(x) && sameRule(x, y)); };
-    const simp = a => isSimplified(parseRule(a));
     const linear = a => { const e = parseRule(a); return e ? isLinear(e) : 'unreadable'; };
     // A non-straight-line rule that matches 3n + 2 at all six test points must still be rejected.
     const sneaky = '3n + 2 + n(n − 1)(n − 2)(n − 3)(n − 7)(2n − 3)';
-    const st3B = LESSON.screens.find(s => s.n === 3).steps.find(s => s.id === 'B');
+    const st3B = LESSON.screens.filter(s => s.n === 3).flatMap(s => s.steps).find(s => s.id === 'B');
     return {
       equivalent: [eq('3n + 2', '2 + 3n'), eq('S = 4 + 3(n − 1)', '3n + 1'), eq('3 × n + 1', '3n + 1'), eq('P = 30 + 6(n - 1)', '24 + 6n'), eq('(n + 1)/2', '0.5n + 0.5')],
       notEquivalent: [eq('3n + 2', '5n'), eq('3n + 1', '3n + 3'), eq('7n − 7', '3n + 1')],
@@ -631,8 +644,6 @@ async function checkerTests(p) {
       sneakyMatches: sameRule(parseRule(sneaky), parseRule('3n + 2')),
       sneakyJudged: JUDGE.rule(st3B, [sneaky]).kind,
       unparseable: ['', 'n +', '3x + 2', 'abc', '42', 'y = 3n'].map(v => parseRule(v) === null),
-      simplified: [simp('3n + 1'), simp('1 + 3n'), simp('S = 3n+1')],
-      notSimplified: [simp('4 + 3n − 3'), simp('4 + 3(n − 1)'), simp('n + 2n + 1')],
       numbers: ['6.5', '6.50', '13 sticks', 'n = 25', 'Figure 7', '−3'].map(parseNumber),
     };
   });
@@ -641,7 +652,6 @@ async function checkerTests(p) {
   ok(r.rejected.every(x => x === false), `n × n, powers of n and n in a denominator are rejected: ${JSON.stringify(r.rejected)}`);
   ok(r.sneakyMatches && r.sneakyJudged === 'hint', `a non-linear rule that matches at every test point is still rejected (${r.sneakyMatches}, ${r.sneakyJudged})`);
   ok(r.unparseable.every(Boolean), `unparseable input is recognized: ${JSON.stringify(r.unparseable)}`);
-  ok(r.simplified.every(Boolean) && r.notSimplified.every(x => !x), 'simplified and unsimplified forms');
   ok(same(r.numbers, [6.5, 6.5, 13, 25, 7, -3]), `numbers parse with units: ${JSON.stringify(r.numbers)}`);
 }
 
@@ -660,7 +670,7 @@ async function numberTests(p) {
     stickFor100: range(0, 100).find(k => stickCount(k) === 100),
     builds: [[1, 1], [4, 1], [4, 0]].map(([c, g]) => completeSquares(builtEdges(c, g).map(x => x.e))),
   }));
-  ok(n.screens === 11, `the lesson has 11 screens (got ${n.screens})`);
+  ok(n.screens === 12, `the lesson has 12 screens (got ${n.screens})`);
   ok(same(n.tiles, [2, 5, 8, 11, 14, 23, 32]) && same(n.skip, [3, 6, 9, 12, 30]), `tiles 2, 5, 8, 11, 14…; skip count 3, 6, 9, 12, and 30 at n = 10`);
   ok(same(n.followTiles, [6, 8, 10]), `3B follow-up tiles 6, 8, 10: ${n.followTiles}`);
   ok(same(n.exitTiles, [9, 13, 17, 21, 25, 105, 109]) && same(n.exitSkip, [4, 8, 12, 16, 20]) && n.exit65 === 15,
@@ -713,7 +723,7 @@ async function newPage(viewport, extra = {}) {
   await p.goto(URL);
   return p;
 }
-const ORDER = [2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 16];   // round 1 screen numbers, in lesson order (15 = the new exit ticket)
+const ORDER = [2, '3t', 3, 4, 5, 6, 7, 8, 9, 10, 15, 16];   // round 1 screen numbers in lesson order ('3t' = the table half of Screen 3; 15 = the exit ticket)
 const pad = n => String(n).padStart(2, '0');
 
 async function correctPath(label, viewport, extra, mode, shots) {
@@ -721,7 +731,7 @@ async function correctPath(label, viewport, extra, mode, shots) {
   const p = await newPage(viewport, extra);
   for (const [i, n] of ORDER.entries()) {
     const k = i + 1;
-    ok((await p.locator('#where').textContent()).trim() === `Screen ${k} of 11`, `${label}: progress shows Screen ${k} of 11`);
+    ok((await p.locator('#where').textContent()).trim() === `Screen ${k} of 12`, `${label}: progress shows Screen ${k} of 12`);
     if (shots === 'all') await screenshot(p, `${label}-${pad(k)}-start`);
     await SCREENS[n].correct(p, mode);
     if (SCREENS[n].why) {
@@ -803,14 +813,14 @@ async function screen7FollowUp() {
 // The exit ticket takes one submission, so each other response needs its own run through the lesson.
 async function exitRuns() {
   const runs = [
-    { label: 'tile row wrong, 9n, 225, 16.25', vals: [[22, 25, 12, 16, 20], '9n', '225', '16.25'], ticks: [false, false, false, false],
-      says: [[S('Each figure adds 4 tiles.')], [S('Only 4 tiles repeat in each figure.')], [S('Only 4 tiles repeat in each figure.')], [S('Undo the + 5 first, then the × 4.')]] },
-    { label: 'skip row wrong, 4n, 109, 16', vals: [[21, 25, 12, 16, 24], '4n', '109', '16'], ticks: [false, false, false, false],
-      says: [[S('Count by 4: 4, 8, 12, …')], [S('Each figure also has the 5 fixed tiles.')], [S("That's Figure 26.")], [S('Solve 4n + 5 = 65.')]] },
-    { label: 'non-linear rule, other answers', vals: [[21, 25, 12, 16, 20], 'n × n + 5', '99', '15'], ticks: [true, false, false, true],
-      says: [[], [S('How many tiles does each figure add, and how many are there at Figure 0?')], [S('Replace n with 25 in T = 4n + 5.')], []] },
-    { label: 'one blank wrong', vals: [[21, 25, 12, 16, 21], '5 + 4n', '105', 'Figure 15'], ticks: [false, true, true, true],
-      says: [[S('Count by 4: 4, 8, 12, …')], [], [], []] },
+    { label: 'tile row wrong, 9n, 2b adds, 225, 16.25', vals: [[22, 25, 12, 16, 20], '9n', 2, '225', '16.25'], ticks: [false, false, false, false],
+      says: [[S('Each figure adds 4 tiles.')], [S('Only 4 tiles repeat in each figure.')], [S('Each figure adds 4. The constant stays the same in every figure.')], [S('Only 4 tiles repeat in each figure.')], [S('Undo the + 5 first, then the × 4.')]] },
+    { label: 'skip row wrong, 4n with 2b right, 109, 16', vals: [[21, 25, 12, 16, 24], '4n', 1, '109', '16'], ticks: [false, false, false, false],
+      says: [[S('Count by 4: 4, 8, 12, …')], [S('Each figure also has the 5 fixed tiles.')], [], [S("That's Figure 26.")], [S('Solve 4n + 5 = 65.')]] },
+    { label: 'non-linear rule, other answers', vals: [[21, 25, 12, 16, 20], 'n × n + 5', 1, '99', '15'], ticks: [true, false, false, true],
+      says: [[], [S('How many tiles does each figure add, and how many are there at Figure 0?')], [], [S('Replace n with 25 in T = 4n + 5.')], []] },
+    { label: 'one blank wrong, rule right but 2b wrong', vals: [[21, 25, 12, 16, 21], '5 + 4n', 0, '105', 'Figure 15'], ticks: [false, false, true, true],
+      says: [[S('Count by 4: 4, 8, 12, …')], [], [S("Figure 1 has 9 tiles. The constant is what's there at Figure 0.")], [], []] },
   ];
   for (const run of runs) {
     section = `exit ticket: ${run.label}`;
@@ -830,13 +840,13 @@ async function navigationTests() {
   const p = await newPage(PHONE);
   ok(await p.locator('#back').isDisabled() && await p.locator('#next').isDisabled(), 'Back and Next disabled at the start');
   await SCREENS[2].correct(p, 'tap'); await next(p);
-  await SCREENS[3].correct(p, 'tap'); await next(p);
+  await SCREENS['3t'].correct(p); await next(p);
   await p.click('#back'); await p.click('#back');
-  ok((await p.locator('#where').textContent()).includes('Screen 1 of 11'), 'Back twice shows Screen 1');
+  ok((await p.locator('#where').textContent()).includes('Screen 1 of 12'), 'Back twice shows Screen 1');
   ok(await step(p, '2A').locator('input').isDisabled() && (await step(p, '2A').locator('input').inputValue()) === '2', 'Back: earlier answers can be seen but not changed');
   ok(await screenEl(p).locator('.why-btn').isEnabled(), 'Back: the Why? text can still be opened');
   await next(p); await next(p);
-  ok((await p.locator('#where').textContent()).includes('Screen 3 of 11') && await step(p, '4A').locator('.choice').first().isEnabled(), 'Next returns to the current screen, still answerable');
+  ok((await p.locator('#where').textContent()).includes('Screen 3 of 12') && await step(p, '3A1').locator('input[type="range"]').isEnabled(), 'Next returns to the current screen, still answerable');
   await p.context().close();
 }
 
