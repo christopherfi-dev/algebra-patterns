@@ -106,7 +106,7 @@ figcaption { font-size: 15px; color: var(--muted); margin-top: 6px; font-variant
 .demo { margin-top: 12px; }
 .answer-card { padding: 12px 14px; border-radius: 14px; background: var(--soft); }
 .answer-card .label { display: block; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.answer-card .val { font-size: 21px; font-weight: 750; overflow-wrap: anywhere; }
+.answer-card .val { display: block; font-size: 21px; font-weight: 750; overflow-wrap: anywhere; white-space: pre-line; }
 .answer-card p { margin: 6px 0 0; }
 
 /* choices and marks */
@@ -483,7 +483,8 @@ const LESSON = {
           options: [
             { text: 'Yes', say: "It works for Figure 1, but one figure isn't enough. Try another one." },
             { text: 'Maybe', correct: true, say: 'Maybe. Always try another one.' },
-            { text: 'No', say: "It might be wrong, but one figure can't tell you. Try another one." },
+            // HANDOFF-ROUND-4 1: by Screen 6 the learner has found T = 3n + 2, so "No" is right too.
+            { text: 'No', correct: true, say: "Right, it's wrong, and the next step shows where. But Figure 1 alone couldn't tell you that. Always try another one." },
           ] },
         { id: 'B', type: 'numbers', prompt: 'What does T = 5n give for Figure 0 and Figure 10?',
           fields: [{ label: 'Figure 0', tiles: 0 }, { label: 'Figure 10', tiles: 10 }],
@@ -1272,7 +1273,7 @@ function askStep(st, c, ui) {
 function answerText(st) {
   if (st.type === 'rule') return `${st.prefix ? st.prefix + ' ' : ''}${st.answer}`;
   if (st.type === 'number') return `${st.prefix ? st.prefix + ' ' : ''}${fmt(st.answer())}${st.unit ? ' ' + st.unit : ''}`;
-  if (st.type === 'choice') return plain(st.options.find(o => o.correct).text);
+  if (st.type === 'choice') return st.options.filter(o => o.correct).map(o => plain(o.text)).join('\n');   // every right option, one per line
   if (st.type === 'marks') return st.items.map(it => `${it.who}: ${it.correct ? st.labels[0] : st.labels[1]}`).join(', ');
   if (st.type === 'tableRow') return st.answers().map(fmt).join(', ');
   if (st.type === 'numbers') {
