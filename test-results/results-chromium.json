@@ -3,7 +3,7 @@
   "version": "153.0.8010.12",
   "bySection": {
     "source-of-truth text": {
-      "pass": 10,
+      "pass": 11,
       "fail": 0
     },
     "title": {
@@ -22,70 +22,26 @@
       "pass": 3,
       "fail": 0
     },
-    "correct path (phone)": {
-      "pass": 262,
-      "fail": 0
-    },
-    "correct path (desktop)": {
-      "pass": 262,
-      "fail": 0
-    },
     "correct path (phone-touch)": {
-      "pass": 262,
-      "fail": 0
-    },
-    "correct path (phone-dark)": {
-      "pass": 262,
-      "fail": 0
-    },
-    "correct path (desktop-dark)": {
-      "pass": 262,
-      "fail": 0
-    },
-    "correct path (phone-360)": {
-      "pass": 262,
-      "fail": 0
-    },
-    "predicted wrong answers (390 px)": {
-      "pass": 285,
-      "fail": 0
-    },
-    "predicted wrong answers (360 px)": {
-      "pass": 285,
-      "fail": 0
-    },
-    "Screen 7: 40, then 7": {
-      "pass": 113,
-      "fail": 0
-    },
-    "Screen 7: follow-up item": {
-      "pass": 107,
-      "fail": 0
-    },
-    "exit ticket: tile row wrong, 9n, 2b adds, 225, 16.25": {
-      "pass": 130,
-      "fail": 0
-    },
-    "exit ticket: skip row wrong, 4n with 2b right, 109, 16": {
-      "pass": 130,
-      "fail": 0
-    },
-    "exit ticket: non-linear rule, other answers": {
-      "pass": 130,
-      "fail": 0
-    },
-    "exit ticket: one blank wrong, rule right but 2b wrong": {
-      "pass": 130,
-      "fail": 0
-    },
-    "navigation": {
-      "pass": 35,
-      "fail": 0
-    },
-    "keyboard": {
-      "pass": 4,
-      "fail": 0
+      "pass": 290,
+      "fail": 3
     }
   },
-  "failed": []
+  "failed": [
+    {
+      "section": "correct path (phone-touch)",
+      "ok": false,
+      "msg": "The table screen: the figures take at most two rows, each with 16 px to spare (got 2 rows, 10 px)"
+    },
+    {
+      "section": "correct path (phone-touch)",
+      "ok": false,
+      "msg": "The new screen: the figures take at most two rows, each with 16 px to spare (got 2 rows, 10 px)"
+    },
+    {
+      "section": "correct path (phone-touch)",
+      "ok": false,
+      "msg": "The rule screen: the figures take at most two rows, each with 16 px to spare (got 2 rows, 10 px)"
+    }
+  ]
 }
