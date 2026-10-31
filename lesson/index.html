@@ -276,6 +276,9 @@ const range = (a, b) => (b < a ? [] : Array.from({ length: b - a + 1 }, (_, i) =
 const TILES = { fixed: 2, group: 3 };
 const tilesIn = (P, n) => P.fixed + P.group * n;
 const tileCount = n => tilesIn(TILES, n);
+// The skip count by 3 on its own (3n), and the figure the new Screen 3 asks about (HANDOFF-ROUND-6 3).
+const skipCount = n => TILES.group * n;
+const SKIP_AT = 5;
 // The follow-up pattern after a second miss on 3B (Round-2-Wording D): 4 fixed tiles plus n groups of 2.
 const TILES_FOLLOW = { fixed: 4, group: 2 };
 // The exit ticket's pattern (ROUND-2-AMENDMENT 3): 5 fixed tiles plus n groups of 4.
@@ -323,6 +326,10 @@ function builtEdges(constant, groups, constCls = 'const') {
    approved in Round-2-Wording A.
    Tokens: {c|text} and {k|text} colour text as constant / coefficient; {sw:c} and {sw:k} are colour swatches.
    ===================================================================== */
+// The completed skip-count table, read-only on the two screens after the table screen (HANDOFF-ROUND-6 1).
+const DONE_TABLE = [['Figure n', n => n], ['Tiles', n => tileCount(n)], ['Skip count by\u00A03', skipCount], ['How many more', n => tileCount(n) - skipCount(n)]];
+// 3S2: a wrong option and what it gives at Figure 5, computed from the rule. (parseRule and evalAt are hoisted; ruleFn isn't defined yet.)
+const notSkip = expr => ({ text: expr, say: `${expr} gives ${fmt(evalAt(parseRule(expr), SKIP_AT))} at Figure ${SKIP_AT}, not ${fmt(skipCount(SKIP_AT))}.` });
 const LESSON = {
   title: 'Growing Patterns: Finding the Rule',
   ui: {
@@ -408,12 +415,36 @@ const LESSON = {
       why: ['Each figure adds 3 tiles, so the tiles grow like the skip count by 3. Every figure has 2 more tiles than the skip count. Those 2 are the fixed tiles.'],
     },
 
+    /* ---------------- New in round 6: skip count for any figure (Marc's move 1, step 4; HANDOFF-ROUND-6 3) ---------------- */
+    // Every number here is computed from the rule; "five" is SKIP_AT in words.
+    {
+      n: 3, key: '3s', part: 1, title: 'Skip count for any figure',
+      show: [{ tiles: [1, 2, 3, 4], compact: true }, { compare: { cols: [1, 2, 3, 4], rows: DONE_TABLE } }],
+      steps: [
+        { id: 'S1', type: 'number', prompt: `If the tiles were just the skip count by ${TILES.group}, how many would Figure ${SKIP_AT} have?`,
+          answer: () => skipCount(SKIP_AT),
+          say: `Right: ${SKIP_AT} × ${TILES.group} = ${fmt(skipCount(SKIP_AT))}.`,
+          wrong: [
+            { values: [tileCount(SKIP_AT)], say: `That's Figure ${SKIP_AT}'s real tiles. The skip count alone is ${[1, 2, 3, 4].map(n => fmt(skipCount(n))).join(', ')}, …` },
+            { values: [TILES.group + SKIP_AT], say: `That's ${TILES.group} + ${SKIP_AT}. Skip counting by ${TILES.group} five times is ${TILES.group} × ${SKIP_AT}.` },
+          ],
+          hint: `Skip count by ${TILES.group}, five times.` },
+        { id: 'S2', type: 'choice', prompt: 'Which gives the skip count for any figure number n?',
+          options: [   // the right option is third, out of first position
+            notSkip(`${TILES.group} + n`),
+            notSkip(`${TILES.group} − n`),
+            { text: `${TILES.group}n`, correct: true, say: `Right: ${TILES.group}n. Figure ${SKIP_AT} is ${TILES.group} × ${SKIP_AT} = ${fmt(skipCount(SKIP_AT))}.` },
+            notSkip(`${TILES.group} ÷ n`),
+          ] },
+      ],
+      why: [`In a skip count by ${TILES.group}, the figure number tells you how many ${TILES.group}s there are. Figure ${SKIP_AT} is five ${TILES.group}s: ${TILES.group} × ${SKIP_AT} = ${fmt(skipCount(SKIP_AT))}. Call the figure number n, and the skip count is ${TILES.group} × n, written ${TILES.group}n.`],
+    },
+
     /* ---------------- Screen 3 ---------------- */
     {
       n: 3, part: 1, title: 'Figure 0, and the rule',
       // The completed table from the last screen, read-only, beneath Figures 1 to 4, so both routes to the 2 meet on this screen.
-      show: [{ tiles: [1, 2, 3, 4], compact: true }, { compare: { cols: [1, 2, 3, 4], caption: 'From the last screen',
-        rows: [['Figure n', n => n], ['Tiles', n => tileCount(n)], ['Skip count by\u00A03', n => TILES.group * n], ['How many more', n => tileCount(n) - TILES.group * n]] } }],
+      show: [{ tiles: [1, 2, 3, 4], compact: true }, { compare: { cols: [1, 2, 3, 4], caption: 'From the last screen', rows: DONE_TABLE } }],
       steps: [
         { id: 'A1', type: 'slide', prompt: 'Slide the figure number back to 0.', figure: 'tiles', min: 0, max: 10, start: 4, target: 0 },
         { id: 'A2', type: 'number', prompt: 'How many tiles does Figure 0 have?',
@@ -839,7 +870,7 @@ function kids(node) {
   return [];
 }
 function some(node, test) { return test(node) || kids(node).some(c => some(c, test)); }
-const hasN = node => some(node, x => x.k === 'n');
+function hasN(node) { return some(node, x => x.k === 'n'); }   // a declaration, so parseRule can run while LESSON is built
 
 // Straight-line rules only: no n times n, no n in a denominator, no power of n. Matching values at a few points
 // proves a straight-line rule is the same, but not any other kind, so anything else is rejected before comparing.
