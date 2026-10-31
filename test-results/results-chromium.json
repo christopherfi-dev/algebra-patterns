@@ -6,6 +6,10 @@
       "pass": 10,
       "fail": 0
     },
+    "title": {
+      "pass": 4,
+      "fail": 0
+    },
     "answer checker": {
       "pass": 6,
       "fail": 0
@@ -19,27 +23,27 @@
       "fail": 0
     },
     "correct path (phone)": {
-      "pass": 250,
+      "pass": 262,
       "fail": 0
     },
     "correct path (desktop)": {
-      "pass": 250,
+      "pass": 262,
       "fail": 0
     },
     "correct path (phone-touch)": {
-      "pass": 250,
+      "pass": 262,
       "fail": 0
     },
     "correct path (phone-dark)": {
-      "pass": 250,
+      "pass": 262,
       "fail": 0
     },
     "correct path (desktop-dark)": {
-      "pass": 250,
+      "pass": 262,
       "fail": 0
     },
     "correct path (phone-360)": {
-      "pass": 250,
+      "pass": 262,
       "fail": 0
     },
     "predicted wrong answers (390 px)": {

@@ -2,7 +2,7 @@
 //   Chromium: node tests/lesson.test.js
 //   WebKit:   PLAYWRIGHT_BROWSERS_PATH=<folder with webkit> node tests/lesson.test.js --webkit
 // Every expected learner-facing string is wrapped in S(), which also checks it appears word for word in the source of
-// truth: the spec, the round 2 files, ROUND-2-AMENDMENT.md with Marc's answers to it, HANDOFF-ROUND-3.md and HANDOFF-ROUND-4.md.
+// truth: the spec, the round 2 files, ROUND-2-AMENDMENT.md with Marc's answers to it, and HANDOFF-ROUND-3.md to -5.md.
 'use strict';
 const playwright = require('playwright');
 const fs = require('fs');
@@ -14,7 +14,7 @@ const ROOT = path.resolve(__dirname, '..');
 const URL = 'file://' + path.join(ROOT, 'lesson', 'index.html');
 const read = (...p) => fs.readFileSync(path.join(ROOT, ...p), 'utf8');
 const SPEC = read('docs', 'Seeing-the-Rule-Interactive-Lesson-Plan.md');
-const TRUTH = [SPEC, read('docs', 'Round-2-Decisions.md'), read('docs', 'Round-2-Wording.md'), read('ROUND-2-AMENDMENT.md'), read('docs', 'Round-2-Amendment-Answers.md'), read('HANDOFF-ROUND-3.md'), read('HANDOFF-ROUND-4.md')].join('\n');
+const TRUTH = [SPEC, read('docs', 'Round-2-Decisions.md'), read('docs', 'Round-2-Wording.md'), read('ROUND-2-AMENDMENT.md'), read('docs', 'Round-2-Amendment-Answers.md'), read('HANDOFF-ROUND-3.md'), read('HANDOFF-ROUND-4.md'), read('HANDOFF-ROUND-5.md')].join('\n');
 // "Skip count by 3" and "by 4" carry a non-breaking space in the lesson (HANDOFF-ROUND-4 3).
 const NB = s => s.replace(/by (\d)/, 'by\u00A0$1');
 const HANDOFF = read('HANDOFF.md');
@@ -261,6 +261,28 @@ async function marginProblems(p) {
       if (need > have - margin) out.push(`table ${say(tb, need, have)}`);
     });
     if (document.documentElement.scrollWidth > document.documentElement.clientWidth) out.push('the page scrolls sideways');
+    return out;
+  }, MARGIN);
+}
+
+// Round 5: the title sits on one line with MARGIN px to spare, and so does the progress text. Where the two share a row
+// (420 px and wider), they fit side by side with the margin.
+async function headerProblems(p) {
+  return p.evaluate(margin => {
+    const out = [];
+    const inner = document.querySelector('.top-inner'), cs = getComputedStyle(inner);
+    const room = inner.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const range = el => { const r = document.createRange(); r.selectNodeContents(el); return r; };
+    const lines = el => new Set([...range(el).getClientRects()].map(x => Math.round(x.top))).size;
+    const width = el => range(el).getBoundingClientRect().width;
+    const brand = document.getElementById('brand'), where = document.getElementById('where');
+    for (const el of [brand, where]) {
+      if (lines(el) !== 1) out.push(`"${el.textContent}" takes ${lines(el)} lines`);
+      if (width(el) > room - margin) out.push(`"${el.textContent}" needs ${Math.round(width(el))} px of ${Math.round(room)}`);
+    }
+    const sameRow = Math.abs(brand.getBoundingClientRect().top - where.getBoundingClientRect().top) < 6;
+    const both = width(brand) + parseFloat(cs.columnGap) + width(where);
+    if (sameRow && both > room - margin) out.push(`title and progress share a row: ${Math.round(both)} px of ${Math.round(room)}`);
     return out;
   }, MARGIN);
 }
@@ -668,6 +690,15 @@ async function screen7Move(p, { fig2, fig3, hints }) {
 /* =====================================================================
    CHECKS ON THE ANSWER CHECKER AND THE COMPUTED NUMBERS
    ===================================================================== */
+// Round 5: the new title in the browser tab and the header, and the old one nowhere in the lesson file.
+async function titleTests(p) {
+  section = 'title';
+  const title = S('Growing Patterns: Finding the Rule');
+  ok((await p.title()) === title, `the browser tab reads "${title}" (got "${await p.title()}")`);
+  ok((await p.locator('#brand').textContent()).trim() === title, 'the header reads the new title');
+  ok(!read('lesson', 'index.html').includes('Seeing the Rule'), '"Seeing the Rule" appears nowhere in lesson/index.html');
+}
+
 async function checkerTests(p) {
   section = 'answer checker';
   const r = await p.evaluate(() => {
@@ -782,6 +813,8 @@ async function correctPath(label, viewport, extra, mode, shots) {
     const checks = { overflow: await overflowProblems(p), targets: await smallTargets(p), nulls: await nullText(p), wraps: await wrapProblems(p),
       margin: viewport.width <= 420 ? await marginProblems(p) : [] };
     ok(checks.margin.length === 0, `${label} Screen ${k}: everything fits with ${MARGIN} px to spare, Why? and responses open ${JSON.stringify(checks.margin)}`);
+    const header = await headerProblems(p);
+    ok(header.length === 0, `${label} Screen ${k}: the header's title and "Screen ${k} of 12" each fit on one line with ${MARGIN} px to spare ${JSON.stringify(header)}`);
     ok(checks.overflow.length === 0, `${label} Screen ${k}: nothing overflows ${JSON.stringify(checks.overflow)}`);
     ok(checks.targets.length === 0, `${label} Screen ${k}: every target is at least 44 px ${JSON.stringify(checks.targets)}`);
     ok(checks.nulls.length === 0, `${label} Screen ${k}: no rendered text reads "null" or "undefined" ${JSON.stringify(checks.nulls)}`);
@@ -914,6 +947,7 @@ async function keyboardTests() {
   browser = await playwright[ENGINE].launch();
   console.log(`${ENGINE} ${browser.version()}`);
   const p0 = await newPage(PHONE);
+  await titleTests(p0);
   await checkerTests(p0);
   await numberTests(p0);
   await dataTextTests(p0);
