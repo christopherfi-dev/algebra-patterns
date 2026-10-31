@@ -3,7 +3,7 @@
   "version": "26.6",
   "bySection": {
     "source-of-truth text": {
-      "pass": 11,
+      "pass": 13,
       "fail": 0
     },
     "title": {
@@ -15,7 +15,7 @@
       "fail": 0
     },
     "computed numbers": {
-      "pass": 6,
+      "pass": 7,
       "fail": 0
     },
     "data block text": {
@@ -23,55 +23,55 @@
       "fail": 0
     },
     "correct path (phone)": {
-      "pass": 293,
+      "pass": 370,
       "fail": 0
     },
     "correct path (desktop)": {
-      "pass": 290,
+      "pass": 366,
       "fail": 0
     },
     "correct path (phone-dark)": {
-      "pass": 293,
+      "pass": 370,
       "fail": 0
     },
     "correct path (phone-360)": {
-      "pass": 293,
+      "pass": 370,
       "fail": 0
     },
     "predicted wrong answers (390 px)": {
-      "pass": 322,
+      "pass": 440,
       "fail": 0
     },
     "predicted wrong answers (360 px)": {
-      "pass": 322,
+      "pass": 440,
       "fail": 0
     },
     "Screen 7: 40, then 7": {
-      "pass": 135,
+      "pass": 156,
       "fail": 0
     },
     "Screen 7: follow-up item": {
-      "pass": 129,
+      "pass": 150,
       "fail": 0
     },
     "exit ticket: tile row wrong, 9n, 2b adds, 225, 16.25": {
-      "pass": 152,
+      "pass": 211,
       "fail": 0
     },
     "exit ticket: skip row wrong, 4n with 2b right, 109, 16": {
-      "pass": 152,
+      "pass": 211,
       "fail": 0
     },
     "exit ticket: non-linear rule, other answers": {
-      "pass": 152,
+      "pass": 211,
       "fail": 0
     },
     "exit ticket: one blank wrong, rule right but 2b wrong": {
-      "pass": 152,
+      "pass": 211,
       "fail": 0
     },
     "navigation": {
-      "pass": 38,
+      "pass": 42,
       "fail": 0
     },
     "keyboard": {
