@@ -1,4 +1,4 @@
-# Seeing the Rule: report (round 3)
+# Seeing the Rule: report (round 4)
 
 The lesson is `lesson/index.html`. It is one self-contained file: one `LESSON` data block, one engine, and a `MODEL` section that computes every number shown. It makes no network calls, uses no libraries or web fonts, and stores nothing about the learner.
 
@@ -6,14 +6,15 @@ It teaches one idea, from a growing figure to its rule, in **12 screens**. Every
 
 | Engine | Checks | Failed |
 |---|---|---|
-| Chromium 153 | 2,261 | 0 |
-| WebKit 26.6 (Safari's engine) | 1,785 | 0 |
+| Chromium 153 | 2,874 | 0 |
+| WebKit 26.6 (Safari's engine) | 2,374 | 0 |
 
 The source of truth, in order of precedence:
-1. `HANDOFF-ROUND-3.md`;
-2. `ROUND-2-AMENDMENT.md`, with Marc's two answers in `docs/Round-2-Amendment-Answers.md`;
-3. `docs/Round-2-Decisions.md` and `docs/Round-2-Wording.md`;
-4. the original spec.
+1. `HANDOFF-ROUND-4.md`;
+2. `HANDOFF-ROUND-3.md`;
+3. `ROUND-2-AMENDMENT.md`, with Marc's two answers in `docs/Round-2-Amendment-Answers.md`;
+4. `docs/Round-2-Decisions.md` and `docs/Round-2-Wording.md`;
+5. the original spec.
 
 **Step IDs** keep their round 1 numbers. Both halves of round 1 Screen 3 keep the "3" prefix: 3T1–3T3 on the table screen, and 3A1–3B on the rule screen. The exit ticket is ID 15 and the self-check ID 16.
 
@@ -28,9 +29,9 @@ The source of truth, in order of precedence:
 | 3 | 3 (3A1–3B) | Figure 0, and the rule | Opens with the completed table, read-only, captioned "From the last screen". Slides back to Figure 0, types its tiles ("The same 2 as in the table"), and types the rule; sliding then checks any figure. After a second miss on 3B, a follow-up item: 4 fixed tiles plus groups of 2. |
 | 4 | 4 | Why does Figure 1 have 5 tiles if the constant is 2? | Chooses one of three explanations. |
 | 5 | 5 | Which figure has 23 tiles? | Types 7. |
-| 6 | 6 | Does one check prove it? | Types 5n at Figure 1, then chooses Yes, Maybe or No. Types 5n at Figures 0 and 10 next to their pictures; the real counts appear after Check. Types 3n + 2 at Figures 0, 1 and 10. Chooses why 3n + 2 can be trusted. |
+| 6 | 6 | Does one check prove it? | Types 5n at Figure 1, then chooses Yes, Maybe or No; **Maybe and No are both right**, each with its own confirmation. Types 5n at Figures 0 and 10 next to their pictures; the real counts appear after Check. Types 3n + 2 at Figures 0, 1 and 10. Chooses why 3n + 2 can be trusted. |
 | 7 | 7 | Shared edges | Drags sticks onto Figure 4's edges; a stick on an existing edge is rejected. Types 13, then Figure 10's total. Answering 40 starts Marc's move in six steps; a 7 on its first step goes straight to the shared edge. After a second miss on 7B, a follow-up item with a row of triangles. |
-| 8 | 8 | Are these two rules the same? | Types both rules at n = 1, 2 and 3 ("Right. The same values for all three figures."). Slides to Figure 0 and types 1. The Why? is unchanged; it explains the simplification as reading, with Nina's first square drawn neutral. **There is no longer a simplification step.** |
+| 8 | 8 | Are these two rules the same? | Types both rules at n = 1, 2 and 3 ("Right. The same values for all three figures."); on narrow phones each rule sits above its row of boxes. Slides to Figure 0 and types 1. The Why? is unchanged; it explains the simplification as reading, with Nina's first square drawn neutral. **There is no longer a simplification step.** |
 | 9 | 9 | Forward and backward | Types Figure 40's sticks (121), then the figure that uses 100 sticks (33). |
 | 10 | 10 | Three students, three rules | Builds each student's rule for Figure 1. Arun's 4 is orange; Nina's 4 is neutral and labelled "first square". Marks each rule correct or incorrect. Writes an explanation and compares it with the model. |
 | 11 | 15 | Exit ticket | A new pattern: 5 fixed tiles plus groups of 4. Four numbered questions: (1) complete the table; (2) write the rule, and (2b) choose what the constant counts; (3) the tiles in Figure 25; (4) the figure with 65 tiles. One submission, then each wrong item shows its response. |
@@ -41,6 +42,16 @@ The source of truth, in order of precedence:
 - Part 2: Sticks. Two ways to see one rule (Screens 7–9)
 - Part 3: Evaluate and repair (Screen 10)
 - Part 4: Exit ticket (Screens 11 and 12)
+
+### What round 4 changed
+
+| Fix | Change |
+|---|---|
+| 1 | **6A2 accepts "No".** "No" is now right, with its confirmation: "Right, it's wrong, and the next step shows where. But Figure 1 alone couldn't tell you that. Always try another one." "Maybe" is unchanged and "Yes" is still wrong. If "Yes" is chosen twice, the Answer card lists both right options. |
+| 2 | **Equation chains may break after "=".** A chain with two or more "=" may break after each "=", and each piece stays whole. Screen 8's Why? chain had been one 287 px unit; its longest piece is now 115 px. The same applies to the slider readout on the rule screen ("T = 3 × 10 + 2 = 32"). A single equation such as "T = 3n + 2" still never breaks. |
+| 2 (my addition) | **Screen 8's two-rule table on narrow phones.** It had 18 px spare at 360 px here, so below 420 px each rule now sits above its row of three boxes. To meet the 16 px margin at 360 px, the boxes in the two typed tables (Screen 2's table and exit item 1) are now 44 px, the touch minimum. A response's text column now fills its box, with no visible change. Layout and widths only. |
+| 3 | **Non-breaking spaces** in "Skip count by 3" and "Skip count by 4". As well as the two places named (3T1, exit item 1), they're in the two other places that label appears: the read-only table on the rule screen and Screen 3's Why? table. |
+| 4 | `docs/Marc-Teaching-Moves.md` replaced (one sentence in move 3). Documentation only. |
 
 ### What round 3 changed
 
@@ -71,6 +82,8 @@ Marc approved everything listed for him in round 2 ("approved as built", HANDOFF
    - At phone widths both "Skip count by …" labels break after "by", leaving the number alone on the second line (see 4.1).
 6. **Number spacing.** "2b." had no space before its question; the number now carries a small gap.
 7. **"Not yet. Try again."** is still in the engine as a last resort, but no step uses it now. Its only use was the 8B·f case that round 3 cut.
+8. **Round 4: what counts as a chain.** Only a chain of equalities, with two or more "=", may break after "=". A single equation stays whole, as round 3 required.
+9. **Round 4: the margin.** HANDOFF-ROUND-4 asks to "leave some margin". I set it at **16 px**: at 360 and 390 px, every unbreakable piece, and every table at its narrowest, must leave 16 px spare in its container. That roughly covers a font 5–8% wider than the ones here.
 
 ### Still standing from earlier rounds
 
@@ -100,10 +113,7 @@ Marc approved everything listed for him in round 2 ("approved as built", HANDOFF
 
 ## 4. Conflicts and things to decide
 
-1. **"Skip count by 3" and "Skip count by 4" at phone widths.** The labels wrap after "by", leaving the number alone on the second line. A non-breaking space between "by" and the number would keep "by 3" together. It looks identical, but it is a character change to approved text, so I haven't made it. Should I?
-2. **8B·f's test-sentence pattern** ("Test at n = …, but the original gives …") was used only by 8B·f. With 8B·f cut, it applies nowhere else. 3B·f keeps the wording's own test line ("n = 1: 8, but Figure 1 has 6"), and 7B·f has none.
-
-Nothing else is open.
+Nothing is open. Round 4 answered the one round 3 question: the non-breaking spaces are approved.
 
 ---
 
@@ -115,33 +125,32 @@ Nothing else is open.
 |---|---|---|---|
 | Source-of-truth text | 10 | 10 | Strings used by the tests exist in the source of truth |
 | Answer checker | 6 | 6 | Equivalence; rejection of n × n, powers and n in a denominator; unparseable input; numbers with units |
-| Computed numbers | 6 | 6 | 12 screens; tiles and skip counts; the follow-up and exit patterns (Figure 25 = 105; 65 at Figure 15); sticks (Figure 10 = 31, Figure 40 = 121); triangles; builds |
-| Data block text | 3 | 3 | Every response, hint, Why?, title and option is word for word in the source of truth; every prompt is approved; parts 1–4 keep their spec names |
-| Correct path | 5 × 238 | 3 × 238 | All 12 screens. Chromium: phone tap, phone touch drag, desktop mouse, and both dark modes. WebKit: phone tap, desktop mouse, phone dark. Each screen: progress ("Screen k of 12"), Next gating, responses, Why?, no overflow, 44 px targets, no "null" or "undefined", and the widened no-wrap rule |
-| Predicted wrong answers | 271 | 271 | Every predicted error and one unpredicted answer per hint on every screen; the 3B follow-up; the all-wrong exit ticket, with 0 ticks |
+| Computed numbers | 6 | 6 | 12 screens; tiles, skip counts, follow-up and exit patterns, sticks (Figure 10 = 31, Figure 40 = 121), triangles, builds |
+| Data block text | 3 | 3 | Every response, hint, Why?, title and option is word for word in the source of truth (a non-breaking space counts as a space); every prompt is approved; parts 1–4 keep their spec names |
+| Correct path | 6 × 250 | 4 × 250 | All 12 screens. Chromium: 390 px tap, 390 px touch drag, 360 px tap, desktop mouse, and both dark modes. WebKit: 390 px, 360 px, desktop and phone dark. Each screen: progress, Next gating, responses, Why?, no overflow, 44 px targets, no "null" or "undefined", the no-wrap rule, and on phones the 16 px margin, with the Why? open |
+| Predicted wrong answers | 2 × 285 | 2 × 285 | Every predicted error and one unpredicted answer per hint on every screen, at 390 px and at 360 px, with every response and the Why? open. Includes 6A2: "Yes" twice, the Answer card naming Maybe and No, then "No" accepted with its text |
 | Screen 7, two extra runs | 113 + 107 | 113 + 107 | Marc's move with a 7, and every hint; the 7B triangles follow-up |
-| Exit ticket, four runs | 4 × 129 | 4 × 129 | Every other exit response, item 2b's two wrong responses, and the self-check ticks. Line 2 is unticked when 2 is right but 2b is wrong, and when 2b is right but 2 is wrong |
+| Exit ticket, four runs | 4 × 130 | 4 × 130 | Every other exit response, item 2b, the self-check ticks, and the 16 px margin with the responses showing |
 | Navigation, keyboard | 39 | 39 | Back and Next across the split; placing a piece and checking an answer by keyboard |
-| **Total** | **2,261 passed, 0 failed** | **1,785 passed, 0 failed** | |
+| **Total** | **2,874 passed, 0 failed** | **2,374 passed, 0 failed** | |
 
-**The widened no-wrap check** looks at every text node on screen. Any expression with "=" and n, or a bracketed expression in n, must sit on one line. I confirmed the check can catch a real break: it flags an expression forced to wrap, and passes the same text through the lesson's renderer.
-
-**Table widths** were measured at 360, 375, 390 and 1280 px in both engines. No label takes more than two lines, and neither table needs sideways scrolling.
+**The margin check** measures every unbreakable expression against the column of text it sits in, every nowrap formula, rule card and caption against its container, and every table at its narrowest possible layout. Each must leave 16 px spare, and the page must never scroll sideways. It would have caught the original problem: at 360 px the old 287 px chain left only 9 px.
 
 **Screenshots** are in `test-results/screenshots/`:
-- all 12 screens at 390 × 844 and 1280 × 800, before and after the correct path;
-- each screen after its wrong answers (`phone-wrong-NN.png`);
+- all 12 screens at 390 × 844 and 1280 × 800, before and after the correct path, with each screen's Why? open in the "done" shots (including Screen 8's);
+- each screen after its wrong answers;
 - WebKit captures in `webkit/`.
 
-**WebKit setup:** WebKit is installed with Playwright's own installer in a separate folder, with its system libraries from apt. Touch drags use a Chrome-only protocol, so they run in Chromium only.
+**WebKit setup:** WebKit is installed with Playwright's own installer in a separate folder, with its system libraries from apt. Touch drags run in Chromium only.
 
 **Not tested:**
 - Safari on a real iPhone or Mac.
 - Firefox.
 - Screen readers.
+- Widths below 360 px. The page doesn't scroll sideways at 320 px, but the margin isn't guaranteed there.
 
 ---
 
 ## 6. Questions for Marc
 
-1. May I add a non-breaking space in "Skip count by 3" and "Skip count by 4", so the number never sits alone on a line (4.1)?
+None. Before reviewers see the lesson, the one remaining step is a check on a real iPhone and a narrow Android phone.

@@ -20,7 +20,7 @@ Open `lesson/index.html` in any modern browser: double-click it, or drag it into
 | `docs/Seeing-the-Rule-Interactive-Lesson-Plan.md` | The original spec. |
 | `docs/Round-2-Decisions.md`, `docs/Round-2-Wording.md` | Marc's round 2 decisions and approved wording. |
 | `ROUND-2-AMENDMENT.md`, `docs/Round-2-Amendment-Answers.md` | Marc's narrowing of the lesson to one idea, and his answers to two questions about it. |
-| `HANDOFF-ROUND-3.md` | Round 3: Marc's answers to the round 2 questions, and the last changes. First in precedence. |
+| `HANDOFF-ROUND-4.md`, `HANDOFF-ROUND-3.md` | Rounds 4 and 3: Marc's answers and the latest changes. Round 4 is first in precedence. |
 | `docs/Marc-Teaching-Moves.md` | Why the screens work the way they do. |
 | `tests/lesson.test.js` | Playwright tests: every correct path and every predicted wrong answer, at phone and desktop size. |
 | `test-results/screenshots/` | Screenshots of every screen at 390 × 844 and 1280 × 800; WebKit captures in `webkit/`. |
