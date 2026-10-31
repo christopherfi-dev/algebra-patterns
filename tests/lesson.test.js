@@ -2,7 +2,7 @@
 //   Chromium: node tests/lesson.test.js
 //   WebKit:   PLAYWRIGHT_BROWSERS_PATH=<folder with webkit> node tests/lesson.test.js --webkit
 // Every expected learner-facing string is wrapped in S(), which also checks it appears word for word in the source of
-// truth: the spec, the round 2 files, ROUND-2-AMENDMENT.md with Marc's answers to it, and HANDOFF-ROUND-3.md.
+// truth: the spec, the round 2 files, ROUND-2-AMENDMENT.md with Marc's answers to it, HANDOFF-ROUND-3.md and HANDOFF-ROUND-4.md.
 'use strict';
 const playwright = require('playwright');
 const fs = require('fs');
@@ -14,12 +14,15 @@ const ROOT = path.resolve(__dirname, '..');
 const URL = 'file://' + path.join(ROOT, 'lesson', 'index.html');
 const read = (...p) => fs.readFileSync(path.join(ROOT, ...p), 'utf8');
 const SPEC = read('docs', 'Seeing-the-Rule-Interactive-Lesson-Plan.md');
-const TRUTH = [SPEC, read('docs', 'Round-2-Decisions.md'), read('docs', 'Round-2-Wording.md'), read('ROUND-2-AMENDMENT.md'), read('docs', 'Round-2-Amendment-Answers.md'), read('HANDOFF-ROUND-3.md')].join('\n');
+const TRUTH = [SPEC, read('docs', 'Round-2-Decisions.md'), read('docs', 'Round-2-Wording.md'), read('ROUND-2-AMENDMENT.md'), read('docs', 'Round-2-Amendment-Answers.md'), read('HANDOFF-ROUND-3.md'), read('HANDOFF-ROUND-4.md')].join('\n');
+// "Skip count by 3" and "by 4" carry a non-breaking space in the lesson (HANDOFF-ROUND-4 3).
+const NB = s => s.replace(/by (\d)/, 'by\u00A0$1');
 const HANDOFF = read('HANDOFF.md');
 // Round-2-Wording A approves the round 1 prompts "as written" in the round 1 handback (■ marks the colour swatch).
 const PROMPTS = read('handback', 'round-1.md').replace(/ ■/g, '');
 const SHOTS = path.join(ROOT, 'test-results', 'screenshots', CHROMIUM ? '' : 'webkit');
 const PHONE = { width: 390, height: 844 };
+const NARROW = { width: 360, height: 780 };   // a narrow Android phone (HANDOFF-ROUND-4 2)
 const DESKTOP = { width: 1280, height: 800 };
 const FALLBACK = 'Not yet. Try again.';   // last resort only (see REPORT.md)
 
@@ -229,6 +232,39 @@ async function wrapProblems(p) {
     return out;
   });
 }
+// Round 4: at 360 and 390 px, every unbreakable piece (an expression, a formula, a rule card, a caption) and every
+// table's narrowest layout leaves at least MARGIN px spare, because real phones use wider fonts than this machine.
+const MARGIN = 16;
+async function marginProblems(p) {
+  return p.evaluate(margin => {
+    const out = [];
+    const sec = document.querySelector('section.screen:not([hidden])');
+    const cs = el => getComputedStyle(el);
+    const isItem = el => /(flex|grid)$/.test(cs(el.parentElement).display);
+    // The block an element has to fit in: past inline wrappers, and past flex or grid items that shrink to fit their content.
+    const container = el => { let b = el.parentElement; while (b && (/^(inline|inline-block|contents)$/.test(cs(b).display) || isItem(b))) b = b.parentElement; return b; };
+    const room = b => b.clientWidth - parseFloat(cs(b).paddingLeft) - parseFloat(cs(b).paddingRight);
+    const width = el => { const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().width; };
+    const say = (el, need, have) => `"${el.textContent.trim().slice(0, 40)}" needs ${Math.round(need)} px of ${Math.round(have)}`;
+    sec.querySelectorAll('.math, .formula, .student .r, figcaption').forEach(el => {
+      if (!el.getClientRects().length || el.closest('td, th')) return;   // table cells are covered by the table check
+      const need = el.classList.contains('math') ? el.getBoundingClientRect().width : width(el), have = room(container(el));
+      if (need > have - margin) out.push(say(el, need, have));
+    });
+    sec.querySelectorAll('.tablewrap > table').forEach(tb => {
+      if (!tb.getClientRects().length) return;
+      const before = tb.style.width;
+      tb.style.width = 'min-content';
+      const need = tb.getBoundingClientRect().width;
+      tb.style.width = before;
+      const have = room(tb.parentElement);
+      if (need > have - margin) out.push(`table ${say(tb, need, have)}`);
+    });
+    if (document.documentElement.scrollWidth > document.documentElement.clientWidth) out.push('the page scrolls sideways');
+    return out;
+  }, MARGIN);
+}
+
 // Is this expression kept whole inside one math span on the current screen?
 const keptWhole = (p, expr) => screenEl(p).locator('.math', { hasText: expr }).evaluateAll((els, e) => els.some(x => x.textContent.replace(/[.,:;?!]$/, '') === e), expr);
 
@@ -268,10 +304,10 @@ const SCREENS = {
   '3t': {
     async correct(p) {
       ok((await screenEl(p).locator('h1').textContent()).trim() === S('The skip-count table'), 'The table screen: title (round 3 split)');
-      ok(same(await SCREENS['3t'].table(p), [['Figure n', '1', '2', '3', '4'], ['Tiles', '5', '8', '11', '14'], ['Skip count by 3', '', '', '', '']]),
+      ok(same(await SCREENS['3t'].table(p), [['Figure n', '1', '2', '3', '4'], ['Tiles', '5', '8', '11', '14'], [NB('Skip count by 3'), '', '', '', '']]),
         'The table starts with Figure n and Tiles, and the empty skip-count row to fill in; "How many more" waits for its step');
       await typed(p, '3T1', [3, 6], 'correct', S('Right: 3, 6, 9, 12.'));
-      ok(same((await SCREENS['3t'].table(p))[2], [S('Skip count by 3'), '', '', '9', '12']), '3T1: the rest of the skip-count row fills in');
+      ok(same((await SCREENS['3t'].table(p))[2], [NB(S('Skip count by 3')), '', '', '9', '12']), '3T1: the rest of the skip-count row fills in, its label with a non-breaking space before the 3');
       await typed(p, '3T2', '30', 'correct', S('Right: 10 × 3 = 30. So the skip-count row is 3n.'));
       await typed(p, '3T3', '2', 'correct', S('Right: 2 more every time.'));
       ok(same((await SCREENS['3t'].table(p))[3], [S('How many more'), '', '2', '2', '2']), '3T3: the rest of the "How many more" row fills in');
@@ -298,7 +334,7 @@ const SCREENS = {
       ok((await screenEl(p).locator('h1').textContent()).trim() === 'Figure 0, and the rule', 'The rule screen: title unchanged');
       const carried = await screenEl(p).locator('.comparetable').evaluate(tb => ({ caption: tb.caption && tb.caption.textContent.trim(), inputs: tb.querySelectorAll('input').length,
         rows: [...tb.rows].map(r => [...r.cells].map(c => c.textContent.trim())) }));
-      ok(carried.caption === S('From the last screen') && carried.inputs === 0 && same(carried.rows, [['Figure n', '1', '2', '3', '4'], ['Tiles', '5', '8', '11', '14'], ['Skip count by 3', '3', '6', '9', '12'], ['How many more', '2', '2', '2', '2']]),
+      ok(carried.caption === S('From the last screen') && carried.inputs === 0 && same(carried.rows, [['Figure n', '1', '2', '3', '4'], ['Tiles', '5', '8', '11', '14'], [NB('Skip count by 3'), '3', '6', '9', '12'], ['How many more', '2', '2', '2', '2']]),
         `The rule screen opens with the completed table, read-only, captioned "From the last screen" (got ${JSON.stringify(carried)})`);
       await slideTo(p, '3A1', 'Home', mode);
       ok((await step(p, '3A1').locator('figcaption').textContent()).trim() === 'Figure 0', '3A: slider reaches Figure 0');
@@ -337,7 +373,7 @@ const SCREENS = {
     why: S("The coefficient 3 counts the tiles in each group, so it multiplies the figure number n. The constant 2 counts the fixed tiles, which are there even at Figure 0. You can also see it in a table, the way you'd compare rows:"),
     async extra(p) {
       const rows = await screenEl(p).locator('.why tr').evaluateAll(trs => trs.map(tr => [...tr.children].map(td => td.textContent.trim())));
-      ok(same(rows, [['n', '0', '1', '2', '3', '4'], ['Tiles', '2', '5', '8', '11', '14'], [S('Skip count by 3 (3n)'), '0', '3', '6', '9', '12'], [S('How many more'), '2', '2', '2', '2', '2']]),
+      ok(same(rows, [['n', '0', '1', '2', '3', '4'], ['Tiles', '2', '5', '8', '11', '14'], [NB(S('Skip count by 3 (3n)')), '0', '3', '6', '9', '12'], [S('How many more'), '2', '2', '2', '2', '2']]),
         `Screen 3: Why? table, with its rows renamed to match the new steps (got ${JSON.stringify(rows)})`);
     },
   },
@@ -384,9 +420,12 @@ const SCREENS = {
       await typed(p, '6A1', '6', 'hint', S("Replace n with 1 in the student's rule, then multiply."));
       await typed(p, '6A1', '5', 'correct', 'Right: 5 × 1 = 5. The rule matches Figure 1.');
       ok(same(await texts(step(p, '6A2').locator('.choice')), ['Yes', 'Maybe', 'No']), '6A: Yes, Maybe, No, with the correct one not first');
-      await chose(p, '6A2', 0, 'wrong', S("It works for Figure 1, but one figure isn't enough. Try another one."));
-      await chose(p, '6A2', 2, 'wrong', S("It might be wrong, but one figure can't tell you. Try another one."));
-      await chose(p, '6A2', 1, 'correct', 'Maybe. Always try another one.');
+      const yes = S("It works for Figure 1, but one figure isn't enough. Try another one.");
+      await chose(p, '6A2', 0, 'wrong', yes);
+      await chose(p, '6A2', 0, 'wrong', yes);
+      ok((await answerCard(p, '6A2')) === 'Maybe\nNo' && (await step(p, '6A2').locator('.choice.is-answer').count()) === 2, '6A2: the second-miss card names both right answers, Maybe and No');
+      await chose(p, '6A2', 2, 'correct', S("Right, it's wrong, and the next step shows where. But Figure 1 alone couldn't tell you that. Always try another one."));
+      ok(await step(p, '6B').isVisible(), '6A2: "No" leads to Step 6B');
       await typed(p, '6B', [2, 32], 'hint', S("Use the student's rule, 5n, not the picture. Replace n with 0, then with 10."));
       await typed(p, '6B', [0, 50], 'correct', 'Figure 0 has 2 tiles, not 0. Figure 10 has 32, not 50. The rule is wrong.');
       await typed(p, '6C', [2, 5, 30], 'wrong', S('Substitute again: 3 × n, then add 2.'));
@@ -527,7 +566,7 @@ const SCREENS = {
       ok((await screenEl(p).locator('.card').first().locator('rect.t-const').count()) === 15 && (await screenEl(p).locator('.card').first().locator('rect.t-coef').count()) === 24,
         'Exit ticket: Figures 1–3 drawn as 5 fixed tiles plus groups of 4 (9, 13, 17 tiles)');
       const rows = await screenEl(p).locator('table.extable tr').evaluateAll(trs => trs.map(tr => [...tr.cells].map(c => c.querySelector('input') ? '?' : c.textContent.trim())));
-      ok(same(rows, [['Figure n', '1', '2', '3', '4', '5'], ['Tiles', '9', '13', '17', '?', '?'], [S('Skip count by 4'), '4', '8', '?', '?', '?']]), `Exit item 1: the table to complete (got ${JSON.stringify(rows)})`);
+      ok(same(rows, [['Figure n', '1', '2', '3', '4', '5'], ['Tiles', '9', '13', '17', '?', '?'], [NB(S('Skip count by 4')), '4', '8', '?', '?', '?']]), `Exit item 1: the table to complete, its label with a non-breaking space before the 4 (got ${JSON.stringify(rows)})`);
       ok(!(await whyVisible(p)) && (await screenEl(p).locator('.note').count()) === 0, 'Exit ticket: no Why? and no hints before submitting');
       ok(same((await texts(screenEl(p).locator('.item .num'))), ['1.', '2.', '2b.', '3.', '4.']), 'Exit ticket: four numbered questions, with 2b part of question 2');
       ok((await screenEl(p).locator('[data-item="2b"] .q').textContent()).includes(S('What does the constant in the rule count?')), 'Exit item 2b: the question');
@@ -740,7 +779,9 @@ async function correctPath(label, viewport, extra, mode, shots) {
     }
     if (SCREENS[n].extra) await SCREENS[n].extra(p);
     await p.waitForTimeout(500);
-    const checks = { overflow: await overflowProblems(p), targets: await smallTargets(p), nulls: await nullText(p), wraps: await wrapProblems(p) };
+    const checks = { overflow: await overflowProblems(p), targets: await smallTargets(p), nulls: await nullText(p), wraps: await wrapProblems(p),
+      margin: viewport.width <= 420 ? await marginProblems(p) : [] };
+    ok(checks.margin.length === 0, `${label} Screen ${k}: everything fits with ${MARGIN} px to spare, Why? and responses open ${JSON.stringify(checks.margin)}`);
     ok(checks.overflow.length === 0, `${label} Screen ${k}: nothing overflows ${JSON.stringify(checks.overflow)}`);
     ok(checks.targets.length === 0, `${label} Screen ${k}: every target is at least 44 px ${JSON.stringify(checks.targets)}`);
     ok(checks.nulls.length === 0, `${label} Screen ${k}: no rendered text reads "null" or "undefined" ${JSON.stringify(checks.nulls)}`);
@@ -756,14 +797,17 @@ async function correctPath(label, viewport, extra, mode, shots) {
   await p.context().close();
 }
 
-async function wrongPath() {
-  section = 'predicted wrong answers';
-  const p = await newPage(PHONE, CHROMIUM ? { hasTouch: true } : {});
+async function wrongPath(viewport = PHONE) {
+  section = `predicted wrong answers (${viewport.width} px)`;
+  const p = await newPage(viewport, CHROMIUM ? { hasTouch: true } : {});
   for (const [i, n] of ORDER.entries()) {
     await SCREENS[n].wrong(p);
+    await openWhy(p);
     ok((await nullText(p)).length === 0 && (await wrapProblems(p)).length === 0, `wrong-answer run Screen ${i + 1}: no "null" text and no wrapped expressions`);
+    const margin = await marginProblems(p);
+    ok(margin.length === 0, `wrong-answer run Screen ${i + 1} at ${viewport.width} px: everything fits with ${MARGIN} px to spare, every response and the Why? open ${JSON.stringify(margin)}`);
     await p.waitForTimeout(300);
-    if (CHROMIUM) await screenshot(p, `phone-wrong-${pad(i + 1)}`);
+    if (CHROMIUM && viewport === PHONE) await screenshot(p, `phone-wrong-${pad(i + 1)}`);
     if (i < ORDER.length - 1) await next(p);
   }
   ok(p.errors.length === 0, `wrong-answer run: no console errors ${JSON.stringify(p.errors)}`);
@@ -828,6 +872,8 @@ async function exitRuns() {
     await playTo(p, 15);
     await SCREENS[15].submit(p, run.vals);
     await SCREENS[15].expect(p, run.says, run.label);
+    const margin = await marginProblems(p);
+    ok(margin.length === 0, `exit ticket responses fit with ${MARGIN} px to spare ${JSON.stringify(margin)}`);
     await next(p);
     ok(same(await SCREENS[16].ticks(p), run.ticks), `self-check ticks ${JSON.stringify(run.ticks)} (got ${JSON.stringify(await SCREENS[16].ticks(p))})`);
     ok(p.errors.length === 0, `no console errors ${JSON.stringify(p.errors)}`);
@@ -880,14 +926,17 @@ async function keyboardTests() {
     await correctPath('phone-touch', PHONE, { hasTouch: true, isMobile: true }, 'touch', false);
     await correctPath('phone-dark', PHONE, { colorScheme: 'dark', hasTouch: true, isMobile: true }, 'tap', false);
     await correctPath('desktop-dark', DESKTOP, { colorScheme: 'dark' }, 'mouse', false);
+    await correctPath('phone-360', NARROW, { hasTouch: true, isMobile: true }, 'tap', false);
   } else {
     // WebKit: touch drags need the Chrome DevTools protocol, so pieces are placed by tap and by mouse drag.
     await correctPath('phone', PHONE, { hasTouch: true, isMobile: true }, 'tap', 'done');
     await correctPath('desktop', DESKTOP, {}, 'mouse', 'done');
     await correctPath('phone-dark', PHONE, { colorScheme: 'dark', hasTouch: true, isMobile: true }, 'tap', false);
+    await correctPath('phone-360', NARROW, { hasTouch: true, isMobile: true }, 'tap', false);
   }
   if (!process.env.ONLY) {
-  await wrongPath();
+  await wrongPath(PHONE);
+  await wrongPath(NARROW);
   await screen7Seven();
   await screen7FollowUp();
   await exitRuns();

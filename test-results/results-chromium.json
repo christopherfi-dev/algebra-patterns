@@ -19,27 +19,35 @@
       "fail": 0
     },
     "correct path (phone)": {
-      "pass": 238,
+      "pass": 250,
       "fail": 0
     },
     "correct path (desktop)": {
-      "pass": 238,
+      "pass": 250,
       "fail": 0
     },
     "correct path (phone-touch)": {
-      "pass": 238,
+      "pass": 250,
       "fail": 0
     },
     "correct path (phone-dark)": {
-      "pass": 238,
+      "pass": 250,
       "fail": 0
     },
     "correct path (desktop-dark)": {
-      "pass": 238,
+      "pass": 250,
       "fail": 0
     },
-    "predicted wrong answers": {
-      "pass": 271,
+    "correct path (phone-360)": {
+      "pass": 250,
+      "fail": 0
+    },
+    "predicted wrong answers (390 px)": {
+      "pass": 285,
+      "fail": 0
+    },
+    "predicted wrong answers (360 px)": {
+      "pass": 285,
       "fail": 0
     },
     "Screen 7: 40, then 7": {
@@ -51,19 +59,19 @@
       "fail": 0
     },
     "exit ticket: tile row wrong, 9n, 2b adds, 225, 16.25": {
-      "pass": 129,
+      "pass": 130,
       "fail": 0
     },
     "exit ticket: skip row wrong, 4n with 2b right, 109, 16": {
-      "pass": 129,
+      "pass": 130,
       "fail": 0
     },
     "exit ticket: non-linear rule, other answers": {
-      "pass": 129,
+      "pass": 130,
       "fail": 0
     },
     "exit ticket: one blank wrong, rule right but 2b wrong": {
-      "pass": 129,
+      "pass": 130,
       "fail": 0
     },
     "navigation": {
