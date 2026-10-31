@@ -6,6 +6,7 @@ The worksheets show the prompts. The teaching is what happens live: the question
 
 ## Principles (Marc's own)
 
+- **Gradual release: I do, we do, you do. This governs the whole lesson.** Learners never attempt a whole task before it's taught. A lesson never opens with "write a rule for this pattern": making learners try a whole task first and fail leads to frustration and quitting. Within each step, learners answer questions as the work is done together. Before learners write any rule, the lesson explains what a rule is and names its parts in the picture: the constant is what's there at Figure 0 and stays the same; the coefficient is what each figure adds, and it multiplies n. Then they practise with those parts, with feedback: identifying the constant and coefficient, and choosing the right rule for this pattern and for other patterns. Only then do they write their own rule. Explanations come before the step that needs them, not only in Why?.
 - **Build up to the full problem.** Lessons never start with the full problem. Students work up to it.
 - **The vocabulary is used, not just heard.** Students learn the language behind the algebra (coefficient, constant, rate, variable) so they can talk about structure.
 - **The constant is how much there is when n = 0.**

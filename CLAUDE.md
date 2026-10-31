@@ -5,8 +5,8 @@ An interactive math lesson in one self-contained HTML file.
 ## Source of truth
 
 - The spec is `docs/Seeing-the-Rule-Interactive-Lesson-Plan.md`.
-- Marc's approved changes are in `HANDOFF-ROUND-6.md`, `HANDOFF-ROUND-5.md`, `HANDOFF-ROUND-4.md`, `HANDOFF-ROUND-3.md`, `ROUND-2-AMENDMENT.md`, `docs/Round-2-Decisions.md` and `docs/Round-2-Wording.md`.
-- Order of precedence: `HANDOFF-ROUND-6.md` first, then `HANDOFF-ROUND-5.md`, `HANDOFF-ROUND-4.md`, `HANDOFF-ROUND-3.md`, `ROUND-2-AMENDMENT.md`, the two round 2 files, and the spec, in that order. Everything a later file doesn't change still comes from the earlier ones.
+- Marc's approved changes are in `HANDOFF-ROUND-7.md`, `HANDOFF-ROUND-6.md`, `HANDOFF-ROUND-5.md`, `HANDOFF-ROUND-4.md`, `HANDOFF-ROUND-3.md`, `ROUND-2-AMENDMENT.md`, `docs/Round-2-Decisions.md` and `docs/Round-2-Wording.md`.
+- Order of precedence: `HANDOFF-ROUND-7.md` first, then `HANDOFF-ROUND-6.md`, `HANDOFF-ROUND-5.md`, `HANDOFF-ROUND-4.md`, `HANDOFF-ROUND-3.md`, `ROUND-2-AMENDMENT.md`, the two round 2 files, and the spec, in that order. Everything a later file doesn't change still comes from the earlier ones.
 
 ## Who decides
 
@@ -14,6 +14,10 @@ An interactive math lesson in one self-contained HTML file.
 - Learner-facing text, numbers, answers, predicted errors, responses, Why? explanations and screen order come from the source of truth above. Do not reword, add or remove any of them.
 - If something in the source of truth is contradictory, impossible to build as written, or doesn't fit on a phone screen, stop and list it in `REPORT.md`. Don't fix it silently.
 - `docs/Marc-Teaching-Moves.md` explains why screens work the way they do. Read it; don't build from it.
+
+## Marc's teaching method
+
+Every screen must follow the first principle in `docs/Marc-Teaching-Moves.md`: gradual release (I do, we do, you do). Nothing is asked of a learner on their own that they haven't first done with support, on more than one example, and every explanation comes before the step that needs it, not only in Why?. Check each step against this before building or reporting. If a step breaks it, report it by step ID; don't fix it on your own.
 
 ## Fixed rules
 
