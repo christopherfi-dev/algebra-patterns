@@ -54,6 +54,8 @@ h1.title:focus { outline: none; }
 
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin: 6px 0 4px; }
 .figs { display: flex; flex-wrap: wrap; gap: 16px 18px; align-items: flex-end; justify-content: center; }
+/* Round 6: Figures 1 to 4 above the skip-count table are a little smaller on narrow phones, so they take two rows, not three. */
+@media (max-width: 419px) { .figs.compact { --fs: .85; } }
 figure { margin: 0; text-align: center; min-width: 0; max-width: 100%; }
 figure svg { display: block; margin: 0 auto; max-width: 100%; height: auto; overflow: visible; }
 figcaption { font-size: 15px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
@@ -380,7 +382,8 @@ const LESSON = {
     {
       n: 3, key: '3t', part: 1, title: 'The skip-count table',
       // Marc's row comparison, built one row at a time (ROUND-2-AMENDMENT 5): the table stays at the top while rows are added.
-      show: [{ compare: { cols: [1, 2, 3, 4], rows: [['Figure n', n => n], ['Tiles', n => tileCount(n)]] } }],
+      // Figures 1 to 4 stay above it, one for each column (HANDOFF-ROUND-6 1).
+      show: [{ tiles: [1, 2, 3, 4], compact: true }, { compare: { cols: [1, 2, 3, 4], rows: [['Figure n', n => n], ['Tiles', n => tileCount(n)]] } }],
       steps: [
         { id: 'T1', type: 'tableRow',
           prompt: 'Fill in the skip-count row: count by 3.', label: 'Skip count by\u00A03', typed: 2,   // non-breaking space: the number never sits alone (HANDOFF-ROUND-4 3)
@@ -407,8 +410,8 @@ const LESSON = {
     /* ---------------- Screen 3 ---------------- */
     {
       n: 3, part: 1, title: 'Figure 0, and the rule',
-      // The completed table from the last screen, read-only, so both routes to the 2 meet on this screen.
-      show: [{ compare: { cols: [1, 2, 3, 4], caption: 'From the last screen',
+      // The completed table from the last screen, read-only, beneath Figures 1 to 4, so both routes to the 2 meet on this screen.
+      show: [{ tiles: [1, 2, 3, 4], compact: true }, { compare: { cols: [1, 2, 3, 4], caption: 'From the last screen',
         rows: [['Figure n', n => n], ['Tiles', n => tileCount(n)], ['Skip count by\u00A03', n => TILES.group * n], ['How many more', n => tileCount(n) - TILES.group * n]] } }],
       steps: [
         { id: 'A1', type: 'slide', prompt: 'Slide the figure number back to 0.', figure: 'tiles', min: 0, max: 10, start: 4, target: 0 },
@@ -1109,7 +1112,7 @@ function trianglesSVG(n) {
 // Things a screen, a step or a Why? panel can show.
 const BLOCKS = {
   formula(b) { return h('p', { class: 'formula' }, rich(b.formula)); },
-  tiles(b) { return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.tiles.map(n => fig(tilesSVG(n, { pattern: b.pattern }), `Figure ${n}`)))); },
+  tiles(b) { return h('div', { class: 'card' }, h('div', { class: b.compact ? 'figs compact' : 'figs' }, b.tiles.map(n => fig(tilesSVG(n, { pattern: b.pattern }), `Figure ${n}`)))); },
   triangles(b) { return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.triangles.map(n => fig(trianglesSVG(n), `Figure ${n}`)))); },
   sticks(b) {
     return h('div', { class: 'card' }, h('div', { class: 'figs' }, b.sticks.map((n, i) =>
