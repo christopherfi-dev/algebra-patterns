@@ -369,7 +369,7 @@ const LESSON = {
           hint: 'Count only the tiles in the first colour in one figure. Then check another figure.' },
         { id: 'B', type: 'number', prompt: 'How many tiles does each new figure add?',
           answer: () => tileCount(2) - tileCount(1),
-          say: 'Each figure adds one group of 3 in the second colour.',
+          say: 'Each figure adds one group of 3 in the second colour. That 3 is the coefficient.',   // HANDOFF-ROUND-7 1
           wrong: [{ values: [5], say: '5 is the whole of Figure 1. Compare Figure 1 and Figure 2: what was added?' }],
           hint: 'Count the tiles in Figure 1 and in Figure 2. How many more does Figure 2 have?' },
         { id: 'C1', type: 'placeGroup', prompt: 'Drag one group of 3 to build Figure 4.', from: 3 },
@@ -416,7 +416,7 @@ const LESSON = {
     },
 
     /* ---------------- New in round 6: skip count for any figure (Marc's move 1, step 4; HANDOFF-ROUND-6 3) ---------------- */
-    // Every number here is computed from the rule; "five" is SKIP_AT in words.
+    // Every number here is computed from the rule; "five" is SKIP_AT in words and "three" is TILES.group.
     {
       n: 3, key: '3s', part: 1, title: 'Skip count for any figure',
       show: [{ tiles: [1, 2, 3, 4], compact: true }, { compare: { cols: [1, 2, 3, 4], rows: DONE_TABLE } }],
@@ -430,10 +430,12 @@ const LESSON = {
           ],
           hint: `Skip count by ${TILES.group}, five times.` },
         { id: 'S2', type: 'choice', prompt: 'Which gives the skip count for any figure number n?',
+          lines: [`Let n stand for the figure number. For Figure ${SKIP_AT}, n = ${SKIP_AT}.`],   // HANDOFF-ROUND-7 1
           options: [   // the right option is third, out of first position
             notSkip(`${TILES.group} + n`),
             notSkip(`${TILES.group} − n`),
-            { text: `${TILES.group}n`, correct: true, say: `Right: ${TILES.group}n. Figure ${SKIP_AT} is ${TILES.group} × ${SKIP_AT} = ${fmt(skipCount(SKIP_AT))}.` },
+            { text: `${TILES.group}n`, correct: true,
+              say: `Right: ${TILES.group}n means ${TILES.group} × n, three times the figure number. Figure ${SKIP_AT} is ${TILES.group} × ${SKIP_AT} = ${fmt(skipCount(SKIP_AT))}.` },
             notSkip(`${TILES.group} ÷ n`),
           ] },
       ],
@@ -455,7 +457,7 @@ const LESSON = {
         { id: 'A1', type: 'slide', prompt: 'Slide the figure number back to 0.', figure: 'tiles', min: 0, max: 10, start: 4, target: 0 },
         { id: 'A2', type: 'number', prompt: 'How many tiles does Figure 0 have?',
           answer: () => tileCount(0),
-          say: 'Figure 0 has no groups, only the 2 fixed tiles. The same 2 as in the table.',
+          say: "Figure 0 has no groups, only the 2 fixed tiles. The same 2 as in the table. That 2 is the constant: what's there at Figure 0.",   // HANDOFF-ROUND-7 1
           wrong: [
             { values: [5], say: '5 is Figure 1. Take away its group of 3.' },
             { values: [0], say: 'The groups are gone, but look at the picture: the fixed tiles stay.' },
