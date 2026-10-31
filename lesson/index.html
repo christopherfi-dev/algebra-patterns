@@ -467,7 +467,7 @@ const LESSON = {
 
     /* ---------------- Screen 3 ---------------- */
     {
-      n: 3, part: 1, title: 'Figure 0, and the rule',
+      n: 3, part: 1, title: 'Figure 0',   // round 8: the rule moved to its own screen, after Screen 5
       // The completed table from the last screen, read-only, beneath Figures 1 to 4, so both routes to the 2 meet on this screen.
       show: [{ tiles: [1, 2, 3, 4], compact: true }, { compare: { cols: [1, 2, 3, 4], caption: 'From the last screen', rows: DONE_TABLE } }],
       steps: [
@@ -486,8 +486,39 @@ const LESSON = {
             { values: [0], say: 'The groups are gone, but look at the picture: the fixed tiles stay.' },
           ],
           hint: 'Look at the picture at Figure 0. Which tiles are still there?' },
+      ],
+      why: ["Every figure has 2 more tiles than the skip count by 3. At Figure 0 there are no groups, so only those 2 fixed tiles are left. That's the constant."],   // HANDOFF-ROUND-8 3
+    },
+
+    /* ---------------- Screen 4 ---------------- */
+    {
+      n: 4, part: 1, title: 'Why does Figure 1 have 5 tiles if the constant is 2?',
+      steps: [
+        // HANDOFF-ROUND-7 3: the learner taps the parts of Figure 1. Round 8 removed the small Figure 1 and the choice 4A.
+        { id: 'T1', type: 'tapTiles', prompt: 'Tap the tiles the constant counts in Figure 1.', figure: 1, answer: 'fixed',
+          say: 'Right: the 2 fixed tiles.',
+          wrong: [
+            { when: s => s.group > 0, say: "Those tiles are a group, which each figure adds. The constant is what's there at Figure 0." },
+            { when: s => s.fixed > 0, say: "There's one more fixed tile." },   // some fixed tiles but not both
+          ],
+          hint: 'Which tiles are in every figure, even Figure 0?' },
+        { id: 'T2', type: 'tapTiles', prompt: 'Now tap the tiles the coefficient counts.', figure: 1, answer: 'group',
+          say: 'Right: one group of 3. Figure 1 is 2 + 3 = 5.',
+          wrong: [{ when: s => s.fixed > 0, say: 'The fixed tiles are the constant. The coefficient counts the tiles in each group.' }],
+          hint: 'Which tiles does each new figure add?' },
+      ],
+      why: ['The first total includes one group, so it is the constant plus the coefficient: 2 + 3 = 5. The constant is the value at Figure 0, before any groups are added. Reading the first total as the constant is the most common mistake with these rules.'],
+    },
+
+    /* ---------------- New in round 8: the rule, after the parts are identified (HANDOFF-ROUND-8 3) ---------------- */
+    {
+      n: 3, key: '3b', part: 1, title: 'The rule',
+      show: [{ tiles: [1, 2, 3, 4], compact: true }, { compare: { cols: [1, 2, 3, 4], caption: 'Your table', rows: DONE_TABLE } }],
+      steps: [
         { id: 'B', type: 'rule', prompt: 'Type the rule.', prefix: 'T =', answer: '3n + 2',
           lines: ['A rule gives the total for any figure. T is the total number of tiles and n is the figure number. The coefficient multiplies n; the constant is added.'],   // HANDOFF-ROUND-8 1
+          // 3B's own slider (Marc, round 8): wrong rules move it to the figure they test; once right, it checks any figure.
+          show: [{ slider: { figure: 'tiles', min: 0, max: 10, start: 4 } }],
           say: 'Right. Slide to check any figure.',
           wrong: [
             // "the screen tests it at n = 1: 8, not 5."
@@ -512,36 +543,6 @@ const LESSON = {
         { rowTable: true, rule: '3n + 2', normal: '3n', from: 0, to: 4, labels: ['n', 'Tiles', 'Skip count by\u00A03 (3n)', 'How many more'] },   // row names: docs/Round-2-Amendment-Answers.md
         'The picture and the table give the same constant. T = 3n + 2.',
       ],
-    },
-
-    /* ---------------- Screen 4 ---------------- */
-    {
-      n: 4, part: 1, title: 'Why does Figure 1 have 5 tiles if the constant is 2?',
-      show: [{ tiles: [1] }],
-      steps: [
-        // HANDOFF-ROUND-7 3: the learner taps the parts of Figure 1 before choosing the explanation.
-        { id: 'T1', type: 'tapTiles', prompt: 'Tap the tiles the constant counts in Figure 1.', figure: 1, answer: 'fixed',
-          say: 'Right: the 2 fixed tiles.',
-          wrong: [
-            { when: s => s.group > 0, say: "Those tiles are a group, which each figure adds. The constant is what's there at Figure 0." },
-            { when: s => s.fixed > 0, say: "There's one more fixed tile." },   // some fixed tiles but not both
-          ],
-          hint: 'Which tiles are in every figure, even Figure 0?' },
-        { id: 'T2', type: 'tapTiles', prompt: 'Now tap the tiles the coefficient counts.', figure: 1, answer: 'group',
-          say: 'Right: one group of 3. Figure 1 is 2 + 3 = 5.',
-          wrong: [{ when: s => s.fixed > 0, say: 'The fixed tiles are the constant. The coefficient counts the tiles in each group.' }],
-          hint: 'Which tiles does each new figure add?' },
-        { id: 'A', type: 'choice',
-          options: [
-            { text: 'The rule must be wrong for Figure 1',
-              say: 'Check it: 3 × 1 + 2 = 5. The rule is right. The first total and the constant are different things.' },
-            { text: 'Figure 1 has one group of 3 plus the 2 fixed tiles. The constant counts only the fixed tiles.', correct: true,
-              say: 'Right. Figure 1 is the constant plus one group: 2 + 3 = 5.' },
-            { text: 'The constant is the first total minus 3 by coincidence',
-              say: "It isn't coincidence. The first total always includes one group; the constant is what's there before any group." },
-          ] },
-      ],
-      why: ['The first total includes one group, so it is the constant plus the coefficient: 2 + 3 = 5. The constant is the value at Figure 0, before any groups are added. Reading the first total as the constant is the most common mistake with these rules.'],
     },
 
     /* ---------------- Screen 5 ---------------- */
@@ -1272,6 +1273,28 @@ function trianglesSVG(n) {
   return svg;
 }
 
+// A figure with a slider for n. c.s.slider lets a step move it (set) or show a rule under it for every figure (showRule).
+function sliderCard(b, c, onSlide) {
+  const holder = h('div', { class: 'figs' });
+  const readout = h('p', { class: 'readout', hidden: true });
+  const input = h('input', { type: 'range', min: b.min, max: b.max, step: 1, value: b.start, class: 'interactive', 'aria-label': 'Figure number', 'data-slider': '' });
+  let rule = null;
+  const render = () => {
+    const n = +input.value;
+    const svg = b.figure === 'tiles' ? tilesSVG(n, { width: b.max }) : sticksSVG(n, { width: b.max, colour: b.colour, scale: 0.7 });
+    holder.replaceChildren(fig(svg, `Figure ${n}`));
+    input.setAttribute('aria-valuetext', `Figure ${n}`);
+    if (rule) readout.replaceChildren(...chainUnits(rule(n), rich));
+  };
+  input.addEventListener('input', () => { render(); if (onSlide) onSlide(+input.value); });
+  c.s.slider = {
+    set: n => { input.value = n; render(); },
+    showRule: fn => { rule = fn; readout.hidden = false; render(); },
+  };
+  render();
+  return h('div', { class: 'card' }, holder, readout, input);
+}
+
 // Things a screen, a step or a Why? panel can show.
 const BLOCKS = {
   formula(b) { return h('p', { class: 'formula' }, rich(b.formula)); },
@@ -1285,6 +1308,7 @@ const BLOCKS = {
     return h('div', { class: 'students' }, b.students.map(st => h('div', { class: 'student' }, h('span', { class: 'name' }, st.name), h('span', { class: 'r' }, rich(st.rule)))));
   },
   rowTable(b) { return rowTable(b); },
+  slider(b, c) { return sliderCard(b.slider, c); },   // round 8: 3B's own slider on "The rule" (Marc)
   // Screen 3's row comparison; tableRow steps add rows to it.
   compare(b, c) {
     const { cols, rows, caption } = b.compare;
@@ -1690,27 +1714,8 @@ const STEPS = {
   // A figure with a slider for n; done when the learner reaches the target figure.
   slide(st, c) {
     add(c.el, promptEl(st));
-    const holder = h('div', { class: 'figs' });
-    const readout = h('p', { class: 'readout', hidden: true });
-    const input = h('input', { type: 'range', min: st.min, max: st.max, step: 1, value: st.start, class: 'interactive', 'aria-label': 'Figure number', 'data-slider': '' });
-    let rule = null, done = false;
-    const render = () => {
-      const n = +input.value;
-      const svg = st.figure === 'tiles' ? tilesSVG(n, { width: st.max }) : sticksSVG(n, { width: st.max, colour: st.colour, scale: 0.7 });
-      holder.replaceChildren(fig(svg, `Figure ${n}`));
-      input.setAttribute('aria-valuetext', `Figure ${n}`);
-      if (rule) readout.replaceChildren(...chainUnits(rule(n), rich));
-    };
-    input.addEventListener('input', () => {
-      render();
-      if (!done && +input.value === st.target) { done = true; c.done(); }
-    });
-    c.s.slider = {
-      set: n => { input.value = n; render(); },
-      showRule: fn => { rule = fn; readout.hidden = false; render(); },
-    };
-    render();
-    add(c.el, h('div', { class: 'card' }, holder, readout, input));
+    let done = false;
+    add(c.el, sliderCard(st, c, n => { if (!done && n === st.target) { done = true; c.done(); } }));
   },
 
   // Screen 7: drag sticks onto the edges of Figure 4. A stick dropped on an existing edge is rejected.
