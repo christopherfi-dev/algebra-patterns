@@ -1,23 +1,28 @@
-# Growing Patterns: Finding the Rule: report (round 5)
+# Growing Patterns: Finding the Rule: report (round 6)
 
 The lesson is `lesson/index.html`. It is one self-contained file: one `LESSON` data block, one engine, and a `MODEL` section that computes every number shown. It makes no network calls, uses no libraries or web fonts, and stores nothing about the learner.
 
-It teaches one idea, from a growing figure to its rule, in **12 screens**. Every test passes in both engines:
+It teaches one idea, from a growing figure to its rule, in **13 screens**. Every test passes in both engines:
 
 | Engine | Checks | Failed |
 |---|---|---|
-| Chromium 153 | 2,950 | 0 |
-| WebKit 26.6 (Safari's engine) | 2,426 | 0 |
+| Chromium 153 | 3,340 | 0 |
+| WebKit 26.6 (Safari's engine) | 2,757 | 0 |
 
 The source of truth, in order of precedence:
-1. `HANDOFF-ROUND-5.md`;
-2. `HANDOFF-ROUND-4.md`;
-3. `HANDOFF-ROUND-3.md`;
-4. `ROUND-2-AMENDMENT.md`, with Marc's two answers in `docs/Round-2-Amendment-Answers.md`;
-5. `docs/Round-2-Decisions.md` and `docs/Round-2-Wording.md`;
-6. the original spec.
+1. `HANDOFF-ROUND-6.md`;
+2. `HANDOFF-ROUND-5.md`;
+3. `HANDOFF-ROUND-4.md`;
+4. `HANDOFF-ROUND-3.md`;
+5. `ROUND-2-AMENDMENT.md`, with Marc's two answers in `docs/Round-2-Amendment-Answers.md`;
+6. `docs/Round-2-Decisions.md` and `docs/Round-2-Wording.md`;
+7. the original spec.
 
-**Step IDs** keep their round 1 numbers. Both halves of round 1 Screen 3 keep the "3" prefix: 3T1–3T3 on the table screen, and 3A1–3B on the rule screen. The exit ticket is ID 15 and the self-check ID 16.
+**Step IDs** keep their round 1 numbers. Round 1 Screen 3 is now three learner screens, all with the "3" prefix: 3T1–3T3 on the table screen, 3S1 and 3S2 on the new skip-count screen (round 6), and 3R, 3A1–3B on the rule screen. The exit ticket is ID 15 and the self-check ID 16.
+
+| Learner screen | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Round 1 ID | 2 | 3 (3T) | 3 (3S) | 3 (3R, 3A, 3B) | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 15 | 16 |
 
 ---
 
@@ -26,23 +31,37 @@ The source of truth, in order of precedence:
 | Screen | ID | Title | What the learner does |
 |---|---|---|---|
 | 1 | 2 | What stays and what grows? | Figures 1–3 in the two colours. Types the fixed tiles (2) and what each figure adds (3). Drags or taps a group of 3 onto Figure 3 to make Figure 4, then types its total (14). |
-| 2 | 3 (3T1–3T3) | The skip-count table | Marc's row comparison, built one row at a time. Fills in the skip count by 3 (types 3 and 6; 9 and 12 fill in). Types the 10th skip-count number (30). Types how many more each figure has (2; the rest fill in). Why?: "Each figure adds 3 tiles, so the tiles grow like the skip count by 3…" |
-| 3 | 3 (3A1–3B) | Figure 0, and the rule | Opens with the completed table, read-only, captioned "From the last screen". Slides back to Figure 0, types its tiles ("The same 2 as in the table"), and types the rule; sliding then checks any figure. After a second miss on 3B, a follow-up item: 4 fixed tiles plus groups of 2. |
-| 4 | 4 | Why does Figure 1 have 5 tiles if the constant is 2? | Chooses one of three explanations. |
-| 5 | 5 | Which figure has 23 tiles? | Types 7. |
-| 6 | 6 | Does one check prove it? | Types 5n at Figure 1, then chooses Yes, Maybe or No; **Maybe and No are both right**, each with its own confirmation. Types 5n at Figures 0 and 10 next to their pictures; the real counts appear after Check. Types 3n + 2 at Figures 0, 1 and 10. Chooses why 3n + 2 can be trusted. |
-| 7 | 7 | Shared edges | Drags sticks onto Figure 4's edges; a stick on an existing edge is rejected. Types 13, then Figure 10's total. Answering 40 starts Marc's move in six steps; a 7 on its first step goes straight to the shared edge. After a second miss on 7B, a follow-up item with a row of triangles. |
-| 8 | 8 | Are these two rules the same? | Types both rules at n = 1, 2 and 3 ("Right. The same values for all three figures."); on narrow phones each rule sits above its row of boxes. Slides to Figure 0 and types 1. The Why? is unchanged; it explains the simplification as reading, with Nina's first square drawn neutral. **There is no longer a simplification step.** |
-| 9 | 9 | Forward and backward | Types Figure 40's sticks (121), then the figure that uses 100 sticks (33). |
-| 10 | 10 | Three students, three rules | Builds each student's rule for Figure 1. Arun's 4 is orange; Nina's 4 is neutral and labelled "first square". Marks each rule correct or incorrect. Writes an explanation and compares it with the model. |
-| 11 | 15 | Exit ticket | A new pattern: 5 fixed tiles plus groups of 4. Four numbered questions: (1) complete the table; (2) write the rule, and (2b) choose what the constant counts; (3) the tiles in Figure 25; (4) the figure with 65 tiles. One submission, then each wrong item shows its response. |
-| 12 | 16 | What you showed on your own | Four lines, ticked only from the exit ticket's single submission. Line 2, "Wrote the rule and identified what the constant counts", needs both 2 and 2b. |
+| 2 | 3 (3T1–3T3) | The skip-count table | Figures 1–4 above the table, in the two colours. Marc's row comparison, built one row at a time. Fills in the skip count by 3 (types 3 and 6; 9 and 12 fill in). Types the 10th skip-count number (30, "Right: 10 × 3 = 30."). Types all four "How many more" values (2, 2, 2, 2); nothing fills in. Why?: "Each figure adds 3 tiles, so the tiles grow like the skip count by 3…" |
+| 3 | 3 (3S1, 3S2) | Skip count for any figure | **New in round 6.** Figures 1–4 above the completed table, read-only. Types Figure 5's tiles if they were just the skip count (15). Chooses which gives the skip count for any figure number n: 3 + n, 3 − n, 3n or 3 ÷ n (3n, third). Why?: "In a skip count by 3, the figure number tells you how many 3s there are…" |
+| 4 | 3 (3R, 3A1–3B) | Figure 0, and the rule | Figures 1–4 above the completed table, read-only, captioned "From the last screen". First types how many more every figure has than the skip count (2; step 3R, new in round 6). Then slides back to Figure 0, types its tiles ("The same 2 as in the table"), and types the rule; sliding then checks any figure. After a second miss on 3B, a follow-up item: 4 fixed tiles plus groups of 2. |
+| 5 | 4 | Why does Figure 1 have 5 tiles if the constant is 2? | Chooses one of three explanations. |
+| 6 | 5 | Which figure has 23 tiles? | Types 7. |
+| 7 | 6 | Does one check prove it? | Types 5n at Figure 1, then chooses Yes, Maybe or No; **Maybe and No are both right**, each with its own confirmation. Types 5n at Figures 0 and 10 next to their pictures; the real counts appear after Check. Types 3n + 2 at Figures 0, 1 and 10. Chooses why 3n + 2 can be trusted. |
+| 8 | 7 | Shared edges | Drags sticks onto Figure 4's edges; a stick on an existing edge is rejected. Types 13, then Figure 10's total. Answering 40 starts Marc's move in six steps; a 7 on its first step goes straight to the shared edge. After a second miss on 7B, a follow-up item with a row of triangles. |
+| 9 | 8 | Are these two rules the same? | Types both rules at n = 1, 2 and 3 ("Right. The same values for all three figures."); on narrow phones each rule sits above its row of boxes. Slides to Figure 0 and types 1. The Why? is unchanged; it explains the simplification as reading, with Nina's first square drawn neutral. **There is no longer a simplification step.** |
+| 10 | 9 | Forward and backward | Types Figure 40's sticks (121), then the figure that uses 100 sticks (33). |
+| 11 | 10 | Three students, three rules | Builds each student's rule for Figure 1. Arun's 4 is orange; Nina's 4 is neutral and labelled "first square". Marks each rule correct or incorrect. Writes an explanation and compares it with the model. |
+| 12 | 15 | Exit ticket | A new pattern: 5 fixed tiles plus groups of 4. Four numbered questions: (1) complete the table; (2) write the rule, and (2b) choose what the constant counts; (3) the tiles in Figure 25; (4) the figure with 65 tiles. One submission, then each wrong item shows its response. |
+| 13 | 16 | What you showed on your own | Four lines, ticked only from the exit ticket's single submission. Line 2, "Wrote the rule and identified what the constant counts", needs both 2 and 2b. |
 
 **Parts:**
-- Part 1: Tiles. See the structure (Screens 1–6)
-- Part 2: Sticks. Two ways to see one rule (Screens 7–9)
-- Part 3: Evaluate and repair (Screen 10)
-- Part 4: Exit ticket (Screens 11 and 12)
+- Part 1: Tiles. See the structure (Screens 1–7)
+- Part 2: Sticks. Two ways to see one rule (Screens 8–10)
+- Part 3: Evaluate and repair (Screen 11)
+- Part 4: Exit ticket (Screens 12 and 13)
+
+### What round 6 changed
+
+Marc found the step from the table to the rule was a jump. Round 6 rebuilds learner Screens 2 and 3 to follow his move 1 step by step, and adds a screen between them.
+
+| Section | Change |
+|---|---|
+| 1 | **Figures 1–4 stay on screen** above the table on Screens 2, 3 and 4, in the two colours: 2 fixed tiles in the constant colour and each group of 3 in the coefficient colour. On Screens 3 and 4 the completed table is read-only beneath them; Screen 4 keeps "From the last screen". Below 420 px these figures are drawn at 85% so they take two rows (my addition, decision 11). |
+| 2 | **Screen 2.** 3T2's confirmation is "Right: 10 × 3 = 30." (no 3n yet). 3T3: the learner types all four values; nothing fills in. "Right. Every figure has exactly 2 more." A 3 in any box gets the existing "3 is what each figure adds…" response. New hint: "Subtract in each column: 5 − 3, 8 − 6, 11 − 9, 14 − 12." |
+| 3 | **New Screen 3, "Skip count for any figure".** 3S1 (typed): Figure 5 as just the skip count, with responses for 15, 17 and 8, and a hint. 3S2 (choice): 3 + n, 3 − n, 3n, 3 ÷ n, with the right option third and each wrong option saying what it gives at Figure 5. New Why?. The lesson is 13 screens, and every later screen moves down one. |
+| 4 | **Screen 4.** A new first step, 3R: how many more every figure has than the skip count (2, with a response for 3 and a hint). Then 3A1, 3A2 and 3B unchanged, except 3B's hint: "Start with the skip count for figure n, then add how many more every figure has." 3B·f keeps its own hint. |
+
+`README.md` now says 13 screens.
 
 ### What round 5 changed
 
@@ -95,6 +114,11 @@ Marc approved everything listed for him in round 2 ("approved as built", HANDOFF
 8. **Round 4: what counts as a chain.** Only a chain of equalities, with two or more "=", may break after "=". A single equation stays whole, as round 3 required.
 9. **Round 4: the margin.** HANDOFF-ROUND-4 asks to "leave some margin". I set it at **16 px**: at 360 and 390 px, every unbreakable piece, and every table at its narrowest, must leave 16 px spare in its container. That roughly covers a font 5–8% wider than the ones here.
 10. **Round 5: where the header stacks.** Below 420 px, the same width at which Screen 8's two-rule table stacks. At 420 px the title and "Screen 12 of 12" fit side by side with 35 px spare.
+11. **Round 6: the figures above the table are 85% size below 420 px.** At full size, Figures 1–3 need 318 px for one row, and the card has 298 px at 360 px, so the four figures took **three** rows there. The handoff allows two. At 85% they take two rows from 320 px up. Measured in both engines, the tighter row leaves 17 px spare at 360 px and 47 px at 390 px, so the 16 px margin holds; at 320 px it leaves 1 px. From 420 px up they're full size; on desktop they take one row. Only these figures change; every other figure in the lesson is as before.
+12. **Round 6: "Any 3" on 3T3** means a 3 in any of the four boxes, even if the other boxes are right. An empty box gets no response; Check moves to it, as in every typed table.
+13. **Round 6: computed text.** As the handoff asks, every number in Screen 3's text is computed from the rule: the group of 3, Figure 5, and what each wrong option gives at Figure 5, which the rule parser works out from the option's own text. The word "five" is the figure number in words. The changed text on Screens 2 and 4 (3T2, 3T3, 3R) is written out, like the other responses on those screens. The tests check all of it word for word against the handoff.
+14. **Round 6: no caption on Screen 3's table.** The handoff gives "From the last screen" only for Screen 4, so Screen 3's table has no caption. Screen 4's caption is still true, because Screen 3 shows the table too.
+15. **Round 6: "lines up in meaning".** Each figure is captioned Figure 1 to Figure 4, matching the table's "Figure n" row. The figures don't sit physically over their columns: on phones they wrap to two rows, and on desktop the row of figures is wider than the table.
 
 ### Still standing from earlier rounds
 
@@ -123,6 +147,8 @@ Marc approved everything listed for him in round 2 ("approved as built", HANDOFF
 ---
 
 ## 4. Conflicts and things to decide
+
+Round 6: nothing in `HANDOFF-ROUND-6.md` conflicted with earlier files or was impossible to build. The one fit problem, the figures taking three rows at 360 px, is solved by layout (decision 11).
 
 ### Round 5: the header (resolved)
 
@@ -155,24 +181,28 @@ Nothing is open.
 
 | Section | Chromium | WebKit | What it covers |
 |---|---|---|---|
-| Source-of-truth text | 10 | 10 | Strings used by the tests exist in the source of truth |
+| Source-of-truth text | 11 | 11 | Strings used by the tests exist in the source of truth |
 | Title | 4 | 4 | The browser tab and the header read "Growing Patterns: Finding the Rule"; "Seeing the Rule" appears nowhere in `lesson/index.html` |
 | Answer checker | 6 | 6 | Equivalence; rejection of n × n, powers and n in a denominator; unparseable input; numbers with units |
-| Computed numbers | 6 | 6 | 12 screens; tiles, skip counts, follow-up and exit patterns, sticks (Figure 10 = 31, Figure 40 = 121), triangles, builds |
+| Computed numbers | 6 | 6 | 13 screens; tiles, skip counts, follow-up and exit patterns, sticks (Figure 10 = 31, Figure 40 = 121), triangles, builds |
 | Data block text | 3 | 3 | Every response, hint, Why?, title and option is word for word in the source of truth (a non-breaking space counts as a space); every prompt is approved; parts 1–4 keep their spec names |
-| Correct path | 6 × 262 | 4 × 262 | All 12 screens. Chromium: 390 px tap, 390 px touch drag, 360 px tap, desktop mouse, and both dark modes. WebKit: 390 px, 360 px, desktop and phone dark. Each screen: progress, Next gating, responses, Why?, no overflow, 44 px targets, no "null" or "undefined", the no-wrap rule, the header (title and progress each on one line with 16 px spare), and on phones the 16 px margin, with the Why? open |
-| Predicted wrong answers | 2 × 285 | 2 × 285 | Every predicted error and one unpredicted answer per hint on every screen, at 390 px and at 360 px, with every response and the Why? open. Includes 6A2: "Yes" twice, the Answer card naming Maybe and No, then "No" accepted with its text |
-| Screen 7, two extra runs | 113 + 107 | 113 + 107 | Marc's move with a 7, and every hint; the 7B triangles follow-up |
-| Exit ticket, four runs | 4 × 130 | 4 × 130 | Every other exit response, item 2b, the self-check ticks, and the 16 px margin with the responses showing |
-| Navigation, keyboard | 39 | 39 | Back and Next across the split; placing a piece and checking an answer by keyboard |
-| **Total** | **2,950 passed, 0 failed** | **2,426 passed, 0 failed** | |
+| Correct path | 4 × 293 + 2 × 290 | 3 × 293 + 290 | All 13 screens. Chromium: 390 px tap, 390 px touch drag, 360 px tap, desktop mouse, and both dark modes. WebKit: 390 px, 360 px, desktop and phone dark. Each screen: progress, Next gating, responses, Why?, no overflow, 44 px targets, no "null" or "undefined", the no-wrap rule, the header (title and progress each on one line with 16 px spare), and on phones the 16 px margin, with the Why? open. Screens 2–4: Figures 1–4 above the table in both colours, and on phones at most two rows of figures with 16 px spare (so desktop runs have 3 checks fewer). Round 6's correct answers: 3T2 with no "3n", all four 3T3 boxes typed with nothing filled in, 3S1, 3S2 with its options in order, and 3R before 3A1 |
+| Predicted wrong answers | 2 × 322 | 2 × 322 | Every predicted error and one unpredicted answer per hint on every screen, at 390 px and at 360 px, with every response and the Why? open. Includes 6A2: "Yes" twice, the Answer card naming Maybe and No, then "No" accepted with its text. Round 6: 3T3 with an empty box, a 3 in one box, and the new hint; 3S1's 17, 8 and hint; all three wrong 3S2 options; 3R's 3 and hint; 3B's new hint; and each step's Answer card |
+| Screen 7, two extra runs | 135 + 129 | 135 + 129 | Marc's move with a 7, and every hint; the 7B triangles follow-up |
+| Exit ticket, four runs | 4 × 152 | 4 × 152 | Every other exit response, item 2b, the self-check ticks, and the 16 px margin with the responses showing |
+| Navigation, keyboard | 42 | 42 | Back and Next across the table screens; placing a piece and checking an answer by keyboard |
+| **Total** | **3,340 passed, 0 failed** | **2,757 passed, 0 failed** | |
 
 **The margin check** measures every unbreakable expression against the column of text it sits in, every nowrap formula, rule card and caption against its container, and every table at its narrowest possible layout. Each must leave 16 px spare, and the page must never scroll sideways. It would have caught the original problem: at 360 px the old 287 px chain left only 9 px.
 
-**The header check** (round 5) runs on every screen of every correct path, at 360, 390 and 1280 px. The title and "Screen k of 12" must each take one line and leave 16 px spare; where they share a row, both together must leave 16 px. I ran it on the header as it was before option 1, and it fails there: at 360 px the title and the progress text each took two lines, and at 390 px the shared row left 5 px.
+The Screen 7 and exit-ticket runs play the earlier screens first, so their counts include the new checks on Screens 2–4.
+
+**The figures check** (round 6) runs on Screens 2, 3 and 4 of every correct path. Each figure must have 2 tiles in the `--constant` colour and n groups of 3 in the `--coefficient` colour, and the figures must sit above the table. At 360 and 390 px they must take at most two rows, each leaving 16 px spare. I ran it without the 85% scaling, and it fails there: at 390 px the two rows leave only 10 px.
+
+**The header check** (round 5) runs on every screen of every correct path, at 360, 390 and 1280 px. The title and "Screen k of 13" must each take one line and leave 16 px spare; where they share a row, both together must leave 16 px. I ran it on the header as it was before option 1, and it fails there: at 360 px the title and the progress text each took two lines, and at 390 px the shared row left 5 px.
 
 **Screenshots** are in `test-results/screenshots/`:
-- all 12 screens at 390 × 844 and 1280 × 800, before and after the correct path, with each screen's Why? open in the "done" shots (including Screen 8's);
+- all 13 screens at 390 × 844 and 1280 × 800, before and after the correct path, with each screen's Why? open in the "done" shots (including Screen 9's);
 - each screen after its wrong answers;
 - WebKit captures in `webkit/`.
 
