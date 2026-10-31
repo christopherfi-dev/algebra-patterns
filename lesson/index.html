@@ -378,7 +378,7 @@ const LESSON = {
       show: [{ compare: { cols: [1, 2, 3, 4], rows: [['Figure n', n => n], ['Tiles', n => tileCount(n)]] } }],
       steps: [
         { id: 'T1', type: 'tableRow',
-          prompt: 'Fill in the skip-count row: count by 3.', label: 'Skip count by 3', typed: 2,
+          prompt: 'Fill in the skip-count row: count by 3.', label: 'Skip count by\u00A03', typed: 2,   // non-breaking space: the number never sits alone (HANDOFF-ROUND-4 3)
           value: n => TILES.group * n,
           answers: () => [1, 2].map(n => TILES.group * n),
           say: 'Right: 3, 6, 9, 12.',
@@ -404,7 +404,7 @@ const LESSON = {
       n: 3, part: 1, title: 'Figure 0, and the rule',
       // The completed table from the last screen, read-only, so both routes to the 2 meet on this screen.
       show: [{ compare: { cols: [1, 2, 3, 4], caption: 'From the last screen',
-        rows: [['Figure n', n => n], ['Tiles', n => tileCount(n)], ['Skip count by 3', n => TILES.group * n], ['How many more', n => tileCount(n) - TILES.group * n]] } }],
+        rows: [['Figure n', n => n], ['Tiles', n => tileCount(n)], ['Skip count by\u00A03', n => TILES.group * n], ['How many more', n => tileCount(n) - TILES.group * n]] } }],
       steps: [
         { id: 'A1', type: 'slide', prompt: 'Slide the figure number back to 0.', figure: 'tiles', min: 0, max: 10, start: 4, target: 0 },
         { id: 'A2', type: 'number', prompt: 'How many tiles does Figure 0 have?',
@@ -437,7 +437,7 @@ const LESSON = {
       ],
       why: [
         "The coefficient 3 counts the tiles in each group, so it multiplies the figure number n. The constant 2 counts the fixed tiles, which are there even at Figure 0. You can also see it in a table, the way you'd compare rows:",
-        { rowTable: true, rule: '3n + 2', normal: '3n', from: 0, to: 4, labels: ['n', 'Tiles', 'Skip count by 3 (3n)', 'How many more'] },   // row names: docs/Round-2-Amendment-Answers.md
+        { rowTable: true, rule: '3n + 2', normal: '3n', from: 0, to: 4, labels: ['n', 'Tiles', 'Skip count by\u00A03 (3n)', 'How many more'] },   // row names: docs/Round-2-Amendment-Answers.md
         'The picture and the table give the same constant. T = 3n + 2.',
       ],
     },
@@ -677,7 +677,7 @@ const LESSON = {
           { num: '1', question: 1, q: 'Complete the table.', type: 'table', head: 'Figure n', cols: [1, 2, 3, 4, 5],
             rows: [
               { label: 'Tiles', value: n => tilesIn(TILES_EXIT, n), given: 3, ifWrong: 'Each figure adds 4 tiles.' },
-              { label: 'Skip count by 4', value: n => TILES_EXIT.group * n, given: 2, ifWrong: 'Count by 4: 4, 8, 12, …' },
+              { label: 'Skip count by\u00A04', value: n => TILES_EXIT.group * n, given: 2, ifWrong: 'Count by 4: 4, 8, 12, …' },
             ] },
           { num: '2', question: 2, q: 'Write the rule.', type: 'rule', prefix: 'T =', answer: '4n + 5',
             wrong: [
