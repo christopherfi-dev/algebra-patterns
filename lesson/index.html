@@ -394,15 +394,16 @@ const LESSON = {
           hint: 'Count by 3, the number each figure adds.' },
         { id: 'T2', type: 'number', prompt: 'What is the 10th number in the skip-count row?',
           answer: () => TILES.group * 10,
-          say: 'Right: 10 × 3 = 30. So the skip-count row is 3n.',
+          say: 'Right: 10 × 3 = 30.',   // the learner builds 3n on the next screen (HANDOFF-ROUND-6 2)
           wrong: [{ values: [tileCount(10)], say: "32 is Figure 10's tiles. The skip-count row is only the 3s." }],
           hint: 'The 1st is 1 × 3. The 2nd is 2 × 3.' },
-        { id: 'T3', type: 'tableRow', prompt: 'How many more tiles does each figure have than the skip count?', label: 'How many more', typed: 1,
+        // HANDOFF-ROUND-6 2: the learner types all four values, so they see the 2 in every figure. Nothing fills in.
+        { id: 'T3', type: 'tableRow', prompt: 'How many more tiles does each figure have than the skip count?', label: 'How many more', typed: 4,
           value: n => tileCount(n) - TILES.group * n,
-          answers: () => [tileCount(1) - TILES.group],
-          say: 'Right: 2 more every time.',
-          wrong: [{ values: [TILES.group], say: '3 is what each figure adds. Compare the two rows: 5 and 3, then 8 and 6.' }],
-          hint: 'Subtract: 5 − 3, then 8 − 6.' },
+          answers: () => [1, 2, 3, 4].map(n => tileCount(n) - TILES.group * n),
+          say: 'Right. Every figure has exactly 2 more.',
+          wrong: [{ any: [TILES.group], say: '3 is what each figure adds. Compare the two rows: 5 and 3, then 8 and 6.' }],   // a 3 in any box
+          hint: 'Subtract in each column: 5 − 3, 8 − 6, 11 − 9, 14 − 12.' },
       ],
       why: ['Each figure adds 3 tiles, so the tiles grow like the skip count by 3. Every figure has 2 more tiles than the skip count. Those 2 are the fixed tiles.'],
     },
@@ -905,7 +906,8 @@ const JUDGE = {
     if (vals.some(v => v === null)) return { kind: 'format', say: LESSON.ui.numberFormat };
     if (st.judge) return st.judge(vals, st, c);
     if (matches(vals, st.answers())) return { kind: 'correct', say: st.say };
-    for (const w of st.wrong || []) if (matches(vals, w.values)) return { kind: 'wrong', say: w.say };
+    // A wrong entry matches the whole answer (values), or any one box holding one of its numbers (any).
+    for (const w of st.wrong || []) if (w.any ? vals.some(v => w.any.some(x => near(v, x))) : matches(vals, w.values)) return { kind: 'wrong', say: w.say };
     return { kind: 'hint', say: st.hint || LESSON.ui.fallback };
   },
   tableRow(st, raws, c) { return JUDGE.numbers(st, raws, c); },
