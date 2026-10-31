@@ -5,8 +5,8 @@ An interactive math lesson in one self-contained HTML file.
 ## Source of truth
 
 - The spec is `docs/Seeing-the-Rule-Interactive-Lesson-Plan.md`.
-- Marc's approved changes are in `HANDOFF-ROUND-3.md`, `ROUND-2-AMENDMENT.md`, `docs/Round-2-Decisions.md` and `docs/Round-2-Wording.md`.
-- Order of precedence: `HANDOFF-ROUND-3.md` first, then `ROUND-2-AMENDMENT.md`, then the two round 2 files, then the spec. Everything a later file doesn't change still comes from the earlier ones.
+- Marc's approved changes are in `HANDOFF-ROUND-4.md`, `HANDOFF-ROUND-3.md`, `ROUND-2-AMENDMENT.md`, `docs/Round-2-Decisions.md` and `docs/Round-2-Wording.md`.
+- Order of precedence: `HANDOFF-ROUND-4.md` first, then `HANDOFF-ROUND-3.md`, then `ROUND-2-AMENDMENT.md`, then the two round 2 files, then the spec. Everything a later file doesn't change still comes from the earlier ones.
 
 ## Who decides
 

@@ -35,7 +35,7 @@ Colour the constant one colour and each group of the coefficient a second colour
 
 ### 3. Testing a rule
 
-Students may think that if a rule works for one figure, it's correct. The answer is "Maybe. We should always try another one," such as n = 0 or n = 10. For a single-variable rule, if it works for three figures, it is correct.
+Students may think that if a rule works for one figure, it's correct. The answer is "Maybe. We should always try another one," such as n = 0 or n = 10. For a straight-line rule, and a pattern that adds the same amount every time, if it works for three figures it is correct. Two figures already settle it; the third catches slips.
 
 ### 4. When a student overcounts shared parts (sticks in a row of squares)
 
