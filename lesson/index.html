@@ -487,6 +487,7 @@ const LESSON = {
           ],
           hint: 'Look at the picture at Figure 0. Which tiles are still there?' },
         { id: 'B', type: 'rule', prompt: 'Type the rule.', prefix: 'T =', answer: '3n + 2',
+          lines: ['A rule gives the total for any figure. T is the total number of tiles and n is the figure number. The coefficient multiplies n; the constant is added.'],   // HANDOFF-ROUND-8 1
           say: 'Right. Slide to check any figure.',
           wrong: [
             // "the screen tests it at n = 1: 8, not 5."
@@ -705,6 +706,7 @@ const LESSON = {
           wrong: [{ values: [4], say: '4 is Figure 1. Take away its three sticks.' }],
           hint: 'At Figure 0 there are no squares. Which stick is still there?' },
         { id: 'R5', type: 'rule', prompt: 'Type the rule.', prefix: 'S =', answer: '3n + 1',
+          lines: ['S is the total number of sticks.'],   // HANDOFF-ROUND-8 1
           say: 'Right: S = 3n + 1.',
           wrong: [
             { rule: '4 + 3n', say: "Test it at Figure 1: it gives 7, but Figure 1 has 4 sticks. 4 is Figure 1's total; the constant is what's there at Figure 0." },
