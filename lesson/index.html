@@ -389,9 +389,18 @@ const LESSON = {
     {
       n: 3, key: '3t', part: 1, title: 'The skip-count table',
       // Marc's row comparison, built one row at a time (ROUND-2-AMENDMENT 5): the table stays at the top while rows are added.
-      // Figures 1 to 4 stay above it, one for each column (HANDOFF-ROUND-6 1).
-      show: [{ tiles: [1, 2, 3, 4], compact: true }, { compare: { cols: [1, 2, 3, 4], rows: [['Figure n', n => n], ['Tiles', n => tileCount(n)]] } }],
+      // Figures 1 to 4 stay above it, one for each column (HANDOFF-ROUND-6 1). The learner counts the Tiles row in (HANDOFF-ROUND-7 2).
+      show: [{ tiles: [1, 2, 3, 4], compact: true }, { compare: { cols: [1, 2, 3, 4], rows: [['Figure n', n => n]] } }],
       steps: [
+        { id: 'T0', type: 'tableRow', prompt: 'Count the tiles in each figure and fill in the Tiles row.', label: 'Tiles', typed: 4,
+          value: n => tileCount(n),
+          answers: () => [1, 2, 3, 4].map(tileCount),
+          say: 'Right: 5, 8, 11, 14.',
+          wrong: [
+            { values: [1, 2, 3, 4].map(skipCount), say: 'Those are only the groups of 3. Count every tile, both colours.' },
+            { values: [1, 2, 3, 4].map(() => TILES.fixed), say: 'Those are only the fixed tiles. Count every tile, both colours.' },
+          ],
+          hint: 'Count every tile in Figure 1, both colours.' },
         { id: 'T1', type: 'tableRow',
           prompt: 'Fill in the skip-count row: count by 3.', label: 'Skip count by\u00A03', typed: 2,   // non-breaking space: the number never sits alone (HANDOFF-ROUND-4 3)
           value: n => TILES.group * n,
