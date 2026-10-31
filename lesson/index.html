@@ -286,6 +286,9 @@ const skipCount = n => TILES.group * n;
 const SKIP_AT = 5;
 // The follow-up pattern after a second miss on 3B (Round-2-Wording D): 4 fixed tiles plus n groups of 2.
 const TILES_FOLLOW = { fixed: 4, group: 2 };
+// The practice patterns (HANDOFF-ROUND-7 7): 1 fixed tile plus groups of 5 (10P1), and 6 fixed tiles plus groups of 2 (10P2).
+const TILES_P1 = { fixed: 1, group: 5 };
+const TILES_P2 = { fixed: 6, group: 2 };
 // The exit ticket's pattern (ROUND-2-AMENDMENT 3): 5 fixed tiles plus n groups of 4.
 const TILES_EXIT = { fixed: 5, group: 4 };
 
@@ -336,6 +339,10 @@ function builtEdges(constant, groups, constCls = 'const') {
 const DONE_TABLE = [['Figure n', n => n], ['Tiles', n => tileCount(n)], ['Skip count by\u00A03', skipCount], ['How many more', n => tileCount(n) - skipCount(n)]];
 // 3S2: a wrong option and what it gives at Figure 5, computed from the rule. (parseRule and evalAt are hoisted; ruleFn isn't defined yet.)
 const notSkip = expr => ({ text: expr, say: `${expr} gives ${fmt(evalAt(parseRule(expr), SKIP_AT))} at Figure ${SKIP_AT}, not ${fmt(skipCount(SKIP_AT))}.` });
+// What a rule gives at a figure, for the practice screen's responses (the parser is hoisted, so this runs while LESSON is built).
+const ruleAt = (expr, n) => fmt(evalAt(parseRule(expr), n));
+// A practice pattern drawn as Figures 1 to 3, with a table of Figure n and Tiles beneath (HANDOFF-ROUND-7 7).
+const practiceShow = P => [{ tiles: [1, 2, 3], pattern: P }, { compare: { cols: [1, 2, 3], rows: [['Figure n', n => n], ['Tiles', n => tilesIn(P, n)]] } }];
 const LESSON = {
   title: 'Growing Patterns: Finding the Rule',
   ui: {
@@ -356,11 +363,12 @@ const LESSON = {
     same: 'Mine says the same thing.',
     tiles: n => `${n} tiles`,
   },
-  parts: {   // renumbered 1 to 4, names as written (docs/Round-2-Amendment-Answers.md)
+  parts: {   // names as written (docs/Round-2-Amendment-Answers.md); Part 4 is new in round 7, and the exit ticket is now Part 5
     1: 'Part 1: Tiles. See the structure',
     2: 'Part 2: Sticks. Two ways to see one rule',
     3: 'Part 3: Evaluate and repair',
-    4: 'Part 4: Exit ticket',
+    4: 'Part 4: Practise',
+    5: 'Part 5: Exit ticket',
   },
   screens: [
     /* ---------------- Screen 2 ---------------- */
@@ -787,9 +795,39 @@ const LESSON = {
       why: ["Arun's constant, 4, is already a complete square. His 3n then adds a three-stick piece for every square, so at n = 1 he builds two squares: Figure 2. Mina starts from 1 stick, so n pieces of 3 make exactly n squares. Nina keeps the full first square but uses (n − 1), so she only adds pieces for the squares after the first. Her rule simplifies to Mina's: equivalent rules can look different and still give the same value for every n."],
     },
 
+    /* ---------------- New in round 7: Part 4, practise (HANDOFF-ROUND-7 7) ---------------- */
+    // Two new patterns: choose the rule for one, then write the rule for the other. Every number is computed from the pattern.
+    {
+      n: 10, key: '10p', part: 4, title: 'Which rule fits?',
+      steps: [
+        { id: 'P1', type: 'choice', prompt: 'Which rule fits this pattern?', show: practiceShow(TILES_P1),
+          options: [   // the right option is second, out of first position
+            { text: `T = ${tilesIn(TILES_P1, 1)} + ${TILES_P1.group}n`,
+              say: `${tilesIn(TILES_P1, 1)} is Figure 1's total. The constant is what's there at Figure 0.` },
+            { text: `T = ${TILES_P1.group}n + ${TILES_P1.fixed}`, correct: true,
+              say: `Right: ${TILES_P1.group} is the coefficient, what each figure adds. ${TILES_P1.fixed} is the constant, what's there at Figure 0.` },
+            { text: `T = ${tilesIn(TILES_P1, 1)}n`,
+              say: `Each figure adds ${TILES_P1.group}, not ${tilesIn(TILES_P1, 1)}. ${tilesIn(TILES_P1, 1)}n gives ${ruleAt(`${tilesIn(TILES_P1, 1)}n`, 2)} at Figure 2, but Figure 2 has ${tilesIn(TILES_P1, 2)}.` },
+            { text: `T = n + ${TILES_P1.group}`,
+              say: `n + ${TILES_P1.group} gives ${ruleAt(`n + ${TILES_P1.group}`, 1)} at Figure 1, but only ${ruleAt(`n + ${TILES_P1.group}`, 2)} at Figure 2. Figure 2 has ${tilesIn(TILES_P1, 2)}. Each figure adds ${TILES_P1.group}.` },
+          ] },
+        { id: 'P2', type: 'rule', prompt: 'Write the rule for this pattern.', prefix: 'T =', show: practiceShow(TILES_P2),
+          answer: `${TILES_P2.group}n + ${TILES_P2.fixed}`,
+          say: `Right: T = ${TILES_P2.group}n + ${TILES_P2.fixed}. ${TILES_P2.group} is the coefficient and ${TILES_P2.fixed} is the constant.`,
+          wrong: [
+            { rule: `${tilesIn(TILES_P2, 1)} + ${TILES_P2.group}n`,
+              say: `Test it at Figure 1: it gives ${ruleAt(`${tilesIn(TILES_P2, 1)} + ${TILES_P2.group}n`, 1)}, but Figure 1 has ${tilesIn(TILES_P2, 1)}. ${tilesIn(TILES_P2, 1)} is Figure 1's total; the constant is what's there at Figure 0.` },
+            { rule: `${TILES_P2.group}n`, say: `Every figure also has the ${TILES_P2.fixed} fixed tiles.` },
+            { rule: `${tilesIn(TILES_P2, 1)}n`, say: `Each figure adds ${TILES_P2.group}, not ${tilesIn(TILES_P2, 1)}.` },
+          ],
+          hint: "Find what each figure adds, then what's there at Figure 0." },
+      ],
+      why: ["Every rule here has two parts: what each figure adds, the coefficient, which multiplies n; and what's there at Figure 0, the constant. Figure 1's total always includes one group, so it is never the constant."],
+    },
+
     /* ---------------- Exit ticket (replaces round 1 Screen 15; ROUND-2-AMENDMENT 3) ---------------- */
     {
-      n: 15, part: 4, title: 'Exit ticket',
+      n: 15, part: 5, title: 'Exit ticket',
       intro: ["Figures 1, 2 and 3 of a new pattern. Answer on your own; you'll see your results when you submit."],
       show: [{ tiles: [1, 2, 3], pattern: TILES_EXIT }],
       steps: [
@@ -833,7 +871,7 @@ const LESSON = {
 
     /* ---------------- Self-check (ROUND-2-AMENDMENT 4) ---------------- */
     {
-      n: 16, part: 4, title: 'What you showed on your own',
+      n: 16, part: 5, title: 'What you showed on your own',
       steps: [
         // One line per exit item, ticked only if that item was fully correct on the single submission.
         { id: 'A', type: 'selfcheck', items: [
