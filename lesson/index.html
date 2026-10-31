@@ -446,6 +446,12 @@ const LESSON = {
       // The completed table from the last screen, read-only, beneath Figures 1 to 4, so both routes to the 2 meet on this screen.
       show: [{ tiles: [1, 2, 3, 4], compact: true }, { compare: { cols: [1, 2, 3, 4], caption: 'From the last screen', rows: DONE_TABLE } }],
       steps: [
+        // HANDOFF-ROUND-6 4: first, the 2 more in every figure (Marc's move 1, step 5).
+        { id: 'R', type: 'number', prompt: "But the tiles aren't 3, 6, 9, 12. How many more does every figure have than the skip count?",
+          answer: () => tileCount(1) - skipCount(1),
+          say: 'Right. So every figure is 3n, plus 2 more.',
+          wrong: [{ values: [TILES.group], say: '3 is what each figure adds. Look at the "How many more" row.' }],
+          hint: 'Look at the "How many more" row in the table.' },
         { id: 'A1', type: 'slide', prompt: 'Slide the figure number back to 0.', figure: 'tiles', min: 0, max: 10, start: 4, target: 0 },
         { id: 'A2', type: 'number', prompt: 'How many tiles does Figure 0 have?',
           answer: () => tileCount(0),
@@ -465,7 +471,7 @@ const LESSON = {
             { rule: '5n', pre: f => [`n = 2: ${fmt(f(2))}, not ${fmt(tileCount(2))}`], act: c => c.s.slider.set(2),
               say: 'Only 3 tiles repeat in each figure, not 5.' },
           ],
-          hint: 'How many tiles does each figure add, and how many are there at Figure 0?',
+          hint: 'Start with the skip count for figure n, then add how many more every figure has.',   // HANDOFF-ROUND-6 4
           onCorrect: c => c.s.slider.showRule(n => `T = {k|3 × ${fmt(n)}} + {c|2} = ${fmt(ruleFn('3n + 2')(n))}`),
           // After the "Answer" card only (Q3): the same idea with new numbers.
           followUp: { id: 'B·f', type: 'rule', show: [{ tiles: [1, 2, 3], pattern: TILES_FOLLOW }],
