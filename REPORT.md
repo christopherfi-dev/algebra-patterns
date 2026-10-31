@@ -1,4 +1,4 @@
-# Seeing the Rule: report (round 4)
+# Growing Patterns: Finding the Rule: report (round 5)
 
 The lesson is `lesson/index.html`. It is one self-contained file: one `LESSON` data block, one engine, and a `MODEL` section that computes every number shown. It makes no network calls, uses no libraries or web fonts, and stores nothing about the learner.
 
@@ -6,15 +6,16 @@ It teaches one idea, from a growing figure to its rule, in **12 screens**. Every
 
 | Engine | Checks | Failed |
 |---|---|---|
-| Chromium 153 | 2,874 | 0 |
-| WebKit 26.6 (Safari's engine) | 2,374 | 0 |
+| Chromium 153 | 2,950 | 0 |
+| WebKit 26.6 (Safari's engine) | 2,426 | 0 |
 
 The source of truth, in order of precedence:
-1. `HANDOFF-ROUND-4.md`;
-2. `HANDOFF-ROUND-3.md`;
-3. `ROUND-2-AMENDMENT.md`, with Marc's two answers in `docs/Round-2-Amendment-Answers.md`;
-4. `docs/Round-2-Decisions.md` and `docs/Round-2-Wording.md`;
-5. the original spec.
+1. `HANDOFF-ROUND-5.md`;
+2. `HANDOFF-ROUND-4.md`;
+3. `HANDOFF-ROUND-3.md`;
+4. `ROUND-2-AMENDMENT.md`, with Marc's two answers in `docs/Round-2-Amendment-Answers.md`;
+5. `docs/Round-2-Decisions.md` and `docs/Round-2-Wording.md`;
+6. the original spec.
 
 **Step IDs** keep their round 1 numbers. Both halves of round 1 Screen 3 keep the "3" prefix: 3T1–3T3 on the table screen, and 3A1–3B on the rule screen. The exit ticket is ID 15 and the self-check ID 16.
 
@@ -42,6 +43,15 @@ The source of truth, in order of precedence:
 - Part 2: Sticks. Two ways to see one rule (Screens 7–9)
 - Part 3: Evaluate and repair (Screen 10)
 - Part 4: Exit ticket (Screens 11 and 12)
+
+### What round 5 changed
+
+| Where | Change |
+|---|---|
+| Browser tab, header | **The new title, "Growing Patterns: Finding the Rule".** It is in the page `<title>` and in the data block's lesson title, which the header shows. "Seeing the Rule" no longer appears anywhere in `lesson/index.html`. `README.md` has the new title too. |
+| Header, below 420 px (Marc's option 1, see section 4) | **"Screen k of 12" sits on its own line under the title.** The title stays on one line with room to spare, and the header is 66 px tall on phones instead of 43 px. From 420 px up, including desktop, the two still sit side by side. Layout only. |
+
+The file name, the screens, the step IDs and every other piece of text are unchanged. Earlier docs, handoffs and reports keep the old title, because they are records.
 
 ### What round 4 changed
 
@@ -79,11 +89,12 @@ Marc approved everything listed for him in round 2 ("approved as built", HANDOFF
    - Question 2's result needs both 2 and 2b.
 5. **The table polish has a trade-off.**
    - Equal columns on the Screen 2 table leave less room for the labels. At phone widths "Skip count by 3" and "How many more" now take two lines; they took one at 390 px before.
-   - At phone widths both "Skip count by …" labels break after "by", leaving the number alone on the second line (see 4.1).
+   - At phone widths both "Skip count by …" labels broke after "by", leaving the number alone on the second line. Round 4 fixed this with a non-breaking space.
 6. **Number spacing.** "2b." had no space before its question; the number now carries a small gap.
 7. **"Not yet. Try again."** is still in the engine as a last resort, but no step uses it now. Its only use was the 8B·f case that round 3 cut.
 8. **Round 4: what counts as a chain.** Only a chain of equalities, with two or more "=", may break after "=". A single equation stays whole, as round 3 required.
 9. **Round 4: the margin.** HANDOFF-ROUND-4 asks to "leave some margin". I set it at **16 px**: at 360 and 390 px, every unbreakable piece, and every table at its narrowest, must leave 16 px spare in its container. That roughly covers a font 5–8% wider than the ones here.
+10. **Round 5: where the header stacks.** Below 420 px, the same width at which Screen 8's two-rule table stacks. At 420 px the title and "Screen 12 of 12" fit side by side with 35 px spare.
 
 ### Still standing from earlier rounds
 
@@ -113,26 +124,28 @@ Marc approved everything listed for him in round 2 ("approved as built", HANDOFF
 
 ## 4. Conflicts and things to decide
 
-### Round 5 stopped: the new title doesn't fit the header on one line
+### Round 5: the header (resolved)
 
-HANDOFF-ROUND-5 renames the lesson "Growing Patterns: Finding the Rule". It asks that the header still fit on one line at 360 and 390 px with the 16 px margin, and if not, to stop and report rather than shorten the title.
-
-The header holds the title and the progress text ("Screen 12 of 12" at its longest) side by side. Measured in Chromium and WebKit, which agree:
+HANDOFF-ROUND-5 asks that the header still fit on one line at 360 and 390 px with the 16 px margin, and if not, to stop and report rather than shorten the title. With the title and the progress text side by side, it didn't fit, so I stopped. Measured in Chromium and WebKit, which agree:
 
 | Width | Room | Title alone | Progress | Both on one line | Spare |
 |---|---|---|---|---|---|
-| 360 px | 328 px | 241 px | 100 px | 353 px | **−25 px**: the title wraps to two lines |
+| 360 px | 328 px | 241 px | 100 px | 353 px | **−25 px**: the title wrapped to two lines |
 | 390 px | 358 px | 241 px | 100 px | 353 px | **5 px**: one line, but short of the 16 px margin |
 
-The title change itself is made: the browser tab and the header both read the new title, and "Seeing the Rule" no longer appears in the file. Nothing else has changed. There is no new test run or handback yet, because the file isn't ready to deploy.
+I offered four options, none of which shortened the title: (1) put the progress text on its own line on narrow phones; (2) smaller header text; (3) shorten the progress text to "12 / 12"; (4) let the title wrap. **Marc chose option 1.**
 
-Options, none of which shortens the title:
-1. **Recommended, layout only:** on phones narrower than 420 px, put "Screen k of 12" on its own line under the title. The title alone then has 87 px spare at 360 px and 117 px at 390 px. The header gets about 20 px taller on phones; desktop is unchanged.
-2. **Smaller header text on phones** (14 px → 12 px). This fits with about 25 px spare at 360 px, but 12 px is small to read.
-3. **Shorten the progress text** to "12 / 12". That's a change to approved interface text.
-4. **Let the title wrap to two lines** on narrow phones, as it does now at 360 px. That goes against the handoff's "one line".
+As built, the title is never shortened and always takes one line:
 
-Earlier rounds left nothing else open.
+| Width | Layout | Title spare |
+|---|---|---|
+| 360 px | progress on its own line | 87 px |
+| 390 px | progress on its own line | 117 px |
+| 419 px | progress on its own line | 146 px |
+| 420 px | side by side | 35 px |
+| 1280 px | side by side | 375 px |
+
+Nothing is open.
 
 ---
 
@@ -143,17 +156,20 @@ Earlier rounds left nothing else open.
 | Section | Chromium | WebKit | What it covers |
 |---|---|---|---|
 | Source-of-truth text | 10 | 10 | Strings used by the tests exist in the source of truth |
+| Title | 4 | 4 | The browser tab and the header read "Growing Patterns: Finding the Rule"; "Seeing the Rule" appears nowhere in `lesson/index.html` |
 | Answer checker | 6 | 6 | Equivalence; rejection of n × n, powers and n in a denominator; unparseable input; numbers with units |
 | Computed numbers | 6 | 6 | 12 screens; tiles, skip counts, follow-up and exit patterns, sticks (Figure 10 = 31, Figure 40 = 121), triangles, builds |
 | Data block text | 3 | 3 | Every response, hint, Why?, title and option is word for word in the source of truth (a non-breaking space counts as a space); every prompt is approved; parts 1–4 keep their spec names |
-| Correct path | 6 × 250 | 4 × 250 | All 12 screens. Chromium: 390 px tap, 390 px touch drag, 360 px tap, desktop mouse, and both dark modes. WebKit: 390 px, 360 px, desktop and phone dark. Each screen: progress, Next gating, responses, Why?, no overflow, 44 px targets, no "null" or "undefined", the no-wrap rule, and on phones the 16 px margin, with the Why? open |
+| Correct path | 6 × 262 | 4 × 262 | All 12 screens. Chromium: 390 px tap, 390 px touch drag, 360 px tap, desktop mouse, and both dark modes. WebKit: 390 px, 360 px, desktop and phone dark. Each screen: progress, Next gating, responses, Why?, no overflow, 44 px targets, no "null" or "undefined", the no-wrap rule, the header (title and progress each on one line with 16 px spare), and on phones the 16 px margin, with the Why? open |
 | Predicted wrong answers | 2 × 285 | 2 × 285 | Every predicted error and one unpredicted answer per hint on every screen, at 390 px and at 360 px, with every response and the Why? open. Includes 6A2: "Yes" twice, the Answer card naming Maybe and No, then "No" accepted with its text |
 | Screen 7, two extra runs | 113 + 107 | 113 + 107 | Marc's move with a 7, and every hint; the 7B triangles follow-up |
 | Exit ticket, four runs | 4 × 130 | 4 × 130 | Every other exit response, item 2b, the self-check ticks, and the 16 px margin with the responses showing |
 | Navigation, keyboard | 39 | 39 | Back and Next across the split; placing a piece and checking an answer by keyboard |
-| **Total** | **2,874 passed, 0 failed** | **2,374 passed, 0 failed** | |
+| **Total** | **2,950 passed, 0 failed** | **2,426 passed, 0 failed** | |
 
 **The margin check** measures every unbreakable expression against the column of text it sits in, every nowrap formula, rule card and caption against its container, and every table at its narrowest possible layout. Each must leave 16 px spare, and the page must never scroll sideways. It would have caught the original problem: at 360 px the old 287 px chain left only 9 px.
+
+**The header check** (round 5) runs on every screen of every correct path, at 360, 390 and 1280 px. The title and "Screen k of 12" must each take one line and leave 16 px spare; where they share a row, both together must leave 16 px. I ran it on the header as it was before option 1, and it fails there: at 360 px the title and the progress text each took two lines, and at 390 px the shared row left 5 px.
 
 **Screenshots** are in `test-results/screenshots/`:
 - all 12 screens at 390 × 844 and 1280 × 800, before and after the correct path, with each screen's Why? open in the "done" shots (including Screen 8's);
