@@ -457,8 +457,8 @@ const LESSON = {
           options: [   // the right option is third, out of first position
             notSkip(`${TILES.group} + n`),
             notSkip(`${TILES.group} − n`),
-            { text: `${TILES.group}n`, correct: true,
-              say: `Right: ${TILES.group}n means ${TILES.group} × n, three times the figure number. Figure ${SKIP_AT} is ${TILES.group} × ${SKIP_AT} = ${fmt(skipCount(SKIP_AT))}.` },
+            { text: `${TILES.group} × n`, correct: true,   // HANDOFF-ROUND-8 2: written with its sign, like the other options
+              say: `Right: ${TILES.group} × n, written ${TILES.group}n: three times the figure number. Figure ${SKIP_AT} is ${TILES.group} × ${SKIP_AT} = ${fmt(skipCount(SKIP_AT))}.` },
             notSkip(`${TILES.group} ÷ n`),
           ] },
       ],
