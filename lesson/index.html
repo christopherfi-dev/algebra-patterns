@@ -701,7 +701,8 @@ const LESSON = {
       intro: ['Your rule for the sticks is S = 3n + 1. Another student wrote S = 4 + 3(n − 1). Are these two rules the same?'],   // HANDOFF-ROUND-7 6
       steps: [
         { id: 'A', type: 'numbers', prompt: 'Type the value of each rule for n = 1, 2 and 3.',
-          grid: { rows: ['S = 3n + 1', 'S = 4 + 3(n − 1)'], cols: [1, 2, 3] },
+          lines: ['For n = 2: 4 + 3(2 − 1) = 4 + 3 × 1 = 7.'],   // HANDOFF-ROUND-8 5: one worked substitution first
+          grid: { rows: ['S = 3n + 1', 'S = 4 + 3(n − 1)'], cols: [1, 2, 3], given: { row: 1, n: 2 } },   // that box is filled in
           answers: () => ['3n + 1', '4 + 3(n − 1)'].flatMap(r => [1, 2, 3].map(ruleFn(r))),
           judge: (v, st) => {
             const a = st.answers();
@@ -1502,10 +1503,16 @@ const STEPS = {
     const row = h('div', { class: 'row' });
     if (st.grid) {
       inputs = [];
+      const g = st.grid.given;   // a box filled in for the learner: shown, can't be edited, not one of their answers
       const table = h('table', { class: 'gridtable' }, h('thead', {}, h('tr', {}, h('th', {}), st.grid.cols.map(n => h('th', { scope: 'col' }, rich(`n = ${n}`))))),
-        h('tbody', {}, st.grid.rows.map(r => h('tr', {}, h('th', { scope: 'row' }, rich(r)), st.grid.cols.map(n => {
+        h('tbody', {}, st.grid.rows.map((r, i) => h('tr', {}, h('th', { scope: 'row' }, rich(r)), st.grid.cols.map((n, j) => {
           const f = inputField({ small: true }, 'number', `${r}, n = ${n}`);
-          inputs.push(f.inp);
+          if (g && g.row === i && g.n === n) {
+            f.inp.value = fmt(st.answers()[i * st.grid.cols.length + j]);
+            f.inp.disabled = true;
+            f.inp.removeAttribute('data-input');
+            f.inp.setAttribute('data-given', '');
+          } else inputs.push(f.inp);
           return h('td', {}, f.inp);
         })))));
       body = h('div', {}, h('div', { class: 'tablewrap' }, table), row);
@@ -1522,7 +1529,12 @@ const STEPS = {
       body = h('div', {}, st.fields.some(fd => fd.tiles !== undefined) ? h('div', { class: 'card' }, wrap) : wrap, row);
       row.style.marginTop = '12px';
     }
-    askStep(st, c, inputsUI(inputs, row, body));
+    const ui = inputsUI(inputs, row, body);
+    if (st.grid && st.grid.given) {   // the judge sees every box, the filled-in one included, in table order
+      const typedOnly = ui.values, at = st.grid.given.row * st.grid.cols.length + st.grid.cols.indexOf(st.grid.given.n);
+      ui.values = () => { const v = typedOnly(); v.splice(at, 0, fmt(st.answers()[at])); return v; };
+    }
+    askStep(st, c, ui);
     focusSoon(inputs[0]);
   },
 
