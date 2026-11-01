@@ -2,7 +2,7 @@
 //   Chromium: node tests/lesson.test.js
 //   WebKit:   PLAYWRIGHT_BROWSERS_PATH=<folder with webkit> node tests/lesson.test.js --webkit
 // Every expected learner-facing string is wrapped in S(), which also checks it appears word for word in the source of
-// truth: the spec, the round 2 files, ROUND-2-AMENDMENT.md with Marc's answers to it, and HANDOFF-ROUND-3.md to -9.md.
+// truth: the spec, the round 2 files, ROUND-2-AMENDMENT.md with Marc's answers to it, and HANDOFF-ROUND-3.md to -10.md.
 'use strict';
 const playwright = require('playwright');
 const fs = require('fs');
@@ -14,7 +14,7 @@ const ROOT = path.resolve(__dirname, '..');
 const URL = 'file://' + path.join(ROOT, 'lesson', 'index.html');
 const read = (...p) => fs.readFileSync(path.join(ROOT, ...p), 'utf8');
 const SPEC = read('docs', 'Seeing-the-Rule-Interactive-Lesson-Plan.md');
-const TRUTH = [SPEC, read('docs', 'Round-2-Decisions.md'), read('docs', 'Round-2-Wording.md'), read('ROUND-2-AMENDMENT.md'), read('docs', 'Round-2-Amendment-Answers.md'), read('HANDOFF-ROUND-3.md'), read('HANDOFF-ROUND-4.md'), read('HANDOFF-ROUND-5.md'), read('HANDOFF-ROUND-6.md'), read('HANDOFF-ROUND-7.md'), read('HANDOFF-ROUND-8.md'), read('HANDOFF-ROUND-9.md')].join('\n');
+const TRUTH = [SPEC, read('docs', 'Round-2-Decisions.md'), read('docs', 'Round-2-Wording.md'), read('ROUND-2-AMENDMENT.md'), read('docs', 'Round-2-Amendment-Answers.md'), read('HANDOFF-ROUND-3.md'), read('HANDOFF-ROUND-4.md'), read('HANDOFF-ROUND-5.md'), read('HANDOFF-ROUND-6.md'), read('HANDOFF-ROUND-7.md'), read('HANDOFF-ROUND-8.md'), read('HANDOFF-ROUND-9.md'), read('HANDOFF-ROUND-10.md')].join('\n');
 // "Skip count by 3" and "by 4" carry a non-breaking space in the lesson (HANDOFF-ROUND-4 3).
 const NB = s => s.replace(/by (\d)/, 'by\u00A0$1');
 const HANDOFF = read('HANDOFF.md');
@@ -33,7 +33,16 @@ function ok(cond, msg) {
   results.push({ section, ok: !!cond, msg });
   if (!cond) console.log(`  FAIL [${section}] ${msg}`);
 }
-function S(text) { ok(TRUTH.includes(text), `source of truth contains: "${text}"`); return text; }
+// A handoff can approve one sentence in place of another inside earlier approved text (HANDOFF-ROUND-10 1, the Screen 8
+// Why?). Such text counts as approved when putting the old sentence back gives approved text, and the source of truth
+// names both sentences.
+const SENTENCE_SWAPS = [
+  ['A figure far away, like Figure 10, checks the coefficient, because a wrong coefficient drifts further off with every figure.',
+   'A figure further along, like Figure 3, checks the coefficient: 5n was off by 4 there, and a wrong coefficient drifts further off with every figure.'],
+];
+const approved = text => TRUTH.includes(text) ||
+  SENTENCE_SWAPS.some(([was, now]) => text.includes(now) && TRUTH.includes(was) && TRUTH.includes(now) && TRUTH.includes(text.replace(now, was)));
+function S(text) { ok(approved(text), `source of truth contains: "${text}"`); return text; }
 function H(text) { ok(HANDOFF.includes(text), `handoff contains: "${text}"`); return text; }
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -570,7 +579,9 @@ const SCREENS = {
       await typed(p, '6B2', '11', 'correct', S('Right: 11 tiles.'));
       ok(same(await texts(step(p, '6B3').locator('.choice')), ['Yes', 'No']), '6B3: Yes, then No');
       await chose(p, '6B3', 1, 'correct', S('Right. 5n gives 15, but Figure 3 has 11 tiles. The rule is wrong.'));
-      await typed(p, '6C', [2, 5, 32], 'correct', S('It works for all three, including Figure 0 and a figure far away.'));
+      ok((await step(p, '6C').locator('.prompt').textContent()).trim() === S('What does T = 3n + 2 give for Figures 0, 1 and 3?') &&
+        same(await texts(step(p, '6C').locator('.lab')), ['Figure 0', 'Figure 1', 'Figure 3']), '6C: the new prompt, at Figures 0, 1 and 3 (round 10)');
+      await typed(p, '6C', [2, 5, 11], 'correct', S('It matches all three counts: 2 tiles at Figure 0, 5 at Figure 1, and the 11 you counted at Figure 3.'));
       await chose(p, '6D', 1, 'correct', S('Right. Three checks, and a structure that adds the same group every time.'));
     },
     async wrong(p) {
@@ -595,12 +606,12 @@ const SCREENS = {
       await typed(p, '6B2', '11', 'correct', 'Right: 11 tiles.');
       await chose(p, '6B3', 0, 'wrong', S('The rule gave 15, but you counted 11.'));
       await chose(p, '6B3', 1, 'correct', 'Right. 5n gives 15, but Figure 3 has 11 tiles. The rule is wrong.');
-      await typed(p, '6C', [2, 5, 30], 'wrong', S('Substitute again: 3 × n, then add 2.'));
-      await typed(p, '6C', [2, 5, 32], 'correct', 'It works for all three, including Figure 0 and a figure far away.');
+      await typed(p, '6C', [2, 5, 32], 'wrong', S('Substitute again: 3 × n, then add 2.'));
+      await typed(p, '6C', [2, 5, 11], 'correct', 'It matches all three counts: 2 tiles at Figure 0, 5 at Figure 1, and the 11 you counted at Figure 3.');
       await chose(p, '6D', 0, 'wrong', S('So did 5n. One figure can fit a wrong rule.'));
       await chose(p, '6D', 1, 'correct', 'Right. Three checks, and a structure that adds the same group every time.');
     },
-    why: S('One figure can fit a wrong rule: 5n and 3n + 2 both give 5 at Figure 1. Another check exposes the wrong one. Figure 0 is a good test because it checks the constant, the tiles there before any group. A figure far away, like Figure 10, checks the coefficient, because a wrong coefficient drifts further off with every figure. When a pattern adds the same amount every time and a straight-line rule works for three figures, it works for all of them.'),
+    why: S('One figure can fit a wrong rule: 5n and 3n + 2 both give 5 at Figure 1. Another check exposes the wrong one. Figure 0 is a good test because it checks the constant, the tiles there before any group. A figure further along, like Figure 3, checks the coefficient: 5n was off by 4 there, and a wrong coefficient drifts further off with every figure. When a pattern adds the same amount every time and a straight-line rule works for three figures, it works for all of them.'),
   },
 
   7: {
@@ -627,7 +638,7 @@ const SCREENS = {
       await typed(p, '7S1', '3', 'correct', S('Right. Each new square adds 3 new sticks. That 3 is the coefficient.'));
       await SCREENS[7].takeOff(p);
       await typed(p, '7S2', '0', 'wrong', S('Take off only the 3 sticks a square adds. One stick stays.'));
-      await typed(p, '7S2', '4', 'wrong', S('Take off the 3 added sticks first.'));
+      await typed(p, '7S2', '4', 'wrong', S('You took 3 off. Count the sticks that are left.'));
       ok((await answerCard(p, '7S2')) === '1', '7S2: second miss shows the answer');
       await typed(p, '7S2', '2', 'hint', S('Figure 1 has 4 sticks. Take away the 3 a square adds.'));
       await typed(p, '7S2', '1', 'correct', S("Right: 1 stick. That's what's there before any squares are added."));
@@ -1034,7 +1045,7 @@ async function dataTextTests(p) {
   // Part 4, "Practise", is new in round 7; the others keep their names as written in the spec.
   ok(same(names.map(x => x[0]), ['1', '2', '3', '4', '5']) && names.every(([, name]) => new RegExp(`Part \\d+: ${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`).test(SPEC) || TRUTH.includes(`titled **"${name}"**`)),
     `parts are numbered 1 to 5, each with its name as written in the spec or HANDOFF-ROUND-7: ${JSON.stringify(parts)}`);
-  const missing = strings.filter(t => !TRUTH.includes(t));
+  const missing = strings.filter(t => !approved(t));
   ok(missing.length === 0, `${strings.length} strings checked; not in the source of truth: ${JSON.stringify(missing)}`);
   const unapproved = prompts.filter(t => !TRUTH.includes(t) && !PROMPTS.includes(t));
   ok(unapproved.length === 0, `${prompts.length} prompts checked; not approved: ${JSON.stringify(unapproved)}`);
