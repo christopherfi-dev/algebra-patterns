@@ -683,11 +683,7 @@ const LESSON = {
           say: 'Right: 4, 7, 10, 13.',
           wrong: [{ values: [1, 2, 3, 4].map(n => 4 * n), say: 'That gives every square its own 4 sticks. Neighbouring squares share one.' }],
           hint: 'Count each stick once, including the ones two squares share.' },
-        { id: 'R2', type: 'number', prompt: 'How many more sticks does each new figure add?',
-          answer: () => stickCount(2) - stickCount(1),
-          say: 'Right. Each new square adds 3 sticks. That 3 is the coefficient.',
-          wrong: [{ values: [4], say: 'Each new square shares a stick with the square before, so it adds only 3.' }],
-          hint: 'Compare Figure 1 and Figure 2: 4 and 7.' },
+        // 7R2 was removed in round 9: the learner finds what each figure adds one screen earlier, in 7S1.
         { id: 'R3', type: 'tableRow', prompt: 'Fill in the skip-count row: count by 3.', label: 'Skip count by\u00A03', typed: 2,
           value: stickSkip,
           answers: () => [1, 2].map(stickSkip),
