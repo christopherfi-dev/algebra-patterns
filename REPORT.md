@@ -1,4 +1,4 @@
-# Growing Patterns: Finding the Rule: report (round 8)
+# Growing Patterns: Finding the Rule: report (round 9)
 
 The lesson is `lesson/index.html`. It is one self-contained file: one `LESSON` data block, one engine, and a `MODEL` section that computes every number shown. It makes no network calls, uses no libraries or web fonts, and stores nothing about the learner.
 
@@ -6,19 +6,20 @@ It teaches one idea, from a growing figure to its rule, in **16 screens**. Every
 
 | Engine | Checks | Failed |
 |---|---|---|
-| Chromium 153 | 4,498 | 0 |
-| WebKit 26.6 (Safari's engine) | 3,711 | 0 |
+| Chromium 153 | 4,776 | 0 |
+| WebKit 26.6 (Safari's engine) | 3,957 | 0 |
 
 The source of truth, in order of precedence:
-1. `HANDOFF-ROUND-8.md`;
-2. `HANDOFF-ROUND-7.md`;
-3. `HANDOFF-ROUND-6.md`;
-4. `HANDOFF-ROUND-5.md`;
-5. `HANDOFF-ROUND-4.md`;
-6. `HANDOFF-ROUND-3.md`;
-7. `ROUND-2-AMENDMENT.md`, with Marc's two answers in `docs/Round-2-Amendment-Answers.md`;
-8. `docs/Round-2-Decisions.md` and `docs/Round-2-Wording.md`;
-9. the original spec.
+1. `HANDOFF-ROUND-9.md`;
+2. `HANDOFF-ROUND-8.md`;
+3. `HANDOFF-ROUND-7.md`;
+4. `HANDOFF-ROUND-6.md`;
+5. `HANDOFF-ROUND-5.md`;
+6. `HANDOFF-ROUND-4.md`;
+7. `HANDOFF-ROUND-3.md`;
+8. `ROUND-2-AMENDMENT.md`, with Marc's two answers in `docs/Round-2-Amendment-Answers.md`;
+9. `docs/Round-2-Decisions.md` and `docs/Round-2-Wording.md`;
+10. the original spec.
 
 Since round 7, `CLAUDE.md` makes Marc's teaching method binding: gradual release (I do, we do, you do), as the first principle in `docs/Marc-Teaching-Moves.md`. Steps that break it are reported by step ID in `audit/gradual-release-audit.md`, not fixed.
 
@@ -41,9 +42,9 @@ Since round 7, `CLAUDE.md` makes Marc's teaching method binding: gradual release
 | 5 | 4 (4T1, 4T2) | Why does Figure 1 have 5 tiles if the constant is 2? | Taps the tiles the constant counts in Figure 1, then the tiles the coefficient counts, each in its own large Figure 1. No small figure at the top and no 4A since round 8; the Why? follows 4T2. |
 | 6 | 3 (3B) | The rule | **New in round 8.** Figures 1–4 above the completed table, captioned "Your table". Reads "A rule gives the total for any figure. T is the total number of tiles and n is the figure number. The coefficient multiplies n; the constant is added." Types the rule, with its own slider: wrong rules move it to the figure they test, and once right, sliding checks any figure. After a second miss, the Answer card shows the reasoning. |
 | 7 | 5 (5M, 5A) | Which figure has 23 tiles? | Starting from the 2 fixed tiles, adds groups of 3 by drag or tap until there are 23, with the total shown. Then types 7. |
-| 8 | 6 | Does one check prove it? | Types 5n at Figure 1, then chooses Yes, Maybe or No; **Maybe and No are both right**. Types 5n at Figures 0 and 10, then 3n + 2 at Figures 0, 1 and 10. Chooses why 3n + 2 can be trusted. |
-| 9 | 7 | Shared edges | Drags sticks onto Figure 4's edges. Types 13, then Figure 10's total. Answering 40 starts Marc's move in six steps. |
-| 10 | 7R (7R1–7R5, 8C1, 8C2) | The rule for the sticks | Stick Figures 1–4, uncoloured, above a table built row by row: the Sticks row (4, 7, 10, 13), what each figure adds (3, the coefficient), the skip count by 3, and "How many more" (1, 1, 1, 1). Slides to Figure 0 and types 1 ("That's the constant…"). Reads "S is the total number of sticks." (round 8) and types the rule, S = 3n + 1. |
+| 8 | 6 | Does one check prove it? | Types 5n at Figure 1, then chooses Yes, Maybe or No; **Maybe and No are both right**, and "Yes" now says to check another figure (round 9). On Figure 3, drawn without its count: types what 5n gives (15), counts the tiles (11), and chooses whether they match (No) (6B1–6B3, round 9). Types 3n + 2 at Figures 0, 1 and 10. Chooses why 3n + 2 can be trusted. |
+| 9 | 7 | Shared edges | Drags sticks onto Figure 4's edges and types 13 ("Right: 13 sticks."). Types what each figure adds (3, the coefficient; 7S1). Taps the 3 sticks a square adds off Figure 1 and types what's left, 1 (7S2) (both new in round 9). Then types Figure 10's total. Answering 40 starts Marc's move in six steps. |
+| 10 | 7R (7R1–7R5, 8C1, 8C2) | The rule for the sticks | Stick Figures 1–4, uncoloured, above a table built row by row: the Sticks row (4, 7, 10, 13), the skip count by 3, and "How many more" (1, 1, 1, 1). What each figure adds is found on Screen 9 since round 9. Slides to Figure 0 and types 1 ("That's the constant…"). Reads "S is the total number of sticks." (round 8) and types the rule, S = 3n + 1. |
 | 11 | 8 | Are these two rules the same? | "Your rule for the sticks is S = 3n + 1. Another student wrote S = 4 + 3(n − 1)…" Reads the worked "For n = 2: 4 + 3(2 − 1) = 4 + 3 × 1 = 7." (round 8), then types the other five values; that box is filled in. |
 | 12 | 9 | Forward and backward | Types Figure 40's sticks (121). Reads "To go backwards, take away the constant, then divide by the coefficient." (round 8), then types the figure that uses 100 sticks (33). |
 | 13 | 10 | Three students, three rules | Builds each student's rule for Figure 1. Marks each rule correct or incorrect. Writes an explanation using the frame "Arun's 4 is already ___. …" (round 8) and compares it with the model. |
@@ -57,6 +58,16 @@ Since round 7, `CLAUDE.md` makes Marc's teaching method binding: gradual release
 - Part 3: Evaluate and repair (Screen 13)
 - Part 4: Practise (Screen 14; new in round 7)
 - Part 5: Exit ticket (Screens 15 and 16)
+
+### What round 9 changed
+
+From Marc's play-through of round 8, following his recorded moves 3 and 4. The lesson stays at 16 screens.
+
+| Section | Change |
+|---|---|
+| 1 | **Screen 8:** 6A2's "Yes" response is new. 6B (5n at Figures 0 and 10, with the counts shown) is replaced by 6B1–6B3 on Figure 3: what 5n gives, count the tiles, do they match? |
+| 2 | **Screen 9:** 7A2's confirmation is now "Right: 13 sticks." Two new steps before 7B: 7S1 (what each figure adds) and 7S2 (tap the 3 added sticks off Figure 1, then type what's left). |
+| 3 | **Screen 10:** 7R2 removed, because 7S1 now asks it. |
 
 ### What round 8 changed
 
@@ -170,6 +181,9 @@ Marc approved everything listed for him in round 2 ("approved as built", HANDOFF
 24. **Round 8: 8A's filled-in box** is a disabled box showing 7, so it looks like the others. It isn't one of the learner's inputs, and the judge puts it back in its place before checking, so 8A's responses are unchanged.
 25. **Round 8: where the new lines go.** The lines for 3B, 7R5, 8A and 9B sit above the step's prompt, like the line before 3S2. 10E's sentence frame sits between its question and the text box, so the question still comes first.
 26. **Round 8: 3B's Answer card** shows only the new sentence, in place of the answer and its confirmation.
+27. **Round 9: taking sticks off (7S2).** Figure 1 is drawn at the same scale as the build on Screen 9, and each stick is a target of at least 44 px. A tapped stick disappears. Tapping the left stick shows its message and makes it flash, as a stick dropped on a taken edge does. Enter or Space work by keyboard.
+28. **Round 9: 7S2's box appears once the three sticks are off,** as the handoff says. So a learner who types 4 has already taken them off, and the "4" response, "Take off the 3 added sticks first.", reads as a reminder of what was just done rather than an instruction.
+29. **Round 9: Figure 3 on Screen 8** is shown with 6B1, the first step that needs it. 6B2 and 6B3 refer to it there.
 
 ### Still standing from earlier rounds
 
@@ -184,6 +198,7 @@ Marc approved everything listed for him in round 2 ("approved as built", HANDOFF
 
 | When | Removed |
 |---|---|
+| Round 9 | Step 6B (5n at Figures 0 and 10, with the tile pictures that revealed their counts) and the code only it used: picture boxes with hidden counts. Step 7R2 and its responses. |
 | Round 8 | Step 4A (the three-sentence choice) and its responses, and Screen 5's small Figure 1. The follow-up items 3B·f (4 fixed tiles plus groups of 2) and 7B·f (triangles), with their responses and tests, and the code only they used: the follow-up mechanism, the follow-up tile pattern, the triangle drawings. |
 | Round 3 | Step 8B (simplify 4 + 3(n − 1)): the distributive-property card, the prompt, the four predicted errors and their substitution tests, the "correct so far" response and the hint. The 8B·f follow-up (5 + 2(n − 1)). The code only they used: the simplified check, the "correct so far" path, the substitution-test helper, the reminder card. |
 | Round 2 amendment | Round 1 Screens 11–15 (squares, line fitting, the ball, the shrinking border, the garden exit ticket), with everything round 2 had built for them: the square legibility fix, the 4-by-4 build, the counted Checks on the line screen, the h line and two-row speed table, the new 14A prompt, and the hints and confirmations for those screens. |
@@ -198,6 +213,10 @@ Marc approved everything listed for him in round 2 ("approved as built", HANDOFF
 ---
 
 ## 4. Conflicts and things to decide
+
+### Round 9
+
+Nothing in `HANDOFF-ROUND-9.md` conflicted with earlier files or was impossible to build. Decision 28 notes how 7S2's "4" response reads.
 
 ### Round 8: one conflict, asked and answered
 
@@ -248,16 +267,18 @@ Nothing is open.
 | Answer checker | 6 | 6 | Equivalence; rejection of n × n, powers and n in a denominator; unparseable input; numbers with units |
 | Computed numbers | 6 | 6 | 16 screens; tiles, skip counts, practice and exit patterns, sticks (Figure 10 = 31, Figure 40 = 121) and their skip count, builds |
 | Data block text | 3 | 3 | Every response, hint, Why?, title and option is word for word in the source of truth (a non-breaking space counts as a space); every prompt is approved; the parts are numbered 1 to 5, with their spec names and Part 4's name from HANDOFF-ROUND-7 |
-| Correct path | 4 × 396 + 2 × 391 | 3 × 396 + 391 | All 16 screens. Chromium: 390 px tap, 390 px touch drag, 360 px tap, desktop mouse, and both dark modes. WebKit: 390 px, 360 px, desktop and phone dark. Each screen: progress, Next gating, responses, Why?, no overflow, 44 px targets, no "null" or "undefined", the no-wrap rule, the header (title and progress each on one line with 16 px spare), and on phones the 16 px margin, with the Why? open. Screens 2, 3, 4 and 6: Figures 1–4 above the table in both colours; Screen 10: the stick figures uncoloured. On phones, at most two rows of figures with 16 px spare on those five screens (so desktop runs have 5 checks fewer). Round 7's correct answers: 3T0 with nothing filled in; the new lines on 2B, 3S2 and 3A2; 4T1 and 4T2 with 44 px tiles; 5M's running total 2, 5, … 23 by tap, mouse and touch drag, not done before 23; 7R1–7R5 with 8C1 and 8C2 on Screen 9 and only 8A on Screen 10; 10P1 and 10P2 with their patterns, tables and options; Part 4 "Practise" and the exit ticket in Part 5. Round 8: the reorder (Screens 4, 5 and 6 with their titles, Screen 4's new Why?, "Your table"); no small Figure 1 and no 4A on Screen 5; the new lines on 3B, 7R5, 8A and 9B and 10E's frame; 3S2's "3 × n"; 3B's slider; 8A's filled-in box, disabled and not one of the five answers; no 3B·f or 7B·f |
-| Predicted wrong answers | 2 × 417 | 2 × 417 | Every predicted error and one unpredicted answer per hint on every screen, at 390 px and at 360 px, with every response and the Why? open. Includes 6A2: "Yes" twice, the Answer card naming Maybe and No, then "No" accepted with its text. Round 6: 3T3 with an empty box, a 3 in one box, and the new hint; 3S1's 17, 8 and hint; all three wrong 3S2 options; 3R's 3 and hint; 3B's new hint. Round 7: every predicted error and hint on 3T0, 4T1 (including Check with nothing tapped), 4T2, 7R1–7R5, 8C2, 10P1 and 10P2; 5M by mouse; and each step's Answer card. Round 8: 3B's wrong rules move its slider to Figures 1 and 2, and its new Answer card |
-| Screen 7, two extra runs | 164 + 143 | 164 + 143 | Marc's move with a 7, and every hint; a second miss on 7B with no follow-up item |
-| Exit ticket, four runs | 4 × 228 | 4 × 228 | Every other exit response, item 2b, the self-check ticks, and the 16 px margin with the responses showing |
+| Correct path | 4 × 412 + 2 × 407 | 3 × 412 + 407 | All 16 screens. Chromium: 390 px tap, 390 px touch drag, 360 px tap, desktop mouse, and both dark modes. WebKit: 390 px, 360 px, desktop and phone dark. Each screen: progress, Next gating, responses, Why?, no overflow, 44 px targets, no "null" or "undefined", the no-wrap rule, the header (title and progress each on one line with 16 px spare), and on phones the 16 px margin, with the Why? open. Screens 2, 3, 4 and 6: Figures 1–4 above the table in both colours; Screen 10: the stick figures uncoloured. On phones, at most two rows of figures with 16 px spare on those five screens (so desktop runs have 5 checks fewer). Round 7's correct answers: 3T0 with nothing filled in; the new lines on 2B, 3S2 and 3A2; 4T1 and 4T2 with 44 px tiles; 5M's running total 2, 5, … 23 by tap, mouse and touch drag, not done before 23; 7R1–7R5 with 8C1 and 8C2 on Screen 9 and only 8A on Screen 10; 10P1 and 10P2 with their patterns, tables and options; Part 4 "Practise" and the exit ticket in Part 5. Round 8: the reorder (Screens 4, 5 and 6 with their titles, Screen 4's new Why?, "Your table"); no small Figure 1 and no 4A on Screen 5; the new lines on 3B, 7R5, 8A and 9B and 10E's frame; 3S2's "3 × n"; 3B's slider; 8A's filled-in box, disabled and not one of the five answers; no 3B·f or 7B·f. Round 9: Figure 3 on Screen 8 with no count, 6B1–6B3, and no old 6B; 7A2's new confirmation; 7S1; 7S2's four 44 px stick targets, the left stick staying with its message, the other three off by tap on touch pages and by keyboard elsewhere, and the box appearing only then; no 7R2, with Screen 10's table still in order |
+| Predicted wrong answers | 2 × 459 | 2 × 459 | Every predicted error and one unpredicted answer per hint on every screen, at 390 px and at 360 px, with every response and the Why? open. Includes 6A2: "Yes" twice, the Answer card naming Maybe and No, then "No" accepted with its text. Round 6: 3T3 with an empty box, a 3 in one box, and the new hint; 3S1's 17, 8 and hint; all three wrong 3S2 options; 3R's 3 and hint; 3B's new hint. Round 7: every predicted error and hint on 3T0, 4T1 (including Check with nothing tapped), 4T2, 7R1–7R5, 8C2, 10P1 and 10P2; 5M by mouse; and each step's Answer card. Round 8: 3B's wrong rules move its slider to Figures 1 and 2, and its new Answer card. Round 9: 6A2's new "Yes" response; every response, hint and Answer card on 6B1, 6B2, 6B3, 7S1 and 7S2 |
+| Screen 7, two extra runs | 181 + 160 | 181 + 160 | Marc's move with a 7, and every hint; a second miss on 7B with no follow-up item. Both now go through 7S1 and 7S2 first |
+| Exit ticket, four runs | 4 × 244 | 4 × 244 | Every other exit response, item 2b, the self-check ticks, and the 16 px margin with the responses showing |
 | Navigation, keyboard | 46 | 46 | Back and Next across the table screens; placing a piece and checking an answer by keyboard |
-| **Total** | **4,498 passed, 0 failed** | **3,711 passed, 0 failed** | |
+| **Total** | **4,776 passed, 0 failed** | **3,957 passed, 0 failed** | |
 
 **The margin check** measures every unbreakable expression against the column of text it sits in, every nowrap formula, rule card and caption against its container, and every table at its narrowest possible layout. Each must leave 16 px spare, and the page must never scroll sideways. It would have caught the original problem: at 360 px the old 287 px chain left only 9 px.
 
 The Screen 7 and exit-ticket runs play the earlier screens first, so their counts include the checks on the screens before them.
+
+**One timing allowance in the tests (round 9).** In Chromium's touch-drag run, Figure 4 on Screen 9 is built with synthetic touch drags. For about a second afterwards, Chromium swallows the click of a tap: I measured no click on an immediate tap, and a click after 1.5 s. So that run waits 1.5 s before 7S2's first tap. The other runs need no wait, and on a real phone a learner's tap comes long after the build.
 
 **The figures check** (round 6) runs on Screens 2, 3, 4 and 6 of every correct path, and its row check on Screen 10's sticks too (round 7). Each figure must have 2 tiles in the `--constant` colour and n groups of 3 in the `--coefficient` colour, and the figures must sit above the table. At 360 and 390 px they must take at most two rows, each leaving 16 px spare. I ran it without the 85% scaling, and it fails there: at 390 px the two rows leave only 10 px.
 
@@ -280,10 +301,9 @@ The Screen 7 and exit-ticket runs play the earlier screens first, so their count
 
 ## 6. Questions for Marc: the gradual-release audit
 
-`audit/gradual-release-audit.md` reruns the audit on all 16 screens, the same way as round 7: correct first time, never opening Why?.
+`audit/gradual-release-audit.md` reruns the audit on Screens 8, 9 and 10, the screens round 9 changed, the same way as before: correct first time, never opening Why?. The other screens' round 8 result stands.
 
-- **Every step passes except 7B,** which Marc kept as built in round 8. The same check still flags it: Figure 10's sticks are asked before Figure 1 is shown as 1 + 3.
-- **Every round 7 finding is answered:** 3S2, 3B, 7R5, 3B·f, 7B·f, 8A, 10E, and both thin passes (9B, "multiplies n").
-- **One note, not a failure:** the principle lists choosing the right rule as practice before writing one. Round 8 moved identifying the parts (4T1, 4T2) before 3B, but choosing a rule (10P1) still comes after both supported rules (3B, 7R5). Each of those has its own scaffolding. In case the order was meant to be different.
+- **Every step on Screens 8–10 passes,** including **7B**, which the round 8 audit still flagged. Each figure adds 3 (7S1), and 1 stick is there before any squares (7S2), both on the required path just before it.
+- **Still open from round 8:** choosing a rule (10P1) comes after both supported rules (3B, 7R5), though the principle lists choosing before writing. It isn't counted as a failure, but it needs a yes or no from Marc.
 
 Before reviewers see the lesson, it still needs a check on a real iPhone and a narrow Android phone.
