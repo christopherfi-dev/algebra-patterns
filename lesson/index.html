@@ -59,7 +59,6 @@ h1.title:focus { outline: none; }
 figure { margin: 0; text-align: center; min-width: 0; max-width: 100%; }
 figure svg { display: block; margin: 0 auto; max-width: 100%; height: auto; overflow: visible; }
 figcaption { font-size: 15px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
-.count { font-weight: 750; color: var(--ink); }
 .students { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 10px; margin: 4px 0; }
 .student { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 14px;
   background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
@@ -83,9 +82,6 @@ figcaption { font-size: 15px; color: var(--muted); margin-top: 6px; font-variant
 .fields { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; }
 .fieldbox { display: grid; gap: 4px; justify-items: center; }
 .fieldbox .lab { font-size: 15px; font-weight: 650; color: var(--muted); }
-.fieldbox.left { justify-items: start; }
-.fieldbox.left figure, .fieldbox.left figcaption { text-align: left; }
-.fieldbox.left figure svg { margin: 0; }
 .gridtable { border-collapse: collapse; }
 .gridtable th, .gridtable td { padding: 4px 3px; text-align: center; font-weight: 650; }
 .gridtable th[scope="row"] { text-align: left; padding-right: 8px; }
@@ -562,20 +558,33 @@ const LESSON = {
           hint: "Replace n with 1 in the student's rule, then multiply." },
         { id: 'A2', type: 'choice', prompt: 'Is the rule correct?',
           options: [
-            { text: 'Yes', say: "It works for Figure 1, but one figure isn't enough. Try another one." },
+            { text: 'Yes', say: "We've only checked Figure 1. One figure can't tell us for sure, so the answer is 'Maybe', or 'No' if you already know the rule. Let's check another figure." },   // HANDOFF-ROUND-9 1
             { text: 'Maybe', correct: true, say: 'Maybe. Always try another one.' },
             // HANDOFF-ROUND-4 1: by Screen 6 the learner has found T = 3n + 2, so "No" is right too.
             { text: 'No', correct: true, say: "Right, it's wrong, and the next step shows where. But Figure 1 alone couldn't tell you that. Always try another one." },
           ] },
-        { id: 'B', type: 'numbers', prompt: 'What does T = 5n give for Figure 0 and Figure 10?',
-          fields: [{ label: 'Figure 0', tiles: 0 }, { label: 'Figure 10', tiles: 10 }],
-          answers: () => [0, 10].map(ruleFn('5n')),
-          judge: (v, st) => matches(v, st.answers())
-            ? { kind: 'correct', say: 'Figure 0 has 2 tiles, not 0. Figure 10 has 32, not 50. The rule is wrong.' }
-            : { kind: 'hint', say: st.hint },
-          hint: "Use the student's rule, 5n, not the picture. Replace n with 0, then with 10.",
-          // "The picture shows the real counts beside them."
-          onCorrect: c => c.el.querySelectorAll('[data-count]').forEach(el => { el.hidden = false; }) },
+        // HANDOFF-ROUND-9 1: check the rule at Figure 3, then count the tiles (Marc's move 3). Figure 3's count isn't shown.
+        { id: 'B1', type: 'number', prompt: 'What does T = 5n give for Figure 3?', prefix: 'T =', show: [{ tiles: [3] }],
+          answer: () => ruleFn('5n')(3),
+          say: 'Right: 5 × 3 = 15.',
+          wrong: [
+            { values: [tileCount(3)], say: "That's how many tiles Figure 3 has. What does the rule T = 5n give?" },
+            { values: [5 + 3], say: '5n means 5 × n.' },   // 5 + n at Figure 3
+          ],
+          hint: 'Replace n with 3 in 5n.' },
+        { id: 'B2', type: 'number', prompt: 'Now count the tiles in Figure 3.',
+          answer: () => tileCount(3),
+          say: 'Right: 11 tiles.',
+          wrong: [
+            { values: [5 * 3], say: '15 is what the rule gives. Count the tiles in the picture.' },   // 5n at Figure 3
+            { values: [skipCount(3)], say: 'Count every tile, both colours.' },   // only the groups
+          ],
+          hint: 'Count the fixed tiles, then each group of 3.' },
+        { id: 'B3', type: 'choice', prompt: 'Is that the same as what the rule gave?',
+          options: [
+            { text: 'Yes', say: 'The rule gave 15, but you counted 11.' },
+            { text: 'No', correct: true, say: 'Right. 5n gives 15, but Figure 3 has 11 tiles. The rule is wrong.' },
+          ] },
         { id: 'C', type: 'numbers', prompt: 'What does T = 3n + 2 give for Figures 0, 1 and 10?',
           fields: [{ label: 'Figure 0' }, { label: 'Figure 1' }, { label: 'Figure 10' }],
           answers: () => [0, 1, 10].map(ruleFn('3n + 2')),
@@ -1521,14 +1530,10 @@ const STEPS = {
     } else {
       const boxes = st.fields.map(fd => {
         const f = inputField({ small: true }, 'number', fd.label);
-        const picture = fd.tiles !== undefined
-          ? h('figure', {}, tilesSVG(fd.tiles, { width: 10 }), h('figcaption', {}, rich(fd.label), ' ', h('span', { class: 'count', 'data-count': '', hidden: true }, `· ${LESSON.ui.tiles(fmt(tileCount(fd.tiles)))}`)))
-          : h('span', { class: 'lab' }, rich(fd.label));
-        return { inp: f.inp, el: h('div', { class: fd.tiles !== undefined ? 'fieldbox left' : 'fieldbox' }, picture, f.inp) };
+        return { inp: f.inp, el: h('div', { class: 'fieldbox' }, h('span', { class: 'lab' }, rich(fd.label)), f.inp) };
       });
       inputs = boxes.map(b => b.inp);
-      const wrap = h('div', { class: 'fields' }, boxes.map(b => b.el));
-      body = h('div', {}, st.fields.some(fd => fd.tiles !== undefined) ? h('div', { class: 'card' }, wrap) : wrap, row);
+      body = h('div', {}, h('div', { class: 'fields' }, boxes.map(b => b.el)), row);
       row.style.marginTop = '12px';
     }
     const ui = inputsUI(inputs, row, body);
