@@ -23,59 +23,59 @@
       "fail": 0
     },
     "correct path (phone)": {
-      "pass": 396,
+      "pass": 412,
       "fail": 0
     },
     "correct path (desktop)": {
-      "pass": 391,
+      "pass": 407,
       "fail": 0
     },
     "correct path (phone-touch)": {
-      "pass": 396,
+      "pass": 412,
       "fail": 0
     },
     "correct path (phone-dark)": {
-      "pass": 396,
+      "pass": 412,
       "fail": 0
     },
     "correct path (desktop-dark)": {
-      "pass": 391,
+      "pass": 407,
       "fail": 0
     },
     "correct path (phone-360)": {
-      "pass": 396,
+      "pass": 412,
       "fail": 0
     },
     "predicted wrong answers (390 px)": {
-      "pass": 417,
+      "pass": 459,
       "fail": 0
     },
     "predicted wrong answers (360 px)": {
-      "pass": 417,
+      "pass": 459,
       "fail": 0
     },
     "Screen 7: 40, then 7": {
-      "pass": 164,
+      "pass": 181,
       "fail": 0
     },
     "Screen 7: second miss": {
-      "pass": 143,
+      "pass": 160,
       "fail": 0
     },
     "exit ticket: tile row wrong, 9n, 2b adds, 225, 16.25": {
-      "pass": 228,
+      "pass": 244,
       "fail": 0
     },
     "exit ticket: skip row wrong, 4n with 2b right, 109, 16": {
-      "pass": 228,
+      "pass": 244,
       "fail": 0
     },
     "exit ticket: non-linear rule, other answers": {
-      "pass": 228,
+      "pass": 244,
       "fail": 0
     },
     "exit ticket: one blank wrong, rule right but 2b wrong": {
-      "pass": 228,
+      "pass": 244,
       "fail": 0
     },
     "navigation": {

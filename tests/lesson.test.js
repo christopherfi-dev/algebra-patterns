@@ -2,7 +2,7 @@
 //   Chromium: node tests/lesson.test.js
 //   WebKit:   PLAYWRIGHT_BROWSERS_PATH=<folder with webkit> node tests/lesson.test.js --webkit
 // Every expected learner-facing string is wrapped in S(), which also checks it appears word for word in the source of
-// truth: the spec, the round 2 files, ROUND-2-AMENDMENT.md with Marc's answers to it, and HANDOFF-ROUND-3.md to -8.md.
+// truth: the spec, the round 2 files, ROUND-2-AMENDMENT.md with Marc's answers to it, and HANDOFF-ROUND-3.md to -9.md.
 'use strict';
 const playwright = require('playwright');
 const fs = require('fs');
@@ -14,7 +14,7 @@ const ROOT = path.resolve(__dirname, '..');
 const URL = 'file://' + path.join(ROOT, 'lesson', 'index.html');
 const read = (...p) => fs.readFileSync(path.join(ROOT, ...p), 'utf8');
 const SPEC = read('docs', 'Seeing-the-Rule-Interactive-Lesson-Plan.md');
-const TRUTH = [SPEC, read('docs', 'Round-2-Decisions.md'), read('docs', 'Round-2-Wording.md'), read('ROUND-2-AMENDMENT.md'), read('docs', 'Round-2-Amendment-Answers.md'), read('HANDOFF-ROUND-3.md'), read('HANDOFF-ROUND-4.md'), read('HANDOFF-ROUND-5.md'), read('HANDOFF-ROUND-6.md'), read('HANDOFF-ROUND-7.md'), read('HANDOFF-ROUND-8.md')].join('\n');
+const TRUTH = [SPEC, read('docs', 'Round-2-Decisions.md'), read('docs', 'Round-2-Wording.md'), read('ROUND-2-AMENDMENT.md'), read('docs', 'Round-2-Amendment-Answers.md'), read('HANDOFF-ROUND-3.md'), read('HANDOFF-ROUND-4.md'), read('HANDOFF-ROUND-5.md'), read('HANDOFF-ROUND-6.md'), read('HANDOFF-ROUND-7.md'), read('HANDOFF-ROUND-8.md'), read('HANDOFF-ROUND-9.md')].join('\n');
 // "Skip count by 3" and "by 4" carry a non-breaking space in the lesson (HANDOFF-ROUND-4 3).
 const NB = s => s.replace(/by (\d)/, 'by\u00A0$1');
 const HANDOFF = read('HANDOFF.md');
@@ -563,8 +563,13 @@ const SCREENS = {
     async correct(p) {
       await typed(p, '6A1', '5', 'correct', S('Right: 5 × 1 = 5. The rule matches Figure 1.'));
       await chose(p, '6A2', 1, 'correct', S('Maybe. Always try another one.'));
-      await typed(p, '6B', [0, 50], 'correct', S('Figure 0 has 2 tiles, not 0. Figure 10 has 32, not 50. The rule is wrong.'));
-      ok(same(await texts(step(p, '6B').locator('[data-count]')), ['· 2 tiles', '· 32 tiles']), '6B: the pictures show the real counts');
+      const fig3 = await step(p, '6B1').evaluate(el => ({ captions: [...el.querySelectorAll('figcaption')].map(f => f.textContent.trim()), fixed: el.querySelectorAll('rect.t-const').length, group: el.querySelectorAll('rect.t-coef').length }));
+      ok(same(fig3, { captions: ['Figure 3'], fixed: 2, group: 9 }) && (await step(p, '6B').count()) === 0,
+        `6B1: Figure 3 in the two colours, 2 fixed tiles and 3 groups of 3, with no count shown; the old 6B is gone (got ${JSON.stringify(fig3)})`);
+      await typed(p, '6B1', '15', 'correct', S('Right: 5 × 3 = 15.'));
+      await typed(p, '6B2', '11', 'correct', S('Right: 11 tiles.'));
+      ok(same(await texts(step(p, '6B3').locator('.choice')), ['Yes', 'No']), '6B3: Yes, then No');
+      await chose(p, '6B3', 1, 'correct', S('Right. 5n gives 15, but Figure 3 has 11 tiles. The rule is wrong.'));
       await typed(p, '6C', [2, 5, 32], 'correct', S('It works for all three, including Figure 0 and a figure far away.'));
       await chose(p, '6D', 1, 'correct', S('Right. Three checks, and a structure that adds the same group every time.'));
     },
@@ -572,14 +577,24 @@ const SCREENS = {
       await typed(p, '6A1', '6', 'hint', S("Replace n with 1 in the student's rule, then multiply."));
       await typed(p, '6A1', '5', 'correct', 'Right: 5 × 1 = 5. The rule matches Figure 1.');
       ok(same(await texts(step(p, '6A2').locator('.choice')), ['Yes', 'Maybe', 'No']), '6A: Yes, Maybe, No, with the correct one not first');
-      const yes = S("It works for Figure 1, but one figure isn't enough. Try another one.");
+      const yes = S("We've only checked Figure 1. One figure can't tell us for sure, so the answer is 'Maybe', or 'No' if you already know the rule. Let's check another figure.");
       await chose(p, '6A2', 0, 'wrong', yes);
       await chose(p, '6A2', 0, 'wrong', yes);
       ok((await answerCard(p, '6A2')) === 'Maybe\nNo' && (await step(p, '6A2').locator('.choice.is-answer').count()) === 2, '6A2: the second-miss card names both right answers, Maybe and No');
       await chose(p, '6A2', 2, 'correct', S("Right, it's wrong, and the next step shows where. But Figure 1 alone couldn't tell you that. Always try another one."));
-      ok(await step(p, '6B').isVisible(), '6A2: "No" leads to Step 6B');
-      await typed(p, '6B', [2, 32], 'hint', S("Use the student's rule, 5n, not the picture. Replace n with 0, then with 10."));
-      await typed(p, '6B', [0, 50], 'correct', 'Figure 0 has 2 tiles, not 0. Figure 10 has 32, not 50. The rule is wrong.');
+      ok(await step(p, '6B1').isVisible(), '6A2: "No" leads to Step 6B1');
+      await typed(p, '6B1', '11', 'wrong', S("That's how many tiles Figure 3 has. What does the rule T = 5n give?"));
+      await typed(p, '6B1', '8', 'wrong', S('5n means 5 × n.'));
+      ok((await answerCard(p, '6B1')) === 'T = 15', '6B1: second miss shows the answer');
+      await typed(p, '6B1', '12', 'hint', S('Replace n with 3 in 5n.'));
+      await typed(p, '6B1', '15', 'correct', 'Right: 5 × 3 = 15.');
+      await typed(p, '6B2', '15', 'wrong', S('15 is what the rule gives. Count the tiles in the picture.'));
+      await typed(p, '6B2', '9', 'wrong', S('Count every tile, both colours.'));
+      ok((await answerCard(p, '6B2')) === '11', '6B2: second miss shows the answer');
+      await typed(p, '6B2', '10', 'hint', S('Count the fixed tiles, then each group of 3.'));
+      await typed(p, '6B2', '11', 'correct', 'Right: 11 tiles.');
+      await chose(p, '6B3', 0, 'wrong', S('The rule gave 15, but you counted 11.'));
+      await chose(p, '6B3', 1, 'correct', 'Right. 5n gives 15, but Figure 3 has 11 tiles. The rule is wrong.');
       await typed(p, '6C', [2, 5, 30], 'wrong', S('Substitute again: 3 × n, then add 2.'));
       await typed(p, '6C', [2, 5, 32], 'correct', 'It works for all three, including Figure 0 and a figure far away.');
       await chose(p, '6D', 0, 'wrong', S('So did 5n. One figure can fit a wrong rule.'));
@@ -594,7 +609,8 @@ const SCREENS = {
       ok(same(counts, [4, 7, 10]), `Screen 7: Figures 1 to 3 have 4, 7 and 10 sticks (got ${JSON.stringify(counts)})`);
       for (const e of ['t3', 'b3', 'v4']) await place(p, mode, piece(p, '7A1'), step(p, '7A1').locator(`[data-hit="${e}"]`));
       ok(await step(p, '7A2').isVisible(), `7A: Figure 4 is built by ${mode}`);
-      await typed(p, '7A2', '13', 'correct', S('Each new square needs only 3 sticks. It shares one with its neighbour.'));
+      await typed(p, '7A2', '13', 'correct', S('Right: 13 sticks.'));
+      await SCREENS[7].reason(p);
       await typed(p, '7B', '31', 'correct', S('1 + 3 × 10 = 31.'));
       ok((await step(p, '7B·f').count()) === 0, '7B: no follow-up item (removed in round 8)');
     },
@@ -604,13 +620,45 @@ const SCREENS = {
       ok(same((await feedback(p, '7A1')).says, [taken]), '7A: a stick dropped on an existing edge is rejected');
       for (const e of ['t3', 'b3', 'v4']) await place(p, 'mouse', piece(p, '7A1'), step(p, '7A1').locator(`[data-hit="${e}"]`));
       await typed(p, '7A2', '16', 'hint', S('Count every stick in Figure 4 once.'));
-      await typed(p, '7A2', '13 sticks', 'correct', 'Each new square needs only 3 sticks. It shares one with its neighbour.');
+      await typed(p, '7A2', '13 sticks', 'correct', 'Right: 13 sticks.');
+      await typed(p, '7S1', '4', 'wrong', S('The new square shares one stick with the square before. It adds only 3.'));
+      await typed(p, '7S1', '5', 'hint', S('Count the sticks in Figure 1, then in Figure 2.'));
+      ok((await answerCard(p, '7S1')) === '3', '7S1: second miss shows the answer');
+      await typed(p, '7S1', '3', 'correct', S('Right. Each new square adds 3 new sticks. That 3 is the coefficient.'));
+      await SCREENS[7].takeOff(p);
+      await typed(p, '7S2', '0', 'wrong', S('Take off only the 3 sticks a square adds. One stick stays.'));
+      await typed(p, '7S2', '4', 'wrong', S('Take off the 3 added sticks first.'));
+      ok((await answerCard(p, '7S2')) === '1', '7S2: second miss shows the answer');
+      await typed(p, '7S2', '2', 'hint', S('Figure 1 has 4 sticks. Take away the 3 a square adds.'));
+      await typed(p, '7S2', '1', 'correct', S("Right: 1 stick. That's what's there before any squares are added."));
       await typed(p, '7B', '30', 'wrong', S("3 for each square. Now look at Figure 1: does it follow the same pattern? It's 1 + 3."));
       await typed(p, '7B', '40', null);
       ok((await answerCard(p, '7B')) === null && (await step(p, '7B·f').count()) === 0, '7B: 40 starts Marc\'s move, not the Answer card or a follow-up');
       ok(!(await whyVisible(p)), '7B: Why? stays hidden during Marc\'s move');
       await screen7Move(p, { fig2: '8', fig3: '11' });
       ok(await whyVisible(p), '7B: Why? appears when Marc\'s move ends');
+    },
+    // 7S1 and 7S2 answered right (round 9): what each figure adds, then Figure 1 as 1 + 3.
+    async reason(p) {
+      await typed(p, '7S1', '3', 'correct', S('Right. Each new square adds 3 new sticks. That 3 is the coefficient.'));
+      await SCREENS[7].takeOff(p);
+      await typed(p, '7S2', '1', 'correct', S("Right: 1 stick. That's what's there before any squares are added."));
+    },
+    // 7S2: the left stick stays; the top, right and bottom come off, by tap on touch pages and by keyboard elsewhere.
+    async takeOff(p) {
+      const s = step(p, '7S2'), hit = e => s.locator(`[data-hit="${e}"]`), how = p.touch ? 'tap' : 'keyboard';
+      const press = async (e, key = 'Enter') => { if (p.touch) await hit(e).tap(); else { await hit(e).focus(); await p.keyboard.press(key); } };
+      // In the touch-drag run, the synthetic touch drags that built Figure 4 leave Chromium in a gesture that swallows the
+      // click of a tap made within about a second (measured: no click after a tap at once, a click after 1.5 s).
+      if (p.touch) await p.waitForTimeout(1500);
+      const sizes = await s.locator('rect.hit').evaluateAll(rs => rs.map(r => Math.round(Math.min(r.getBoundingClientRect().width, r.getBoundingClientRect().height))));
+      ok(sizes.length === 4 && sizes.every(x => x >= 44) && (await s.locator('input[data-input]').count()) === 0, `7S2: Figure 1's four sticks are targets of at least 44 px, and there's no box yet (got ${sizes})`);
+      await press('v0');
+      const stays = { says: (await feedback(p, '7S2')).says, sticks: await s.locator('line.stick').count() };
+      ok(same(stays, { says: [S("That stick stays. It's the one every figure starts with.")], sticks: 4 }), `7S2: the left stick can't be taken off (${how}; got ${JSON.stringify(stays)})`);
+      await press('t0'); await press('v1', ' '); await press('b0');
+      ok(same(await s.locator('line.stick').evaluateAll(ls => ls.map(l => l.dataset.edge)), ['v0']) && (await s.locator('input[data-input]').count()) === 1,
+        `7S2: the top, right and bottom sticks come off by ${how}; then the box appears`);
     },
     why: S('Every square after the first adds only 3 sticks, because it shares an edge with the square before it. The first square follows the same pattern if you see it as 1 stick plus 3. So Figure 1 is 1 + 3, Figure 2 is 1 + two 3s, Figure 3 is 1 + three 3s, and Figure 10 is 1 + ten 3s = 31.'),
   },
@@ -625,11 +673,13 @@ const SCREENS = {
       await checkFigureRows(p, 'Screen 9');
       ok(same(await SCREENS['3t'].table(p), [['Figure n', '1', '2', '3', '4'], ['Sticks', '', '', '', '']]), 'Screen 9: the table starts with Figure n and four empty Sticks boxes');
       await typed(p, '7R1', [4, 7, 10, 13], 'correct', S('Right: 4, 7, 10, 13.'));
-      await typed(p, '7R2', '3', 'correct', S('Right. Each new square adds 3 sticks. That 3 is the coefficient.'));
+      ok((await step(p, '7R2').count()) === 0, '7R2 is gone (round 9); 7R3 follows 7R1');
       await typed(p, '7R3', [3, 6], 'correct', S('Right: 3, 6, 9, 12.'));
       ok(same((await SCREENS['3t'].table(p))[2], [NB(S('Skip count by 3')), '', '', '9', '12']), '7R3: the rest of the skip-count row fills in');
       await typed(p, '7R4', [1, 1, 1, 1], 'correct', S('Right. Every figure has exactly 1 more.'));
       ok((await screenEl(p).locator('.comparetable tr').nth(3).locator('td.filled').count()) === 0, '7R4: all four typed; nothing filled in');
+      ok(same(await screenEl(p).locator('.comparetable th[scope="row"]').evaluateAll(ths => ths.map(th => th.textContent.trim())), ['Figure n', 'Sticks', NB('Skip count by 3'), 'How many more']),
+        'Screen 10: the table builds Sticks, then Skip count by 3, then How many more');
       ok((await screenEl(p).locator('[data-step="8C1"]').count()) === 1, 'Screen 9: 8C1 and 8C2 are on this screen');
       await slideTo(p, '8C1', 'Home', mode);
       await typed(p, '8C2', '1', 'correct', S("One lone stick. That's the constant: what's there at Figure 0."));
@@ -641,10 +691,6 @@ const SCREENS = {
       await typed(p, '7R1', [4, 7, 10, 12], 'hint', S('Count each stick once, including the ones two squares share.'));
       ok((await answerCard(p, '7R1')) === '4, 7, 10, 13', '7R1: second miss shows the answer');
       await typed(p, '7R1', [4, 7, 10, 13], 'correct', 'Right: 4, 7, 10, 13.');
-      await typed(p, '7R2', '4', 'wrong', S('Each new square shares a stick with the square before, so it adds only 3.'));
-      await typed(p, '7R2', '5', 'hint', S('Compare Figure 1 and Figure 2: 4 and 7.'));
-      ok((await answerCard(p, '7R2')) === '3', '7R2: second miss shows the answer');
-      await typed(p, '7R2', '3', 'correct', 'Right. Each new square adds 3 sticks. That 3 is the coefficient.');
       await typed(p, '7R3', [4, 7], 'wrong', S('Those are the sticks. Skip count by 3 on its own: 3, 6, …'));
       await typed(p, '7R3', [2, 4], 'hint', S('Count by 3, the number each figure adds.'));
       ok((await answerCard(p, '7R3')) === '3, 6', '7R3: second miss shows the answer');
@@ -970,7 +1016,7 @@ async function dataTextTests(p) {
   section = 'data block text';
   const { strings, prompts, parts } = await p.evaluate(() => {
     const strings = [], prompts = [];
-    const KEYS = ['say', 'hint', 'notCombined', 'result', 'model', 'ifWrong', 'ifChosen', 'ifMarkedCorrect', 'title', 'q', 'reminder', 'text', 'moveFirst', 'groupsNote'];
+    const KEYS = ['say', 'hint', 'notCombined', 'result', 'model', 'ifWrong', 'ifChosen', 'ifMarkedCorrect', 'title', 'q', 'reminder', 'text', 'moveFirst', 'groupsNote', 'stays'];
     const walk = (x, key) => {
       if (typeof x === 'string') {
         if (key === 'prompt') prompts.push(plain(x));
@@ -1076,6 +1122,7 @@ async function screen7Seven() {
   await playTo(p, 7);
   for (const e of ['t3', 'b3', 'v4']) await place(p, 'tap', piece(p, '7A1'), step(p, '7A1').locator(`[data-hit="${e}"]`));
   await typed(p, '7A2', '13', 'correct');
+  await SCREENS[7].reason(p);
   await typed(p, '7B', '40', null);
   await screen7Move(p, { fig2: '7', fig3: '10', hints: true });
   ok(await p.locator('#next').isEnabled(), 'Screen 7: done after the move');
@@ -1089,6 +1136,7 @@ async function screen7FollowUp() {
   await playTo(p, 7);
   for (const e of ['t3', 'b3', 'v4']) await place(p, 'tap', piece(p, '7A1'), step(p, '7A1').locator(`[data-hit="${e}"]`));
   await typed(p, '7A2', '13', 'correct');
+  await SCREENS[7].reason(p);
   await typed(p, '7B', '30', 'wrong');
   await typed(p, '7B', '29', 'hint', S('Start from Figure 1, then count how many sticks each new square adds.'));
   ok((await answerCard(p, '7B')) === '31', '7B: second miss shows the answer');
