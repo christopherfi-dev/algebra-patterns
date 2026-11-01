@@ -585,11 +585,12 @@ const LESSON = {
             { text: 'Yes', say: 'The rule gave 15, but you counted 11.' },
             { text: 'No', correct: true, say: 'Right. 5n gives 15, but Figure 3 has 11 tiles. The rule is wrong.' },
           ] },
-        { id: 'C', type: 'numbers', prompt: 'What does T = 3n + 2 give for Figures 0, 1 and 10?',
-          fields: [{ label: 'Figure 0' }, { label: 'Figure 1' }, { label: 'Figure 10' }],
-          answers: () => [0, 1, 10].map(ruleFn('3n + 2')),
+        // HANDOFF-ROUND-10 1: test the rule at figures whose counts the learner has: Figure 0 (Screen 4), 1 (this screen), 3 (6B2).
+        { id: 'C', type: 'numbers', prompt: 'What does T = 3n + 2 give for Figures 0, 1 and 3?',
+          fields: [{ label: 'Figure 0' }, { label: 'Figure 1' }, { label: 'Figure 3' }],
+          answers: () => [0, 1, 3].map(ruleFn('3n + 2')),
           judge: (v, st) => matches(v, st.answers())
-            ? { kind: 'correct', say: 'It works for all three, including Figure 0 and a figure far away.' }
+            ? { kind: 'correct', say: 'It matches all three counts: 2 tiles at Figure 0, 5 at Figure 1, and the 11 you counted at Figure 3.' }
             : { kind: 'wrong', say: 'Substitute again: 3 × n, then add 2.' } },
         { id: 'D', type: 'choice', prompt: 'Why can we trust 3n + 2 for every figure?',
           options: [
@@ -598,7 +599,7 @@ const LESSON = {
               say: 'Right. Three checks, and a structure that adds the same group every time.' },
           ] },
       ],
-      why: ['One figure can fit a wrong rule: 5n and 3n + 2 both give 5 at Figure 1. Another check exposes the wrong one. Figure 0 is a good test because it checks the constant, the tiles there before any group. A figure far away, like Figure 10, checks the coefficient, because a wrong coefficient drifts further off with every figure. When a pattern adds the same amount every time and a straight-line rule works for three figures, it works for all of them.'],
+      why: ['One figure can fit a wrong rule: 5n and 3n + 2 both give 5 at Figure 1. Another check exposes the wrong one. Figure 0 is a good test because it checks the constant, the tiles there before any group. A figure further along, like Figure 3, checks the coefficient: 5n was off by 4 there, and a wrong coefficient drifts further off with every figure. When a pattern adds the same amount every time and a straight-line rule works for three figures, it works for all of them.'],
     },
 
     /* ---------------- Screen 7 ---------------- */
