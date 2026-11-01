@@ -5,8 +5,8 @@ An interactive math lesson in one self-contained HTML file.
 ## Source of truth
 
 - The spec is `docs/Seeing-the-Rule-Interactive-Lesson-Plan.md`.
-- Marc's approved changes are in `HANDOFF-ROUND-9.md`, `HANDOFF-ROUND-8.md`, `HANDOFF-ROUND-7.md`, `HANDOFF-ROUND-6.md`, `HANDOFF-ROUND-5.md`, `HANDOFF-ROUND-4.md`, `HANDOFF-ROUND-3.md`, `ROUND-2-AMENDMENT.md`, `docs/Round-2-Decisions.md` and `docs/Round-2-Wording.md`.
-- Order of precedence: `HANDOFF-ROUND-9.md` first, then `HANDOFF-ROUND-8.md`, `HANDOFF-ROUND-7.md`, `HANDOFF-ROUND-6.md`, `HANDOFF-ROUND-5.md`, `HANDOFF-ROUND-4.md`, `HANDOFF-ROUND-3.md`, `ROUND-2-AMENDMENT.md`, the two round 2 files, and the spec, in that order. Everything a later file doesn't change still comes from the earlier ones.
+- Marc's approved changes are in `HANDOFF-ROUND-10.md`, `HANDOFF-ROUND-9.md`, `HANDOFF-ROUND-8.md`, `HANDOFF-ROUND-7.md`, `HANDOFF-ROUND-6.md`, `HANDOFF-ROUND-5.md`, `HANDOFF-ROUND-4.md`, `HANDOFF-ROUND-3.md`, `ROUND-2-AMENDMENT.md`, `docs/Round-2-Decisions.md` and `docs/Round-2-Wording.md`.
+- Order of precedence: `HANDOFF-ROUND-10.md` first, then `HANDOFF-ROUND-9.md`, `HANDOFF-ROUND-8.md`, `HANDOFF-ROUND-7.md`, `HANDOFF-ROUND-6.md`, `HANDOFF-ROUND-5.md`, `HANDOFF-ROUND-4.md`, `HANDOFF-ROUND-3.md`, `ROUND-2-AMENDMENT.md`, the two round 2 files, and the spec, in that order. Everything a later file doesn't change still comes from the earlier ones.
 
 ## Who decides
 
@@ -18,6 +18,11 @@ An interactive math lesson in one self-contained HTML file.
 ## Marc's teaching method
 
 Every screen must follow the first principle in `docs/Marc-Teaching-Moves.md`: gradual release (I do, we do, you do). Nothing is asked of a learner on their own that they haven't first done with support, on more than one example, and every explanation comes before the step that needs it, not only in Why?. Check each step against this before building or reporting. If a step breaks it, report it by step ID; don't fix it on your own.
+
+When auditing:
+
+- A step counts as prepared if what the required path has already taught gives the learner a valid way to reach it. It doesn't have to be the method or picture the lesson uses later.
+- Building a rule step by step with the lesson's support is "we do", not writing on one's own. Choosing between rules has to come before writing a rule on one's own (Screen 14 and the exit ticket), not before guided rule-building.
 
 ## Fixed rules
 
