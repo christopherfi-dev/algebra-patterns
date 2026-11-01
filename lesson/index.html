@@ -609,8 +609,24 @@ const LESSON = {
         { id: 'A1', type: 'buildSticks', prompt: 'Drag sticks to build Figure 4.', from: 3 },
         { id: 'A2', type: 'number', prompt: 'How many sticks does Figure 4 have?',
           answer: () => stickCount(4),
-          say: 'Each new square needs only 3 sticks. It shares one with its neighbour.',
+          say: 'Right: 13 sticks.',   // HANDOFF-ROUND-9 2: the old text gave away the next step's answer
           hint: 'Count every stick in Figure 4 once.' },
+        // HANDOFF-ROUND-9 2: the reasoning before Figure 10 (Marc's move 4): what each figure adds, then Figure 1 as 1 + 3.
+        { id: 'S1', type: 'number', prompt: 'How many sticks do we add to make the next figure?',
+          answer: () => stickCount(2) - stickCount(1),
+          say: 'Right. Each new square adds 3 new sticks. That 3 is the coefficient.',
+          wrong: [{ values: [4], say: 'The new square shares one stick with the square before. It adds only 3.' }],
+          hint: 'Count the sticks in Figure 1, then in Figure 2.' },
+        { id: 'S2', type: 'takeSticks', figure: 1, take: stickEdges(1).filter(e => !stickEdges(0).includes(e)),
+          prompt: 'Every figure adds 3 sticks, Figure 1 too. Tap those 3 sticks to take them off Figure 1. How many sticks are left?',
+          stays: "That stick stays. It's the one every figure starts with.",
+          answer: () => stickCount(0),
+          say: "Right: 1 stick. That's what's there before any squares are added.",
+          wrong: [
+            { values: [0], say: 'Take off only the 3 sticks a square adds. One stick stays.' },
+            { values: [stickCount(1)], say: 'Take off the 3 added sticks first.' },
+          ],
+          hint: 'Figure 1 has 4 sticks. Take away the 3 a square adds.' },
         { id: 'B', type: 'number', prompt: 'How many sticks does Figure 10 have?',
           answer: () => stickCount(10),
           say: '1 + 3 × 10 = 31.',
@@ -1750,6 +1766,47 @@ const STEPS = {
     draggable(piece, opts);
     for (const e of all) tapTarget(hits[e], e, opts);
     add(c.el, h('div', { class: 'card' }, h('div', { class: 'figs' }, target)), tray, fb);
+  },
+
+  // Screen 7 (round 9): tap the sticks a square adds to take them off a figure; the starting stick stays. Once they're off,
+  // the learner types how many sticks are left. Each stick's target is at least 44 px, as in buildSticks.
+  takeSticks(st, c) {
+    add(c.el, promptEl(st));
+    const scale = 1.68, thick = 44 / scale + 2, len = SIDE - 2 * INSET;
+    const svg = sticksSVG(st.figure, { scale, edges: [] });
+    svg.setAttribute('aria-label', `Figure ${st.figure}`);
+    const fb = h('div', { class: 'fb', role: 'status', 'aria-live': 'polite' });
+    const left = new Set(st.take), hits = [];
+    for (const e of stickEdges(st.figure)) {
+      const g = edgeLine(e), v = e[0] === 'v', cx = (g.x1 + g.x2) / 2, cy = (g.y1 + g.y2) / 2;
+      const line = s('line', { ...g, class: 'stick', 'data-edge': e });
+      const hit = s('rect', { class: 'hit', x: v ? cx - thick / 2 : cx - len / 2, y: v ? cy - len / 2 : cy - thick / 2, width: v ? thick : len, height: v ? len : thick,
+        role: 'button', tabindex: '0', 'aria-label': edgeName(e), 'data-hit': e });
+      const tap = () => {
+        if (!left.has(e)) {   // the starting stick can't be taken off
+          fb.replaceChildren(note('wrong', [{ cls: 'say', text: st.stays }]));
+          line.classList.remove('flash'); void line.getBBox(); line.classList.add('flash');
+          return;
+        }
+        left.delete(e);
+        line.remove();
+        hit.remove();
+        fb.replaceChildren();
+        if (left.size) return;
+        hits.forEach(r => r.remove());
+        fb.remove();
+        const f = inputField(st, 'number');
+        const row = h('div', { class: 'row' }, f.el);
+        askStep({ ...st, type: 'number' }, c, inputsUI([f.inp], row, row));   // from here it's a typed number, judged as one
+        focusSoon(f.inp);
+      };
+      hit.addEventListener('click', tap);
+      hit.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); tap(); } });
+      add(svg, line);
+      hits.push(hit);
+    }
+    hits.forEach(r => add(svg, r));
+    add(c.el, h('div', { class: 'card' }, h('div', { class: 'figs' }, fig(svg, `Figure ${st.figure}`))), fb);
   },
 
   // Screen 7, Marc's move: the sticks light up one by one, then the shared edges flash.
