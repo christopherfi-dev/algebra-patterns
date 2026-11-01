@@ -20,12 +20,13 @@ Open `lesson/index.html` in any modern browser: double-click it, or drag it into
 | `docs/Seeing-the-Rule-Interactive-Lesson-Plan.md` | The original spec. |
 | `docs/Round-2-Decisions.md`, `docs/Round-2-Wording.md` | Marc's round 2 decisions and approved wording. |
 | `ROUND-2-AMENDMENT.md`, `docs/Round-2-Amendment-Answers.md` | Marc's narrowing of the lesson to one idea, and his answers to two questions about it. |
-| `HANDOFF-ROUND-4.md`, `HANDOFF-ROUND-3.md` | Rounds 4 and 3: Marc's answers and the latest changes. Round 4 is first in precedence. |
+| `HANDOFF-ROUND-10.md`, `HANDOFF-ROUND-9.md`, `HANDOFF-ROUND-8.md`, `HANDOFF-ROUND-7.md`, `HANDOFF-ROUND-6.md`, `HANDOFF-ROUND-5.md`, `HANDOFF-ROUND-4.md`, `HANDOFF-ROUND-3.md` | Rounds 10 to 3: Marc's answers and approved changes. Precedence runs newest first: round 10, then 9 down to 3, then `ROUND-2-AMENDMENT.md`, the two round 2 files and the spec. |
 | `docs/Marc-Teaching-Moves.md` | Why the screens work the way they do. |
 | `tests/lesson.test.js` | Playwright tests: every correct path and every predicted wrong answer, at phone and desktop size. |
 | `test-results/screenshots/` | Screenshots of every screen at 390 × 844 and 1280 × 800; WebKit captures in `webkit/`. |
 | `REPORT.md` | What was built, every decision the source of truth left open, and questions for Marc. |
 | `handback/` | A short report after each round, for the master thread. |
+| `audit/` | The gradual-release audit: the screens checked against Marc's teaching method, rerun each round. |
 | `CLAUDE.md`, `HANDOFF.md`, `HANDOFF-ROUND-2.md` | The project rules and the earlier build briefs. |
 
 ## Run the tests
